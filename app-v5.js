@@ -141,39 +141,27 @@ if(cloudReady){supabaseClient=window.supabase.createClient(cloudConfig.url,cloud
 
 
 const RANKS=[
-  {min:0,name:'Latón',spriteIndex:0},
-  {min:230,name:'Bronce I',spriteIndex:1},
-  {min:300,name:'Bronce II',spriteIndex:2},
-  {min:380,name:'Bronce III',spriteIndex:3},
-  {min:470,name:'Plata I',spriteIndex:4},
-  {min:570,name:'Plata II',spriteIndex:5},
-  {min:680,name:'Plata III',spriteIndex:6},
-  {min:800,name:'Oro I',spriteIndex:7},
-  {min:930,name:'Oro II',spriteIndex:8},
-  {min:1070,name:'Oro III',spriteIndex:9},
-  {min:1220,name:'Amatista I',spriteIndex:13},
-  {min:1380,name:'Amatista II',spriteIndex:12},
-  {min:1550,name:'Amatista III',spriteIndex:19},
-  {min:1730,name:'Esmeralda I',spriteIndex:14},
-  {min:1920,name:'Esmeralda II',spriteIndex:11},
-  {min:2120,name:'Esmeralda III',spriteIndex:15},
-  {min:2330,name:'Diamante I',spriteIndex:16},
-  {min:2550,name:'Diamante II',spriteIndex:17},
-  {min:2770,name:'Diamante III',spriteIndex:10},
-  {min:3000,name:'Diamante Negro',spriteIndex:18}
+  {min:0,name:'Latón',image:'assets/ranks/01_Laton.png'},
+  {min:230,name:'Bronce I',image:'assets/ranks/02_Bronce_I.png'},
+  {min:300,name:'Bronce II',image:'assets/ranks/03_Bronce_II.png'},
+  {min:380,name:'Bronce III',image:'assets/ranks/04_Bronce_III.png'},
+  {min:470,name:'Plata I',image:'assets/ranks/05_Plata_I.png'},
+  {min:570,name:'Plata II',image:'assets/ranks/06_Plata_II.png'},
+  {min:680,name:'Plata III',image:'assets/ranks/07_Plata_III.png'},
+  {min:800,name:'Oro I',image:'assets/ranks/08_Oro_I.png'},
+  {min:930,name:'Oro II',image:'assets/ranks/09_Oro_II.png'},
+  {min:1070,name:'Oro III',image:'assets/ranks/10_Oro_III.png'},
+  {min:1220,name:'Amatista I',image:'assets/ranks/11_Amatista_I.png'},
+  {min:1380,name:'Amatista II',image:'assets/ranks/12_Amatista_II.png'},
+  {min:1550,name:'Amatista III',image:'assets/ranks/13_Amatista_III.png'},
+  {min:1730,name:'Esmeralda I',image:'assets/ranks/14_Esmeralda_I.png'},
+  {min:1920,name:'Esmeralda II',image:'assets/ranks/15_Esmeralda_II.png'},
+  {min:2120,name:'Esmeralda III',image:'assets/ranks/16_Esmeralda_III.png'},
+  {min:2330,name:'Diamante I',image:'assets/ranks/17_Diamante_I.png'},
+  {min:2550,name:'Diamante II',image:'assets/ranks/18_Diamante_II.png'},
+  {min:2770,name:'Diamante III',image:'assets/ranks/19_Diamante_III.png'},
+  {min:3000,name:'Diamante Negro',image:'assets/ranks/20_Diamante_Negro.png'}
 ];
-
-const RANK_SPRITE_PARTS=[
-  'assets/ranks/rank-sprite.part01.b64?v=2',
-  'assets/ranks/rank-sprite.part02.b64?v=2',
-  'assets/ranks/rank-sprite.part03a.b64?v=2',
-  'assets/ranks/rank-sprite.part03b.b64?v=2',
-  'assets/ranks/rank-sprite.part03c.b64?v=2',
-  'assets/ranks/rank-sprite.part04.b64?v=2',
-  'assets/ranks/rank-sprite.part05.b64?v=2',
-  'assets/ranks/rank-sprite.part06.b64?v=2'
-];
-let rankSpritePromise=null;
 
 function getRankByElo(value){
   const elo=Number.isFinite(Number(value))?Number(value):200;
@@ -185,136 +173,27 @@ function getRankByElo(value){
   return {...RANKS[index],index};
 }
 
-function makeRankSpriteTransparent(dataUrl){
-  return new Promise((resolve,reject)=>{
-    const img=new Image();
-    img.onload=()=>{
-      try{
-        const width=img.naturalWidth||img.width;
-        const height=img.naturalHeight||img.height;
-        const canvas=document.createElement('canvas');
-        canvas.width=width;
-        canvas.height=height;
-        const ctx=canvas.getContext('2d',{willReadFrequently:true});
-        ctx.clearRect(0,0,width,height);
-        ctx.drawImage(img,0,0);
-
-        const frame=ctx.getImageData(0,0,width,height);
-        const pixels=frame.data;
-        const visited=new Uint8Array(width*height);
-        const columns=5;
-        const rows=4;
-        const cellWidth=Math.floor(width/columns);
-        const cellHeight=Math.floor(height/rows);
-        const darkLimit=26;
-
-        const isBackgroundDark=index=>{
-          const p=index*4;
-          return pixels[p]<=darkLimit&&pixels[p+1]<=darkLimit&&pixels[p+2]<=darkLimit;
-        };
-
-        for(let row=0;row<rows;row++){
-          for(let col=0;col<columns;col++){
-            const x0=col*cellWidth;
-            const y0=row*cellHeight;
-            const x1=col===columns-1?width:(col+1)*cellWidth;
-            const y1=row===rows-1?height:(row+1)*cellHeight;
-            const queue=new Int32Array((x1-x0)*(y1-y0));
-            let head=0;
-            let tail=0;
-
-            const add=(x,y)=>{
-              if(x<x0||x>=x1||y<y0||y>=y1)return;
-              const index=y*width+x;
-              if(visited[index]||!isBackgroundDark(index))return;
-              visited[index]=1;
-              queue[tail++]=index;
-            };
-
-            for(let x=x0;x<x1;x++){
-              add(x,y0);
-              add(x,y1-1);
-            }
-            for(let y=y0;y<y1;y++){
-              add(x0,y);
-              add(x1-1,y);
-            }
-
-            while(head<tail){
-              const index=queue[head++];
-              const p=index*4;
-              pixels[p+3]=0;
-              const x=index%width;
-              const y=Math.floor(index/width);
-              add(x-1,y);
-              add(x+1,y);
-              add(x,y-1);
-              add(x,y+1);
-            }
-          }
-        }
-
-        ctx.putImageData(frame,0,0);
-        resolve(canvas.toDataURL('image/png'));
-      }catch(error){
-        reject(error);
-      }
-    };
-    img.onerror=()=>reject(new Error('No se pudo procesar la hoja de insignias.'));
-    img.src=dataUrl;
-  });
-}
-
-function getRankSpriteUrl(){
-  if(!rankSpritePromise){
-    rankSpritePromise=Promise.all(RANK_SPRITE_PARTS.map(async path=>{
-      const response=await fetch(path,{cache:'force-cache'});
-      if(!response.ok)throw new Error('No se pudo cargar '+path);
-      return (await response.text()).trim();
-    }))
-      .then(parts=>'data:image/webp;base64,'+parts.join(''))
-      .then(makeRankSpriteTransparent);
-  }
-  return rankSpritePromise;
+function applyRankImage(element,rank){
+  if(!element||!rank)return;
+  element.setAttribute('aria-label','Insignia '+rank.name);
+  element.title='Rango '+rank.name;
+  element.style.backgroundImage='url("'+rank.image+'?v=20260930-hq1")';
+  element.style.backgroundPosition='center';
+  element.style.backgroundSize='contain';
+  element.style.backgroundRepeat='no-repeat';
+  element.textContent='';
 }
 
 async function renderRankBadge(rank){
   if(!rankBadgeImage)return;
-  rankBadgeImage.textContent=rank.name;
-  rankBadgeImage.setAttribute('aria-label','Rango '+rank.name);
-  rankBadgeImage.title='Rango '+rank.name;
-  const spriteIndex=Number.isInteger(rank.spriteIndex)?rank.spriteIndex:rank.index;
-  const col=spriteIndex%5;
-  const row=Math.floor(spriteIndex/5);
-  try{
-    const sprite=await getRankSpriteUrl();
-    rankBadgeImage.style.backgroundImage='url("'+sprite+'")';
-    rankBadgeImage.style.backgroundPosition=(col*25)+'% '+(row*(100/3))+'%';
-    rankBadgeImage.textContent='';
-  }catch(error){
-    console.error('No se pudo cargar la insignia de rango:',error);
-    rankBadgeImage.style.backgroundImage='none';
-  }
+  applyRankImage(rankBadgeImage,rank);
 }
 
 async function renderPlayerDetailRankBadge(rank){
   if(!playerDetailRankBadge)return;
-  const spriteIndex=Number.isInteger(rank.spriteIndex)?rank.spriteIndex:rank.index;
-  const col=spriteIndex%5;
-  const row=Math.floor(spriteIndex/5);
-  playerDetailRankBadge.setAttribute('aria-label','Insignia '+rank.name);
-  playerDetailRankBadge.title='Rango '+rank.name;
-  try{
-    const sprite=await getRankSpriteUrl();
-    if(!currentDetailPlayer)return;
-    playerDetailRankBadge.style.backgroundImage='url("'+sprite+'")';
-    playerDetailRankBadge.style.backgroundPosition=(col*25)+'% '+(row*(100/3))+'%';
-  }catch(error){
-    console.error('No se pudo cargar la insignia del perfil:',error);
-    playerDetailRankBadge.style.backgroundImage='none';
-  }
+  if(!currentDetailPlayer)return;
+  applyRankImage(playerDetailRankBadge,rank);
 }
-
 
 
 
