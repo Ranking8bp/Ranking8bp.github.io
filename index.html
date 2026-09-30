@@ -341,7 +341,15 @@
       <div id="matchmakingVersus" hidden>
         <div class="matchmaking-mode">RANKING ARMADO</div>
         <div class="versus-grid"><div class="versus-player"><div class="versus-avatar" id="versusMyAvatar"><span>?</span></div><strong id="versusMe">TÚ</strong><span id="versusMyRank">LATÓN</span><span id="versusMyPosition">RANKING #--</span><span id="versusMyElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusMyGameId">--</strong><button type="button" id="copyMyGameId" title="Copiar ID">📋 COPIAR</button></div></div><b>VS</b><div class="versus-player"><div class="versus-avatar" id="versusOpponentAvatar"><span>?</span></div><strong id="versusOpponent">RIVAL</strong><span id="versusOpponentRank">LATÓN</span><span id="versusOpponentPosition">RANKING #--</span><span id="versusOpponentElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusOpponentGameId">--</strong><button type="button" id="copyOpponentGameId" title="Copiar ID">📋 COPIAR</button></div></div></div>
-        <div class="elo-stakes"><span>GANADOR <b>+15 ELO</b></span><span>PERDEDOR <b>-15 ELO</b></span></div><div class="confirmed-match-warning" id="confirmedMatchWarning" hidden><strong>PARTIDO CONFIRMADO POR ADMINISTRADOR</strong><span>SI ABANDONAS PIERDES -15 ELO</span><span>SI NO TE PRESENTAS A TU PARTIDO EN EL LIVE PIERDES -15 ELO.</span></div><button type="button" class="abandon-ranked-btn" id="abandonRankedBtn">ABANDONAR EMPAREJAMIENTO</button><div class="player-waiting-room"><strong>PARTIDA EN ESPERA DE RESULTADO</strong><span id="pendingMatchesCount">0 PARTIDOS PENDIENTES</span><small>Esta sala permanecerá visible hasta que el administrador registre o anule el resultado.</small></div>
+        <div class="elo-stakes"><span>GANADOR <b>+15 ELO</b></span><span>PERDEDOR <b>-15 ELO</b></span></div><div class="confirmed-match-warning" id="confirmedMatchWarning" hidden><strong>PARTIDO CONFIRMADO POR ADMINISTRADOR</strong><span>SI ABANDONAS PIERDES -15 ELO</span><span>SI NO TE PRESENTAS A TU PARTIDO EN EL LIVE PIERDES -15 ELO.</span></div>
+        <div class="ranked-video-proof" id="rankedVideoProof" hidden>
+          <strong>¿GANASTE EL PARTIDO?</strong>
+          <span>Sube un video de máximo <b>15 segundos</b> donde se vea el tiro con el que ganaste.</span>
+          <input id="rankedWinnerVideoInput" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" hidden>
+          <button type="button" id="rankedWinnerVideoBtn">🎥 SUBIR VIDEO DEL TIRO GANADOR</button>
+          <small id="rankedWinnerVideoStatus">El administrador revisará el video antes de confirmar el ganador.</small>
+        </div>
+        <button type="button" class="abandon-ranked-btn" id="abandonRankedBtn">ABANDONAR EMPAREJAMIENTO</button><div class="player-waiting-room"><strong>PARTIDA EN ESPERA DE RESULTADO</strong><span id="pendingMatchesCount">0 PARTIDOS PENDIENTES</span><small>Esta sala permanecerá visible hasta que el administrador registre o anule el resultado.</small></div>
       </div>
     </section>
   </div>
