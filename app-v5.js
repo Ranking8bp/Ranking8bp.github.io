@@ -406,8 +406,18 @@ async function updateRankedDailyStatus(){
 function hasDirectMatchmakingRequest(){
   try{return new URLSearchParams(window.location.search).get('mode')==='ranking-matchmaking'||sessionStorage.getItem('ranking_direct_matchmaking')==='1'}catch(e){return false}
 }
+function consumeDirectMatchmakingUrl(){
+  try{
+    const url=new URL(window.location.href);
+    if(url.searchParams.get('mode')==='ranking-matchmaking'){
+      url.searchParams.delete('mode');
+      history.replaceState(null,'',url.pathname+(url.search?url.search:'')+(url.hash||''));
+    }
+  }catch(e){}
+}
 function maybeOpenDirectMatchmaking(){
   if(!hasDirectMatchmakingRequest())return;
+  consumeDirectMatchmakingUrl();
   if(!currentUser){
     try{sessionStorage.setItem('ranking_direct_matchmaking','1')}catch(e){}
     if(loginModal){
