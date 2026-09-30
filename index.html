@@ -345,6 +345,18 @@
       </div>
     </section>
   </div>
+  <div class="elo-daily-limit-backdrop" id="eloDailyLimitModal" hidden>
+    <section class="elo-daily-limit-card" role="dialog" aria-modal="true">
+      <button type="button" class="elo-daily-limit-close" id="eloDailyLimitClose">×</button>
+      <div class="elo-daily-limit-icon">🎱</div>
+      <small>LÍMITE DIARIO DE ELO</small>
+      <h2>YA JUGASTE TUS 3 PARTIDOS</h2>
+      <p>Ya completaste tus 3 partidas de ranking por ELO de hoy.</p>
+      <strong>Podrás volver a jugar en:</strong>
+      <div class="elo-daily-countdown" id="eloDailyCountdown">--:--:--</div>
+      <span>El límite se reinicia automáticamente cada día.</span>
+    </section>
+  </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="private-message-backdrop" id="privateMessageModal" hidden>
     <section class="private-message-card" role="dialog" aria-modal="true">
