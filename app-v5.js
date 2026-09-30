@@ -715,6 +715,11 @@ function renderProfileComments(comments){
     heart.setAttribute('aria-label',comment.viewer_liked?'Quitar corazón':'Dar corazón');
     heart.addEventListener('click',()=>toggleCommentHeart(comment,heart));
     actions.appendChild(heart);
+    if(currentProfile?.is_admin){
+      const del=document.createElement('button');del.type='button';del.className='admin-comment-delete';del.textContent='BORRAR';del.title='Borrar comentario';
+      del.onclick=async()=>{if(!confirm('¿Borrar este comentario?'))return;const {error}=await supabaseClient.rpc('admin_delete_comment',{p_comment_id:comment.comment_id});if(error){console.error(error);showToast('No se pudo borrar el comentario.');return}item.remove();showToast('Comentario borrado.');if(profileCommentCount)profileCommentCount.textContent=String(Math.max(0,Number(profileCommentCount.textContent||0)-1))};
+      actions.appendChild(del);
+    }
     item.append(head,body,actions);
     profileCommentsList.appendChild(item);
   });
