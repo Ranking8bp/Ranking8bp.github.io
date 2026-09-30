@@ -1061,12 +1061,21 @@ async function getProfile(userId){
 }
 
 async function restoreSession(){
-  if(!cloudReady){setGuestUI();return}
-  const {data,error}=await supabaseClient.auth.getSession();
-  if(error||!data.session){setGuestUI();return}
-  const profile=await getProfile(data.session.user.id);
-  await setPlayerUI(profile,data.session.user)
+  if(!cloudReady){return}
+  try{
+    const {data,error}=await supabaseClient.auth.getSession();
+    if(error||!data.session)return;
+    const profile=await getProfile(data.session.user.id);
+    await setPlayerUI(profile,data.session.user);
+  }catch(error){
+    console.error('Error restaurando sesión:',error);
+  }
 }
+
+// Mostrar siempre la interfaz pública inmediatamente. La sesión, si existe,
+// se restaura después sin bloquear la clasificación ni el resto del sitio.
+setGuestUI();
+restoreSession().catch(error=>console.error('Error restaurando sesión:',error));
 
 loginBtn.addEventListener('click',()=>{loginError.textContent='';openModal(loginModal,loginUsername)});
 registerBtn.addEventListener('click',()=>{registerError.textContent='';openModal(registerModal,username)});
@@ -1290,7 +1299,6 @@ if(cloudReady){
     if(event==='SIGNED_IN'||event==='INITIAL_SESSION'||event==='TOKEN_REFRESHED'){const profile=await getProfile(session.user.id);await setPlayerUI(profile,session.user)}
   })
 }
-restoreSession();
 setTimeout(()=>{if(guestEmpty&&!guestEmpty.hidden)renderGuestRankShowcase().catch(()=>{})},300);
 
 const dashboardChatBtn=document.getElementById('dashboardChatBtn'),generalChatModal=document.getElementById('generalChatModal'),generalChatClose=document.getElementById('generalChatClose'),generalChatMessages=document.getElementById('generalChatMessages'),generalChatForm=document.getElementById('generalChatForm'),generalChatInput=document.getElementById('generalChatInput');
