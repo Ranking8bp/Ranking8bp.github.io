@@ -60,6 +60,8 @@ const dashboardMessage=document.getElementById('dashboardMessage');
 const rankBadgeImage=document.getElementById('rankBadgeImage');
 const rankingList=document.getElementById('rankingList');
 const rankingCount=document.getElementById('rankingCount');
+const rankingSearchInput=document.getElementById('rankingSearchInput');
+let rankingPlayersCache=[];
 const playerDetailModal=document.getElementById('playerDetailModal');
 const closePlayerDetail=document.getElementById('closePlayerDetail');
 const playerDetailAvatar=document.getElementById('playerDetailAvatar');
@@ -976,8 +978,9 @@ async function loadRanking(attempt=0){
     }
 
     const players=Array.isArray(data)?data:[];
-    rankingList.replaceChildren();
-    rankingCount.textContent=players.length+' '+(players.length===1?'JUGADOR':'JUGADORES');
+    rankingPlayersCache=players;
+    renderFilteredRanking();
+
 
     if(!players.length){
       const empty=document.createElement('div');
@@ -993,6 +996,26 @@ async function loadRanking(attempt=0){
     rankingList.innerHTML='<div class="ranking-loading ranking-error">No se pudo cargar la clasificación. Toca aquí para reintentar.</div>';
     rankingList.onclick=()=>{rankingList.onclick=null;loadRanking()};
   }
+}
+
+function renderFilteredRanking(){
+  if(!rankingList||!rankingCount)return;
+  const query=String(rankingSearchInput?.value||'').trim().toLocaleLowerCase('es');
+  const filtered=rankingPlayersCache.filter(player=>{
+    const name=String(player?.username||player?.account_name||'').toLocaleLowerCase('es');
+    return !query||name.includes(query);
+  });
+  rankingList.replaceChildren();
+  rankingCount.textContent=filtered.length+' '+(filtered.length===1?'JUGADOR':'JUGADORES');
+  if(!filtered.length){
+    const empty=document.createElement('div');empty.className='ranking-loading';
+    empty.textContent=query?'No se encontró ningún jugador.':'Todavía no hay jugadores registrados.';
+    rankingList.appendChild(empty);return;
+  }
+  filtered.forEach(player=>{
+    const originalIndex=rankingPlayersCache.indexOf(player);
+    rankingList.appendChild(buildRankingRow(player,originalIndex));
+  });
 }
 
 async function getProfile(userId){
@@ -1260,3 +1283,5 @@ async function enablePushNotifications(){
  try{const permission=await Notification.requestPermission();if(permission!=='granted'){showToast('Debes permitir las notificaciones.');return}const reg=await navigator.serviceWorker.register('./sw.js?v=1');await navigator.serviceWorker.ready;let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidBytes(PUSH_VAPID_PUBLIC)});const j=sub.toJSON();const {error}=await supabaseClient.from('push_subscriptions').upsert({user_id:currentUser.id,endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth},{onConflict:'endpoint'});if(error)throw error;pushEnableBtn.textContent='🔔 NOTIFICACIONES ACTIVADAS';pushEnableBtn.classList.add('enabled');showToast('Notificaciones activadas en este dispositivo.')}catch(e){console.error(e);showToast('No se pudieron activar las notificaciones.')}
 }
 pushEnableBtn?.addEventListener('click',enablePushNotifications);
+
+if(rankingSearchInput) rankingSearchInput.addEventListener('input',renderFilteredRanking);
