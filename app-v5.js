@@ -86,6 +86,7 @@ const playerHeartCountLabel=document.getElementById('playerHeartCountLabel');
 const playerFollowBtn=document.getElementById('playerFollowBtn');
 const playerPlayBtn=document.getElementById('playerPlayBtn');
 const playerMessageBtn=document.getElementById('playerMessageBtn');
+const playerAdminBtn=document.getElementById('playerAdminBtn');
 const privateMessageModal=document.getElementById('privateMessageModal');
 const privateMessageClose=document.getElementById('privateMessageClose');
 const privateMessageTo=document.getElementById('privateMessageTo');
@@ -881,9 +882,99 @@ async function toggleFollow(){
   await loadFollowStats(player);
  }catch(e){console.error(e);showToast('No se pudo actualizar el seguimiento.')}
 }
+function isCurrentUserAdmin(){
+  return !!currentProfile && (currentProfile.is_admin===true || String(currentProfile.username||'').toLowerCase()==='ikar8bp');
+}
+function closeAdminPlayerEditor(){
+  const modal=document.getElementById('adminPlayerEditorModal');
+  if(modal)modal.remove();
+}
+function openAdminPlayerEditor(player){
+  if(!isCurrentUserAdmin()||!player?.player_id){showToast('Solo el administrador puede usar esta función.');return}
+  closeAdminPlayerEditor();
+  const modal=document.createElement('div');modal.id='adminPlayerEditorModal';modal.className='admin-player-editor-backdrop';
+  modal.innerHTML=`<section class="admin-player-editor" role="dialog" aria-modal="true">
+    <div class="admin-player-editor-head"><div><small>ADMINISTRAR JUGADOR</small><h2>Editar perfil</h2></div><button type="button" class="admin-editor-close">×</button></div>
+    <div class="admin-player-editor-grid">
+      <label class="field"><span class="field-label">Nombre de usuario</span><input id="adminEditUsername" maxlength="30"></label>
+      <label class="field"><span class="field-label">Nombre visible</span><input id="adminEditAccountName" maxlength="80"></label>
+      <label class="field"><span class="field-label">Contraseña nueva</span><input id="adminEditPassword" type="password" minlength="6" placeholder="Dejar vacío = no cambiar"></label>
+      <label class="field"><span class="field-label">ID 8 Ball Pool</span><input id="adminEditGameId" maxlength="80"></label>
+      <label class="field"><span class="field-label">País</span><input id="adminEditCountry" maxlength="80"></label>
+      <label class="field"><span class="field-label">ELO</span><input id="adminEditElo" type="number" min="0"></label>
+      <label class="field"><span class="field-label">Victorias</span><input id="adminEditWins" type="number" min="0"></label>
+      <label class="field"><span class="field-label">Derrotas</span><input id="adminEditLosses" type="number" min="0"></label>
+      <label class="field"><span class="field-label">Rango</span><input id="adminEditRank" maxlength="80"></label>
+      <label class="field admin-editor-photo-field"><span class="field-label">Foto de perfil</span><input id="adminEditAvatar" type="file" accept="image/png,image/jpeg,image/webp"><small>JPG, PNG o WEBP · máximo 5 MB</small></label>
+    </div>
+    <div class="admin-editor-preview"><div id="adminEditAvatarPreview"></div><span id="adminEditStatus"></span></div>
+    <div class="admin-editor-actions"><button type="button" class="admin-editor-cancel">CANCELAR</button><button type="button" class="admin-editor-save">GUARDAR TODO</button></div>
+  </section>`;
+  document.body.appendChild(modal);
+  const q=id=>modal.querySelector('#'+id);
+  q('adminEditUsername').value=player.username||'';
+  q('adminEditAccountName').value=player.account_name||player.username||'';
+  q('adminEditGameId').value=player.game_id||'';
+  q('adminEditCountry').value=player.country||'';
+  q('adminEditElo').value=Number(player.elo_points)||200;
+  q('adminEditWins').value=Number(player.wins)||0;
+  q('adminEditLosses').value=Number(player.losses)||0;
+  q('adminEditRank').value=getRankByElo(Number(player.elo_points)||200).name;
+  const preview=q('adminEditAvatarPreview');
+  if(player.avatar_path&&supabaseClient){
+    const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
+    if(data?.publicUrl)preview.style.backgroundImage='url("'+data.publicUrl+'")';
+  }
+  q('adminEditAvatar').addEventListener('change',e=>{
+    const file=e.target.files?.[0];if(!file)return;
+    if(file.size>5*1024*1024){q('adminEditStatus').textContent='La foto supera 5 MB.';e.target.value='';return}
+    preview.style.backgroundImage='url("'+URL.createObjectURL(file)+'")';q('adminEditStatus').textContent='';
+  });
+  modal.querySelector('.admin-editor-close').onclick=closeAdminPlayerEditor;
+  modal.querySelector('.admin-editor-cancel').onclick=closeAdminPlayerEditor;
+  modal.addEventListener('click',e=>{if(e.target===modal)closeAdminPlayerEditor()});
+  modal.querySelector('.admin-editor-save').onclick=async()=>{
+    const save=modal.querySelector('.admin-editor-save');save.disabled=true;q('adminEditStatus').textContent='Guardando...';
+    try{
+      if(!supabaseClient||!currentUser)throw new Error('Sesión no disponible');
+      const username=q('adminEditUsername').value.trim().toLowerCase();
+      if(!/^[a-z0-9._-]{3,30}$/.test(username))throw new Error('El nombre de usuario no es válido.');
+      const file=q('adminEditAvatar').files?.[0];
+      if(file&&file.size>5*1024*1024)throw new Error('La foto supera 5 MB.');
+      let avatar_base64='';
+      let avatar_mime='';
+      if(file){
+        avatar_mime=file.type;
+        avatar_base64=await new Promise((resolve,reject)=>{
+          const r=new FileReader();r.onload=()=>resolve(String(r.result));r.onerror=reject;r.readAsDataURL(file);
+        });
+      }
+      const body={
+        user_id:player.player_id,username,account_name:q('adminEditAccountName').value.trim(),
+        game_id:q('adminEditGameId').value.trim(),country:q('adminEditCountry').value.trim(),
+        elo_points:Number(q('adminEditElo').value)||0,wins:Number(q('adminEditWins').value)||0,
+        losses:Number(q('adminEditLosses').value)||0,rank_name:q('adminEditRank').value.trim(),
+        password:q('adminEditPassword').value,avatar_base64,avatar_mime
+      };
+      const {data,error}=await supabaseClient.functions.invoke('admin-update-user',{body});
+      if(error||!data?.ok)throw new Error(data?.error||error?.message||'No se pudieron guardar los cambios.');
+      const {data:updated,error:readError}=await supabaseClient.rpc('get_profile_by_id',{p_player_id:player.player_id});
+      if(readError)throw readError;
+      const updatedPlayer=Array.isArray(updated)?updated[0]:updated;
+      if(updatedPlayer){currentDetailPlayer=updatedPlayer;await openRankingPlayer(updatedPlayer)}
+      closeAdminPlayerEditor();showToast('Perfil del jugador actualizado.');
+      if(typeof loadRanking==='function')loadRanking().catch(()=>{});
+    }catch(error){console.error(error);q('adminEditStatus').textContent=error?.message||'No se pudo guardar.';showToast(error?.message||'No se pudo guardar.')}
+    finally{save.disabled=false}
+  };
+}
 async function openRankingPlayer(player){
   if(!playerDetailModal)return;
   currentDetailPlayer=player;
+  if(playerAdminBtn){
+    playerAdminBtn.hidden=!isCurrentUserAdmin() || String(player?.username||'').toLowerCase()==='ikar8bp';
+    playerAdminBtn.onclick=()=>openAdminPlayerEditor(player);
+  }
 
   const displayName=String(player?.username||player?.account_name||'Jugador').toUpperCase();
   const country=player?.country||'País';
