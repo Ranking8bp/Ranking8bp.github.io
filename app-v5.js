@@ -327,6 +327,23 @@ async function updateRankedDailyStatus(){
  }catch(e){console.error(e);return null}
 }
 
+function hasDirectMatchmakingRequest(){
+  try{return new URLSearchParams(window.location.search).get('mode')==='ranking-matchmaking'||sessionStorage.getItem('ranking_direct_matchmaking')==='1'}catch(e){return false}
+}
+function maybeOpenDirectMatchmaking(){
+  if(!hasDirectMatchmakingRequest())return;
+  if(!currentUser){
+    try{sessionStorage.setItem('ranking_direct_matchmaking','1')}catch(e){}
+    if(loginModal){
+      loginError.textContent='';
+      openModal(loginModal,loginUsername);
+    }
+    return;
+  }
+  try{sessionStorage.removeItem('ranking_direct_matchmaking')}catch(e){}
+  setTimeout(()=>startRankedMatchmaking().catch(e=>console.error('Acceso directo a rival:',e)),120);
+}
+
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient)return;
  const status=await updateRankedDailyStatus();
@@ -568,6 +585,7 @@ async function setPlayerUI(profile,user){
   const avatarTask=profile?.avatar_path?loadAvatar(profile.avatar_path):Promise.resolve(clearAvatar());
   const followTask=loadDashboardFollowStats(profile?.id||user?.id);
   await Promise.allSettled([rankingTask,rankTask,avatarTask,followTask]);
+  maybeOpenDirectMatchmaking();
 }
 
 
