@@ -3,6 +3,8 @@ const guestEmpty=document.getElementById('guestEmpty');
 const playerDashboard=document.getElementById('playerDashboard');
 const guestRankingList=document.getElementById('guestRankingList');
 const guestRankingCount=document.getElementById('guestRankingCount');
+const guestRankingSearchInput=document.getElementById('guestRankingSearchInput');
+let guestRankingPlayers=[];
 const guestRankShowcase=document.getElementById('guestRankShowcase');
 const loginBtn=document.getElementById('loginBtn');
 const registerBtn=document.getElementById('registerBtn');
@@ -406,48 +408,49 @@ async function loadGuestRanking(){
  if(!guestRankingList)return;
  guestRankingList.innerHTML='<div class="ranking-loading">Cargando clasificación...</div>';
  try{
-  let players=[];
-  if(supabaseClient){
-    const {data,error}=await supabaseClient.rpc('get_public_ranking');
-    if(error)throw error;
-    players=(Array.isArray(data)?data:[]).slice(0,100);
-  }else{
-    const cfg=window.SUPABASE_CONFIG||{};
-    if(!cfg.url||!cfg.key)throw new Error('Configuración de Supabase no disponible');
-    const response=await fetch(cfg.url+'/rest/v1/rpc/get_public_ranking',{
-      method:'POST',
-      headers:{'apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Content-Type':'application/json'},
-      body:'{}'
-    });
-    if(!response.ok)throw new Error('RPC '+response.status);
-    const data=await response.json();
-    players=(Array.isArray(data)?data:[]).slice(0,100);
-  }
-  guestRankingList.replaceChildren();
-  if(guestRankingCount)guestRankingCount.textContent='TOP '+Math.min(100,players.length);
-  players.forEach((player,index)=>{
+  const {data,error}=await supabaseClient.rpc('get_public_ranking');
+  if(error)throw error;
+  guestRankingPlayers=(Array.isArray(data)?data:[]).slice(0,100);
+  renderGuestRanking();
+ }catch(e){
+  console.error('Ranking público:',e);
+  guestRankingList.innerHTML='<div class="ranking-loading ranking-error">No se pudo cargar la clasificación.</div>';
+ }
+}
+function renderGuestRanking(){
+ if(!guestRankingList)return;
+ const q=String(guestRankingSearchInput?.value||'').trim().toLocaleLowerCase('es');
+ const players=guestRankingPlayers.filter(p=>{
+   const name=(String(p?.username||'')+' '+String(p?.account_name||'')).toLocaleLowerCase('es');
+   return !q||name.includes(q);
+ });
+ guestRankingList.replaceChildren();
+ if(guestRankingCount)guestRankingCount.textContent=q?String(players.length)+' RESULTADOS':'TOP '+Math.min(100,players.length);
+ if(!players.length){
+   const empty=document.createElement('div');empty.className='ranking-loading';empty.textContent=q?'No se encontró ningún jugador.':'Todavía no hay jugadores registrados.';guestRankingList.appendChild(empty);return;
+ }
+ players.forEach((player,index)=>{
    const row=document.createElement('div');row.className='guest-ranking-row';
    const pos=document.createElement('strong');pos.className='guest-ranking-pos';pos.textContent=String(index+1);
    const name=document.createElement('div');name.className='guest-ranking-player';
    const avatar=document.createElement('span');avatar.className='guest-ranking-avatar';avatar.textContent=String(player.username||player.account_name||'J').charAt(0).toUpperCase();
-   if(player.avatar_path){
+   if(player.avatar_path&&supabaseClient){
     const {data:avatarData}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
-    if(avatarData?.publicUrl){const img=document.createElement('img');img.src=avatarData.publicUrl;img.alt='Foto de '+String(player.username||player.account_name||'Jugador');img.loading='lazy';img.onerror=()=>img.remove();avatar.appendChild(img)}
+    if(avatarData?.publicUrl){const img=document.createElement('img');img.src=avatarData.publicUrl;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();avatar.appendChild(img)}
    }
    const info=document.createElement('div');info.className='guest-ranking-player-info';
    const n=document.createElement('b');n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();
    const rank=getRankByElo(player.elo_points);const rankLine=document.createElement('span');rankLine.className='guest-ranking-rank';rankLine.textContent=rank.name.toUpperCase();
    const miniBadge=document.createElement('span');miniBadge.className='guest-ranking-rank-badge';renderRankBadgeOn(miniBadge,rank);
    miniBadge.setAttribute('role','button');miniBadge.tabIndex=0;miniBadge.title='Ver perfil y estadísticas';
-   const openBadgeProfile=event=>{event.stopPropagation();openRankingPlayer(player);};
+   const openBadgeProfile=event=>{event.stopPropagation();openRankingPlayer(player)};
    miniBadge.addEventListener('click',openBadgeProfile);
-   miniBadge.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openBadgeProfile(event);}});
+   miniBadge.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openBadgeProfile(event)}});
    info.append(n,rankLine);name.append(avatar,miniBadge,info);
    const country=document.createElement('div');country.className='guest-ranking-country';country.textContent=getFlag(player.country)+' '+String(player.country||'País');
    const elo=document.createElement('strong');elo.className='guest-ranking-elo';elo.textContent=String(Number(player.elo_points)||200);
    row.append(pos,name,country,elo);guestRankingList.appendChild(row);
-  });
- }catch(e){console.error('Ranking público:',e);guestRankingList.innerHTML='<div class="ranking-loading ranking-error">No se pudo cargar la clasificación.</div>'}
+ });
 }
 
 function setGuestUI(){
@@ -1315,3 +1318,5 @@ async function enablePushNotifications(){
 pushEnableBtn?.addEventListener('click',enablePushNotifications);
 
 if(rankingSearchInput) rankingSearchInput.addEventListener('input',renderFilteredRanking);
+
+if(guestRankingSearchInput)guestRankingSearchInput.addEventListener('input',renderGuestRanking);
