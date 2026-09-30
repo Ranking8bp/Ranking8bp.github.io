@@ -1103,3 +1103,10 @@ html,body{color-scheme:dark!important}
 .admin-mod-message b{display:block;color:#fff;font:900 12px Arial,sans-serif}
 .admin-mod-message small{display:block;color:#80909d;font:700 9px Arial,sans-serif;margin:3px 0}
 .admin-mod-message p{color:#d8e0e5;font:500 12px/1.4 Arial,sans-serif;overflow-wrap:anywhere}
+
+
+.ranking-search-wrap{position:relative;margin:10px 0 12px;display:flex;align-items:center}
+.ranking-search-input{width:100%;box-sizing:border-box;padding:12px 42px 12px 40px;border:1px solid #435967;border-radius:12px;background:#07131d;color:#fff;font:700 14px Arial,sans-serif;outline:none}
+.ranking-search-input::placeholder{color:#8798a4}
+.ranking-search-input:focus{border-color:#6fa8c2;box-shadow:0 0 0 2px rgba(111,168,194,.12)}
+.ranking-search-icon{position:absolute;left:14px;z-index:1;color:#d9e5eb;font-size:25px;line-height:1;pointer-events:none}
