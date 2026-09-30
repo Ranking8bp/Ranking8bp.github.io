@@ -1088,3 +1088,18 @@ html,body{color-scheme:dark!important}
   background:#1b8d3d!important;
   transform:translateY(1px);
 }
+
+
+.admin-password-btn,.admin-comment-delete{
+ display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:9px 14px;border:1px solid #4b6b7c;border-radius:9px;background:#132a37;color:#fff;font:900 11px Arial,sans-serif;cursor:pointer;
+}
+.admin-password-btn:hover,.admin-comment-delete:hover{background:#1b3c4c}
+.admin-comment-delete{margin-left:auto;background:#4a1820;border-color:#8e3542;color:#fff}
+.admin-mod-section{margin-top:16px;padding:14px;border:1px solid #304758;border-radius:12px;background:#09151f}
+.admin-mod-section h3{margin-bottom:10px;color:#e7c86f;font:900 14px Arial,sans-serif;letter-spacing:1px}
+.admin-mod-message{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid #263946}
+.admin-mod-message:last-child{border-bottom:0}
+.admin-mod-message>div{min-width:0;flex:1}
+.admin-mod-message b{display:block;color:#fff;font:900 12px Arial,sans-serif}
+.admin-mod-message small{display:block;color:#80909d;font:700 9px Arial,sans-serif;margin:3px 0}
+.admin-mod-message p{color:#d8e0e5;font:500 12px/1.4 Arial,sans-serif;overflow-wrap:anywhere}
