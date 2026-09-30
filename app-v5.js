@@ -344,7 +344,13 @@ async function startRankedMatchmaking(){
   if(m?.matched){showRankedMatch(m);return}
   clearInterval(matchmakingTimer);matchmakingTimer=setInterval(pollRankedMatch,1500);
   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(heartbeatRankedSearch,3000);heartbeatRankedSearch();
- }catch(e){console.error(e);matchmakingModal.hidden=true;showToast('No se pudo iniciar la búsqueda de rival.')}
+ }catch(e){
+   console.error('Error búsqueda ELO:',e);
+   matchmakingModal.hidden=true;
+   const msg=String(e?.message||e?.error_description||'');
+   if(msg.includes('RANKED_DAILY_LIMIT_REACHED')){await updateRankedDailyStatus();return}
+   showToast('No se pudo iniciar la búsqueda de rival. Intenta nuevamente.');
+ }}
 }
 async function closeRankedMatchmaking(){
  if(currentRankedMatchId&&supabaseClient){try{const {data}=await supabaseClient.rpc('get_my_active_ranked_match');const m=Array.isArray(data)?data[0]:data;if(m?.admin_confirmed){showToast('Este VS está confirmado. Debes esperar el resultado.');return}}catch(e){console.error(e)}}
