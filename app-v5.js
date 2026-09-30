@@ -241,8 +241,8 @@ async function copyGameIdValue(value){
  try{await navigator.clipboard.writeText(id);showToast('ID copiado: '+id)}
  catch(e){const ta=document.createElement('textarea');ta.value=id;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();showToast('ID copiado: '+id)}
 }
-if(copyMyGameId)copyMyGameId.addEventListener('click',()=>copyGameIdValue(versusMyGameId?.textContent));
-if(copyOpponentGameId)copyOpponentGameId.addEventListener('click',()=>copyGameIdValue(versusOpponentGameId?.textContent));
+if(copyMyGameId)copyMyGameId.addEventListener('click',()=>copyGameIdValue(copyMyGameId.dataset.gameId||versusMyGameId?.textContent));
+if(copyOpponentGameId)copyOpponentGameId.addEventListener('click',()=>copyGameIdValue(copyOpponentGameId.dataset.gameId||versusOpponentGameId?.textContent));
 
 async function abandonRankedMatch(){
  if(!currentRankedMatchId||!supabaseClient)return;
@@ -337,6 +337,12 @@ function showRankedMatch(match){
  currentRankedMatchId=match.match_id;
  matchmakingSearching.hidden=true;matchmakingVersus.hidden=false;
  versusMe.textContent=String(currentProfile?.account_name||currentProfile?.username||'TÚ').toUpperCase();
+ const myGameId=String(match.my_game_id??'').trim();
+ const opponentGameId=String(match.opponent_game_id??'').trim();
+ if(versusMyGameId)versusMyGameId.textContent=myGameId||'NO REGISTRADO';
+ if(versusOpponentGameId)versusOpponentGameId.textContent=opponentGameId||'NO REGISTRADO';
+ if(copyMyGameId)copyMyGameId.dataset.gameId=myGameId;
+ if(copyOpponentGameId)copyOpponentGameId.dataset.gameId=opponentGameId;
  versusMyElo.textContent='ELO '+String(match.my_elo||200);
  versusOpponent.textContent=String(match.opponent_name||'RIVAL').toUpperCase();
  versusOpponentElo.textContent='ELO '+String(match.opponent_elo||200);
