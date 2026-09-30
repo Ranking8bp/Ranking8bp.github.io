@@ -1141,3 +1141,10 @@ html,body{color-scheme:dark!important}
 .admin-editor-save{background:#b28a20;color:#07131d;border:1px solid #d7b64f}
 .admin-editor-save:disabled{opacity:.55;cursor:wait}
 @media(max-width:600px){.admin-player-editor-grid{grid-template-columns:1fr}.admin-player-editor{padding:15px}.admin-editor-photo-field{grid-column:auto}.player-admin-btn{width:100%}}
+
+.versus-game-id{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:7px;padding:7px 8px;border:1px solid rgba(212,179,76,.35);border-radius:8px;background:rgba(4,12,19,.65)}
+.versus-game-id span{width:100%;font:800 8px Arial,sans-serif;letter-spacing:.8px;color:#8495a1}
+.versus-game-id strong{font:900 13px Arial,sans-serif;color:#f2d16a;word-break:break-all}
+.versus-game-id button{border:1px solid #806523;border-radius:6px;background:#142431;color:#fff;padding:4px 7px;font:800 8px Arial,sans-serif;cursor:pointer}
+.versus-game-id button:active{transform:scale(.96)}
+@media(max-width:600px){.versus-game-id{padding:6px}.versus-game-id strong{font-size:12px}}
