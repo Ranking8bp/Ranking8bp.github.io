@@ -1161,3 +1161,14 @@ html,body{color-scheme:dark!important}
 .elo-daily-limit-card>span{color:#7f929e;font:600 10px Arial,sans-serif}
 .dashboard-play-btn.elo-daily-limited{position:relative}
 .dashboard-play-btn.elo-daily-limited::after{content:'LÍMITE DIARIO';display:block;font-size:9px;margin-top:2px;color:#fff}
+
+.ranked-video-proof{margin:16px auto 12px;padding:15px 16px;width:min(680px,92%);box-sizing:border-box;border:1px solid rgba(231,200,111,.32);border-radius:14px;background:rgba(7,15,22,.94);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.ranked-video-proof strong{font-size:14px;color:#e7c86f;letter-spacing:.5px}
+.ranked-video-proof>span{font-size:12px;line-height:1.45;color:#d4d9de}
+.ranked-video-proof>span b{color:#fff}
+#rankedWinnerVideoBtn{width:100%;min-height:46px;border:1px solid #2dbd4a;border-radius:10px;background:linear-gradient(180deg,#20c83a,#0b9d22);color:#fff;font-weight:900;letter-spacing:.4px;cursor:pointer}
+#rankedWinnerVideoBtn:disabled{opacity:.6;cursor:wait}
+#rankedWinnerVideoStatus{font-size:11px;color:#9ca8b2;min-height:16px}
+.admin-video-proof{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.admin-video-proof button{border:1px solid #3b8dd1;border-radius:8px;background:#10263a;color:#d9edff;padding:8px 10px;font-size:11px;font-weight:900;cursor:pointer}
+.admin-video-proof .received{border-color:#2dbd4a;background:#102b18;color:#a8e9b6}
