@@ -1,0 +1,1 @@
+self.addEventListener('push',e=>{let d={};try{d=e.data?e.data.json():{}}catch{};e.waitUntil(self.registration.showNotification(d.title||'RANKING 8BP',{body:d.body||'Tienes una nueva notificacion',data:{url:d.url||'./'}}))});self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(clients.openWindow(e.notification.data?.url||'./'))});
