@@ -1148,3 +1148,16 @@ html,body{color-scheme:dark!important}
 .versus-game-id button{border:1px solid #806523;border-radius:6px;background:#142431;color:#fff;padding:4px 7px;font:800 8px Arial,sans-serif;cursor:pointer}
 .versus-game-id button:active{transform:scale(.96)}
 @media(max-width:600px){.versus-game-id{padding:6px}.versus-game-id strong{font-size:12px}}
+
+.elo-daily-limit-backdrop{position:fixed;inset:0;z-index:10020;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.84);backdrop-filter:blur(8px)}
+.elo-daily-limit-card{position:relative;width:min(460px,94vw);box-sizing:border-box;text-align:center;padding:34px 24px 28px;border:1px solid #9d7920;border-radius:20px;background:linear-gradient(145deg,#081823,#03090e);box-shadow:0 25px 90px rgba(0,0,0,.8);color:#fff}
+.elo-daily-limit-close{position:absolute;right:13px;top:9px;border:0;background:transparent;color:#fff;font-size:28px;cursor:pointer}
+.elo-daily-limit-icon{font-size:48px;margin-bottom:8px}
+.elo-daily-limit-card small{font:900 10px Arial,sans-serif;letter-spacing:2px;color:#d4b34c}
+.elo-daily-limit-card h2{margin:10px 0 12px;font:900 24px Georgia,serif;color:#f2d16a}
+.elo-daily-limit-card p{margin:0 auto 20px;max-width:360px;color:#b8c5cc;font:600 14px Arial,sans-serif;line-height:1.5}
+.elo-daily-limit-card strong{display:block;font:800 12px Arial,sans-serif;color:#fff}
+.elo-daily-countdown{margin:10px auto 10px;padding:12px 18px;border:1px solid #70571c;border-radius:12px;background:#0d202d;color:#f2d16a;font:900 32px Arial,sans-serif;letter-spacing:2px}
+.elo-daily-limit-card>span{color:#7f929e;font:600 10px Arial,sans-serif}
+.dashboard-play-btn.elo-daily-limited{position:relative}
+.dashboard-play-btn.elo-daily-limited::after{content:'LÍMITE DIARIO';display:block;font-size:9px;margin-top:2px;color:#fff}
