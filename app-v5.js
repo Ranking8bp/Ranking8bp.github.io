@@ -177,11 +177,15 @@ function applyRankImage(element,rank){
   if(!element||!rank)return;
   element.setAttribute('aria-label','Insignia '+rank.name);
   element.title='Rango '+rank.name;
-  element.style.backgroundImage='url("'+rank.image+'?v=20260930-hq1")';
-  element.style.backgroundPosition='center';
-  element.style.backgroundSize='contain';
-  element.style.backgroundRepeat='no-repeat';
-  element.textContent='';
+  element.style.backgroundImage='none';
+  element.replaceChildren();
+  const img=document.createElement('img');
+  img.src=rank.image+'?v=20261001-original';
+  img.alt='Insignia '+rank.name;
+  img.className='rank-original-img';
+  img.decoding='async';
+  img.draggable=false;
+  element.appendChild(img);
 }
 
 async function renderRankBadge(rank){
