@@ -392,6 +392,10 @@ async function loadGuestRanking(){
    const n=document.createElement('b');n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();
    const rank=getRankByElo(player.elo_points);const rankLine=document.createElement('span');rankLine.className='guest-ranking-rank';rankLine.textContent=rank.name.toUpperCase();
    const miniBadge=document.createElement('span');miniBadge.className='guest-ranking-rank-badge';renderRankBadgeOn(miniBadge,rank);
+   miniBadge.setAttribute('role','button');miniBadge.tabIndex=0;miniBadge.title='Ver perfil y estadísticas';
+   const openBadgeProfile=event=>{event.stopPropagation();openRankingPlayer(player);};
+   miniBadge.addEventListener('click',openBadgeProfile);
+   miniBadge.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openBadgeProfile(event);}});
    info.append(n,rankLine);name.append(avatar,miniBadge,info);
    const country=document.createElement('div');country.className='guest-ranking-country';country.textContent=getFlag(player.country)+' '+String(player.country||'País');
    const elo=document.createElement('strong');elo.className='guest-ranking-elo';elo.textContent=String(Number(player.elo_points)||200);
