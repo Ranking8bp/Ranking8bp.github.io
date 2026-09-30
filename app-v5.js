@@ -48,6 +48,8 @@ const matchmakingSearching=document.getElementById('matchmakingSearching');
 const matchmakingVersus=document.getElementById('matchmakingVersus');
 const versusMe=document.getElementById('versusMe');
 const versusMyElo=document.getElementById('versusMyElo');
+const versusMyGameId=document.getElementById('versusMyGameId'),versusOpponentGameId=document.getElementById('versusOpponentGameId');
+const copyMyGameId=document.getElementById('copyMyGameId'),copyOpponentGameId=document.getElementById('copyOpponentGameId');
 const versusOpponent=document.getElementById('versusOpponent');
 const versusOpponentElo=document.getElementById('versusOpponentElo');
 const versusMyAvatar=document.getElementById('versusMyAvatar'),versusOpponentAvatar=document.getElementById('versusOpponentAvatar');
@@ -226,6 +228,15 @@ async function renderPlayerDetailRankBadge(rank){
 }
 
 
+
+async function copyGameIdValue(value){
+ const id=String(value||'').trim();
+ if(!id||id==='NO REGISTRADO'){showToast('No hay un ID registrado.');return}
+ try{await navigator.clipboard.writeText(id);showToast('ID copiado: '+id)}
+ catch(e){const ta=document.createElement('textarea');ta.value=id;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();showToast('ID copiado: '+id)}
+}
+if(copyMyGameId)copyMyGameId.addEventListener('click',()=>copyGameIdValue(versusMyGameId?.textContent));
+if(copyOpponentGameId)copyOpponentGameId.addEventListener('click',()=>copyGameIdValue(versusOpponentGameId?.textContent));
 
 async function abandonRankedMatch(){
  if(!currentRankedMatchId||!supabaseClient)return;
