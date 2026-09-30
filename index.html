@@ -201,6 +201,15 @@
   </main>
 
 
+  <div class="rank-zoom-backdrop" id="rankZoomModal" aria-hidden="true">
+    <div class="rank-zoom-card" role="dialog" aria-modal="true" aria-label="Insignia de rango ampliada">
+      <button type="button" class="rank-zoom-close" id="rankZoomClose" aria-label="Cerrar">×</button>
+      <img id="rankZoomImage" class="rank-zoom-image" alt="Insignia de rango">
+      <strong id="rankZoomName"></strong>
+      <span id="rankZoomStats"></span>
+    </div>
+  </div>
+
   <div class="player-detail-backdrop" id="playerDetailModal" aria-hidden="true">
     <section class="player-detail-card" role="dialog" aria-modal="true" aria-labelledby="playerDetailName">
       <button type="button" class="player-detail-close" id="closePlayerDetail" aria-label="Cerrar">×</button>
