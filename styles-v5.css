@@ -1067,3 +1067,24 @@ html,body{color-scheme:dark!important}
   .rank-badge-image{width:190px!important;height:190px!important}
   .rank-original-img{width:100%!important;height:100%!important;object-fit:contain!important}
 }
+
+
+/* JUGAR: verde con texto blanco en todas las vistas */
+.player-play-btn,
+.dashboard-play-btn{
+  background:#22a447!important;
+  background-image:none!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  border:2px solid #35c65f!important;
+  box-shadow:0 8px 24px rgba(34,164,71,.28)!important;
+}
+.player-play-btn:hover,
+.dashboard-play-btn:hover{
+  background:#28b64f!important;
+}
+.player-play-btn:active,
+.dashboard-play-btn:active{
+  background:#1b8d3d!important;
+  transform:translateY(1px);
+}
