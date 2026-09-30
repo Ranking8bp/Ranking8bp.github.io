@@ -1110,3 +1110,10 @@ html,body{color-scheme:dark!important}
 .ranking-search-input::placeholder{color:#8798a4}
 .ranking-search-input:focus{border-color:#6fa8c2;box-shadow:0 0 0 2px rgba(111,168,194,.12)}
 .ranking-search-icon{position:absolute;left:14px;z-index:1;color:#d9e5eb;font-size:25px;line-height:1;pointer-events:none}
+
+
+.global-activity-item{width:100%;box-sizing:border-box;text-align:left;display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+.global-activity-item:hover{background:rgba(255,255,255,.055)}
+.global-activity-item:focus-visible{outline:2px solid #6fa8c2;outline-offset:-2px}
+.global-activity-name{text-decoration:underline;text-underline-offset:2px}
+.global-activity-comment{display:block;margin-top:3px;color:#aab8c1;font-size:11px}
