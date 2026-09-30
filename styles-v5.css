@@ -1051,3 +1051,19 @@ html,body{color-scheme:dark!important}
  .guest-ranking-rank-badge{width:42px!important;height:42px!important;flex-basis:42px!important}
  #playerDetailModal .player-detail-rank-badge{width:64px!important;height:64px!important}
 }
+
+
+/* Nitidez móvil: no rasterizar/transformar el PNG de rango */
+.rank-original-img{
+  transform:none!important;
+  backface-visibility:visible!important;
+  filter:none!important;
+  opacity:1!important;
+}
+.rank-badge-image{
+  filter:none!important;
+}
+@media(max-width:700px){
+  .rank-badge-image{width:190px!important;height:190px!important}
+  .rank-original-img{width:100%!important;height:100%!important;object-fit:contain!important}
+}
