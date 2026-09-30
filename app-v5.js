@@ -975,15 +975,7 @@ async function loadRanking(attempt=0){
   }
 
   try{
-    const {data:sessionData}=await supabaseClient.auth.getSession();
-    if(!sessionData?.session){
-      if(attempt<8){
-        await new Promise(resolve=>setTimeout(resolve,250));
-        return loadRanking(attempt+1);
-      }
-      throw new Error('La sesión todavía no está disponible.');
-    }
-
+    // La clasificación debe ser visible también para visitantes no registrados.
     const {data,error}=await supabaseClient.rpc('get_ranking');
     if(error){
       if(attempt<8&&(error.code==='42501'||/jwt|session|permission|authorized/i.test(error.message||''))){
@@ -998,15 +990,8 @@ async function loadRanking(attempt=0){
     renderFilteredRanking();
 
 
-    if(!players.length){
-      const empty=document.createElement('div');
-      empty.className='ranking-loading';
-      empty.textContent='Todavía no hay jugadores registrados.';
-      rankingList.appendChild(empty);
-      return;
-    }
+    // renderFilteredRanking() ya se encarga de pintar la lista y el estado vacío.
 
-    players.forEach((player,index)=>rankingList.appendChild(buildRankingRow(player,index)));
   }catch(error){
     console.error('Error cargando clasificación:',error);
     rankingList.innerHTML='<div class="ranking-loading ranking-error">No se pudo cargar la clasificación. Toca aquí para reintentar.</div>';
