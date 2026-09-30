@@ -1117,3 +1117,27 @@ html,body{color-scheme:dark!important}
 .global-activity-item:focus-visible{outline:2px solid #6fa8c2;outline-offset:-2px}
 .global-activity-name{text-decoration:underline;text-underline-offset:2px}
 .global-activity-comment{display:block;margin-top:3px;color:#aab8c1;font-size:11px}
+
+
+.player-admin-btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 14px;border:1px solid #b08b27;border-radius:10px;background:#172331;color:#f4d36d;font:900 11px Arial,sans-serif;cursor:pointer}
+.player-admin-btn:hover{background:#243547}
+.admin-player-editor-backdrop{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.82);backdrop-filter:blur(7px)}
+.admin-player-editor{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#07131d;border:1px solid #4b6576;border-radius:18px;box-shadow:0 25px 80px rgba(0,0,0,.7);color:#fff;padding:20px}
+.admin-player-editor-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #263d4a;padding-bottom:14px;margin-bottom:16px}
+.admin-player-editor-head small{color:#d4b34c;font:900 10px Arial,sans-serif;letter-spacing:2px}
+.admin-player-editor-head h2{margin:5px 0 0;font:900 25px Georgia,serif}
+.admin-player-editor-head button{border:0;background:none;color:#fff;font-size:30px;cursor:pointer}
+.admin-player-editor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.admin-player-editor-grid .field{display:flex;flex-direction:column;gap:6px}
+.admin-player-editor-grid input{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #354d5b;border-radius:9px;background:#0b1b27;color:#fff}
+.admin-player-editor-grid input:focus{outline:none;border-color:#c6a33d}
+.admin-editor-photo-field{grid-column:1/-1}
+.admin-editor-photo-field small{color:#8fa0aa;font:600 10px Arial}
+.admin-editor-preview{display:flex;align-items:center;gap:14px;margin-top:15px;min-height:64px;color:#c9d3d9;font:700 11px Arial}
+#adminEditAvatarPreview{width:64px;height:64px;border-radius:50%;background:#132532 center/cover no-repeat;border:2px solid #b08b27;flex:none}
+.admin-editor-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;padding-top:14px;border-top:1px solid #263d4a}
+.admin-editor-actions button{padding:11px 18px;border-radius:9px;cursor:pointer;font:900 11px Arial}
+.admin-editor-cancel{background:#17232d;color:#d7e0e5;border:1px solid #405360}
+.admin-editor-save{background:#b28a20;color:#07131d;border:1px solid #d7b64f}
+.admin-editor-save:disabled{opacity:.55;cursor:wait}
+@media(max-width:600px){.admin-player-editor-grid{grid-template-columns:1fr}.admin-player-editor{padding:15px}.admin-editor-photo-field{grid-column:auto}.player-admin-btn{width:100%}}
