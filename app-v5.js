@@ -42,6 +42,8 @@ const dashboardElo=document.getElementById('dashboardElo');
 const dashboardWins=document.getElementById('dashboardWins');
 const dashboardLosses=document.getElementById('dashboardLosses');
 const dashboardPlayBtn=document.getElementById('dashboardPlayBtn');
+const eloDailyLimitModal=document.getElementById('eloDailyLimitModal'),eloDailyLimitClose=document.getElementById('eloDailyLimitClose'),eloDailyCountdown=document.getElementById('eloDailyCountdown');
+let eloDailyResetAt=null,eloDailyCountdownTimer=null;
 const matchmakingModal=document.getElementById('matchmakingModal');
 const matchmakingClose=document.getElementById('matchmakingClose');
 const matchmakingSearching=document.getElementById('matchmakingSearching');
@@ -295,11 +297,50 @@ async function heartbeatRankedSearch(){
  if(currentRankedMatchId||!currentUser||!supabaseClient)return;
  try{await supabaseClient.rpc('heartbeat_ranked_matchmaking')}catch(e){console.error(e)}
 }
+function closeEloDailyLimit(){if(eloDailyCountdownTimer){clearInterval(eloDailyCountdownTimer);eloDailyCountdownTimer=null}if(eloDailyLimitModal)eloDailyLimitModal.hidden=true}
+function formatEloCountdown(){
+ if(!eloDailyResetAt)return;
+ const ms=Math.max(0,new Date(eloDailyResetAt).getTime()-Date.now());
+ const total=Math.floor(ms/1000),h=Math.floor(total/3600),m=Math.floor((total%3600)/60),s=total%60;
+ if(eloDailyCountdown)eloDailyCountdown.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+ if(ms<=0){closeEloDailyLimit();updateRankedDailyStatus().catch(()=>{})}
+}
+function showEloDailyLimit(resetAt){
+ eloDailyResetAt=resetAt||new Date(Date.now()+86400000).toISOString();
+ if(eloDailyLimitModal)eloDailyLimitModal.hidden=false;
+ formatEloCountdown();
+ if(eloDailyCountdownTimer)clearInterval(eloDailyCountdownTimer);
+ eloDailyCountdownTimer=setInterval(formatEloCountdown,1000);
+}
+async function updateRankedDailyStatus(){
+ if(!currentUser||!supabaseClient)return null;
+ try{
+  const {data,error}=await supabaseClient.rpc('get_ranked_daily_status');if(error)throw error;
+  const st=Array.isArray(data)?data[0]:data;
+  const limited=Number(st?.games_today||0)>=3;
+  if(dashboardPlayBtn){
+    dashboardPlayBtn.classList.toggle('elo-daily-limited',limited);
+    dashboardPlayBtn.setAttribute('aria-label',limited?'Límite diario de ELO alcanzado':'Jugar por ELO');
+  }
+  if(limited){eloDailyResetAt=st.reset_at;showEloDailyLimit(st.reset_at)}
+  return st;
+ }catch(e){console.error(e);return null}
+}
+
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient)return;
+ const status=await updateRankedDailyStatus();
+ if(Number(status?.games_today||0)>=3){showEloDailyLimit(status.reset_at);return}
  matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true;
  try{
-  const {data,error}=await supabaseClient.rpc('join_ranked_matchmaking');if(error)throw error;const m=Array.isArray(data)?data[0]:data;
+  const {data,error}=await supabaseClient.rpc('join_ranked_matchmaking');
+  if(error){
+    if(String(error.message||'').includes('RANKED_DAILY_LIMIT_REACHED')){
+      matchmakingModal.hidden=true;await updateRankedDailyStatus();return;
+    }
+    throw error;
+  }
+  const m=Array.isArray(data)?data[0]:data;
   if(m?.matched){showRankedMatch(m);return}
   clearInterval(matchmakingTimer);matchmakingTimer=setInterval(pollRankedMatch,1500);
   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(heartbeatRankedSearch,3000);heartbeatRankedSearch();
@@ -1210,6 +1251,7 @@ if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{
   await startRankedMatchmaking();
 });
 if(matchmakingClose)matchmakingClose.addEventListener('click',closeRankedMatchmaking);
+if(eloDailyLimitClose)eloDailyLimitClose.addEventListener('click',closeEloDailyLimit);
 if(abandonRankedBtn)abandonRankedBtn.addEventListener('click',abandonRankedMatch);
 if(playerMessageBtn)playerMessageBtn.addEventListener('click',openPrivateMessage);
 if(playerPlayBtn)playerPlayBtn.addEventListener('click',()=>showToast('Próximamente podrás desafiar a este jugador.'));
