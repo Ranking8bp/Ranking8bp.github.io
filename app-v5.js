@@ -16,6 +16,10 @@ const adminMatchList=document.getElementById('adminMatchList');
 const adminPlayerList=document.getElementById('adminPlayerList');
 const adminVsTab=document.getElementById('adminVsTab');
 const adminPlayersTab=document.getElementById('adminPlayersTab');
+const adminModerationTab=document.getElementById('adminModerationTab');
+const adminModeration=document.getElementById('adminModeration');
+const adminGeneralMessages=document.getElementById('adminGeneralMessages');
+const adminPrivateMessages=document.getElementById('adminPrivateMessages');
 const backBtn=document.getElementById('backBtn');
 const settingsBtn=document.getElementById('settingsBtn');
 const settingsMenu=document.getElementById('settingsMenu');
@@ -307,6 +311,13 @@ async function loadAdminPlayers(){
    const save=document.createElement('button');save.className='admin-save-player';save.textContent='GUARDAR CAMBIOS';save.onclick=async()=>{save.disabled=true;const args={p_user_id:p.player_id,p_account_name:inputs.account_name.value,p_game_id:inputs.game_id.value,p_country:inputs.country.value,p_elo:Number(inputs.elo_points.value)||0,p_wins:Number(inputs.wins.value)||0,p_losses:Number(inputs.losses.value)||0,p_rank_name:inputs.rank_name.value};const {error:e}=await supabaseClient.rpc('admin_update_profile',args);save.disabled=false;if(e){console.error(e);showToast('No se pudieron guardar los cambios.');return}showToast('Perfil actualizado.');await loadAdminPlayers()};card.append(save);
    const pw=document.createElement('button');pw.className='admin-password-btn';pw.textContent='CAMBIAR CONTRASEÑA';pw.onclick=()=>adminResetPlayerPassword(p.player_id);card.append(pw);adminPlayerList.append(card)})
  }catch(e){console.error(e);adminPlayerList.innerHTML='<div class="admin-empty">No se pudieron cargar los jugadores.</div>'}
+}
+function showAdminModeration(){
+ if(adminMatchList)adminMatchList.hidden=true;
+ if(adminPlayerList)adminPlayerList.hidden=true;
+ if(adminModeration)adminModeration.hidden=false;
+ if(adminGeneralMessages)adminGeneralMessages.innerHTML='<div class="admin-empty">Moderación disponible para el administrador.</div>';
+ if(adminPrivateMessages)adminPrivateMessages.innerHTML='<div class="admin-empty">Moderación disponible para el administrador.</div>';
 }
 function showAdminVs(){if(adminMatchList)adminMatchList.hidden=false;if(adminPlayerList)adminPlayerList.hidden=true;if(adminModeration)adminModeration.hidden=true;loadAdminMatches()}
 function showAdminPlayers(){if(adminMatchList)adminMatchList.hidden=true;if(adminPlayerList)adminPlayerList.hidden=false;if(adminModeration)adminModeration.hidden=true;loadAdminPlayers()}
