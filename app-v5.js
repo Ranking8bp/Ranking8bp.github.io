@@ -60,6 +60,10 @@ const versusMyPosition=document.getElementById('versusMyPosition'),versusOpponen
 const pendingMatchesCount=document.getElementById('pendingMatchesCount');
 const abandonRankedBtn=document.getElementById('abandonRankedBtn');
 const confirmedMatchWarning=document.getElementById('confirmedMatchWarning');
+const rankedVideoProof=document.getElementById('rankedVideoProof');
+const rankedWinnerVideoInput=document.getElementById('rankedWinnerVideoInput');
+const rankedWinnerVideoBtn=document.getElementById('rankedWinnerVideoBtn');
+const rankedWinnerVideoStatus=document.getElementById('rankedWinnerVideoStatus');
 let pendingMatchesTimer=null;
 let matchmakingTimer=null,currentRankedMatchId=null,matchmakingHeartbeatTimer=null;
 const gamesPlayed=document.getElementById('gamesPlayed');
@@ -256,6 +260,78 @@ async function updatePendingMatchesCount(){
  try{const {data,error}=await supabaseClient.rpc('get_pending_ranked_matches_count');if(error)throw error;const n=Number(data)||0;pendingMatchesCount.textContent=n+' '+(n===1?'PARTIDO PENDIENTE':'PARTIDOS PENDIENTES')}catch(e){console.error(e)}
 }
 
+async function updateRankedVideoProof(match){
+  if(!rankedVideoProof)return;
+  const confirmed=!!match?.admin_confirmed;
+  rankedVideoProof.hidden=!confirmed;
+  if(!confirmed)return;
+  if(match?.my_video_uploaded){
+    if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='✅ Video enviado. El administrador puede revisarlo.';
+    if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 VIDEO ENVIADO · SUBIR OTRO';rankedWinnerVideoBtn.disabled=false}
+  }else{
+    if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='El administrador revisará el video antes de confirmar el ganador.';
+    if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 SUBIR VIDEO DEL TIRO GANADOR';rankedWinnerVideoBtn.disabled=false}
+  }
+}
+function getVideoExtension(file){
+  const t=String(file?.type||'').toLowerCase();
+  return t.includes('webm')?'webm':t.includes('quicktime')?'mov':t.includes('x-m4v')?'m4v':'mp4';
+}
+async function getVideoDuration(file){
+  return await new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const video=document.createElement('video');
+    video.preload='metadata';
+    video.onloadedmetadata=()=>{const d=Number(video.duration);URL.revokeObjectURL(url);resolve(d)};
+    video.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('No se pudo leer la duración del video.'))};
+    video.src=url;
+  });
+}
+async function uploadRankedWinnerVideo(){
+  if(!currentUser||!supabaseClient||!currentRankedMatchId)return;
+  const file=rankedWinnerVideoInput?.files?.[0];
+  if(!file)return;
+  try{
+    rankedWinnerVideoBtn.disabled=true;
+    rankedWinnerVideoStatus.textContent='Comprobando video...';
+    if(!/^video\/(mp4|webm|quicktime|x-m4v)$/.test(String(file.type||'')))throw new Error('Formato no permitido. Usa MP4, WEBM o MOV.');
+    if(file.size>50*1024*1024)throw new Error('El video no puede superar 50 MB.');
+    const duration=await getVideoDuration(file);
+    if(!Number.isFinite(duration)||duration>15.05)throw new Error('El video debe durar máximo 15 segundos.');
+    if(duration<0.1)throw new Error('El video no es válido.');
+    const ext=getVideoExtension(file);
+    const path=String(currentRankedMatchId)+'/'+currentUser.id+'/winner-'+Date.now()+'.'+ext;
+    rankedWinnerVideoStatus.textContent='Subiendo video...';
+    const {error:uploadError}=await supabaseClient.storage.from('ranked-match-videos').upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'});
+    if(uploadError)throw uploadError;
+    const {data:existing}=await supabaseClient.from('ranked_match_videos').select('id').eq('match_id',currentRankedMatchId).eq('uploader_id',currentUser.id).maybeSingle();
+    let dbError=null;
+    if(existing?.id){
+      const {error}=await supabaseClient.from('ranked_match_videos').update({video_path:path,created_at:new Date().toISOString()}).eq('id',existing.id);
+      dbError=error;
+    }else{
+      const {error}=await supabaseClient.from('ranked_match_videos').insert({match_id:currentRankedMatchId,uploader_id:currentUser.id,video_path:path});
+      dbError=error;
+    }
+    if(dbError)throw dbError;
+    rankedWinnerVideoStatus.textContent='✅ Video enviado correctamente. El administrador lo revisará.';
+    rankedWinnerVideoBtn.textContent='🎥 VIDEO ENVIADO · SUBIR OTRO';
+    rankedWinnerVideoInput.value='';
+    showToast('Video del tiro ganador enviado.');
+  }catch(e){
+    console.error('Video del ganador:',e);
+    rankedWinnerVideoStatus.textContent=e?.message||'No se pudo subir el video.';
+    rankedWinnerVideoInput.value='';
+  }finally{rankedWinnerVideoBtn.disabled=false}
+}
+async function openAdminRankedVideo(matchId,uploaderId,name){
+  try{
+    const {data,error}=await supabaseClient.functions.invoke('get-ranked-match-video',{body:{match_id:matchId,uploader_id:uploaderId}});
+    if(error||!data?.ok)throw new Error(data?.error||error?.message||'No se pudo abrir el video.');
+    window.open(data.url,'_blank','noopener,noreferrer');
+  }catch(e){console.error(e);showToast(e?.message||'No se pudo abrir el video de '+name+'.')}
+}
+
 function showRankedMatch(match){
  if(!matchmakingModal)return;
  currentRankedMatchId=match.match_id;
@@ -271,7 +347,7 @@ function showRankedMatch(match){
  const setVsAvatar=(el,path,name)=>{if(!el)return;el.replaceChildren();if(path){const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(path);if(data?.publicUrl){const img=document.createElement('img');img.src=data.publicUrl;img.alt=name;el.appendChild(img);return}}const s=document.createElement('span');s.textContent=String(name||'?').charAt(0).toUpperCase();el.appendChild(s)};
  setVsAvatar(versusMyAvatar,match.my_avatar_path,currentProfile?.account_name||currentProfile?.username||'TÚ');
  setVsAvatar(versusOpponentAvatar,match.opponent_avatar_path,match.opponent_name);
- if(confirmedMatchWarning)confirmedMatchWarning.hidden=!match.admin_confirmed;if(abandonRankedBtn){abandonRankedBtn.hidden=!!match.admin_confirmed;abandonRankedBtn.disabled=!!match.admin_confirmed}if(matchmakingClose){matchmakingClose.hidden=!!match.admin_confirmed;matchmakingClose.disabled=!!match.admin_confirmed}
+ if(confirmedMatchWarning)confirmedMatchWarning.hidden=!match.admin_confirmed;updateRankedVideoProof(match);if(abandonRankedBtn){abandonRankedBtn.hidden=!!match.admin_confirmed;abandonRankedBtn.disabled=!!match.admin_confirmed}if(matchmakingClose){matchmakingClose.hidden=!!match.admin_confirmed;matchmakingClose.disabled=!!match.admin_confirmed}
  updatePendingMatchesCount();
  clearInterval(pendingMatchesTimer);pendingMatchesTimer=setInterval(()=>{updatePendingMatchesCount();watchCurrentRankedMatch()},2000);
 }
@@ -279,7 +355,7 @@ async function watchCurrentRankedMatch(){
  if(!currentRankedMatchId||!supabaseClient)return;
  try{
   const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');if(error)throw error;
-  if(data&&data.length&&Number(data[0].match_id)===Number(currentRankedMatchId)){const confirmed=!!data[0].admin_confirmed;if(confirmedMatchWarning)confirmedMatchWarning.hidden=!confirmed;if(abandonRankedBtn){abandonRankedBtn.hidden=confirmed;abandonRankedBtn.disabled=confirmed}if(matchmakingClose){matchmakingClose.hidden=confirmed;matchmakingClose.disabled=confirmed}}
+  if(data&&data.length&&Number(data[0].match_id)===Number(currentRankedMatchId)){const confirmed=!!data[0].admin_confirmed;updateRankedVideoProof(data[0]);if(confirmedMatchWarning)confirmedMatchWarning.hidden=!confirmed;if(abandonRankedBtn){abandonRankedBtn.hidden=confirmed;abandonRankedBtn.disabled=confirmed}if(matchmakingClose){matchmakingClose.hidden=confirmed;matchmakingClose.disabled=confirmed}}
   if(!data||!data.length||Number(data[0].match_id)!==Number(currentRankedMatchId)){
    currentRankedMatchId=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
    if(matchmakingModal)matchmakingModal.hidden=false;if(matchmakingSearching)matchmakingSearching.hidden=false;if(matchmakingVersus)matchmakingVersus.hidden=true;
@@ -417,6 +493,10 @@ async function loadAdminMatches(){
    const makePlayer=(side)=>{const name=m[side+'_name'],elo=Number(m[side+'_elo']||200),gameId=m[side+'_game_id']||'--',pos=m[side+'_position']||'--',rank=getRankByElo(elo),avatar=m[side+'_avatar_path'];const card=document.createElement('div');card.className='admin-vs-player';const av=document.createElement('div');av.className='admin-vs-avatar';if(avatar){const {data:u}=supabaseClient.storage.from('profile-photos').getPublicUrl(avatar);if(u?.publicUrl)av.style.backgroundImage='url("'+u.publicUrl+'")'}if(!avatar)av.textContent=String(name||'?').charAt(0).toUpperCase();const info=document.createElement('div');info.className='admin-vs-info';const nm=document.createElement('strong');nm.textContent=name;const id=document.createElement('span');id.textContent='ID '+gameId;const rp=document.createElement('span');rp.textContent='RANKING #'+pos;const el=document.createElement('span');el.textContent=elo+' ELO';const badge=document.createElement('div');badge.className='admin-vs-rank-badge';renderRankBadgeOn(badge,rank);const rn=document.createElement('b');rn.textContent=rank.name;info.append(nm,id,rp,el,rn);card.append(av,badge,info);return card};title.append(makePlayer('player1'));const vs=document.createElement('b');vs.className='admin-vs-word';vs.textContent='VS';title.append(vs,makePlayer('player2'));
    const meta=document.createElement('small');meta.textContent='#'+m.match_id+' · '+String(m.status).toUpperCase()+' · '+formatCommentDate(m.created_at);
    row.append(title,meta);
+   const videoProof=document.createElement('div');videoProof.className='admin-video-proof';
+   if(m.player1_video_path){const b=document.createElement('button');b.className='received';b.textContent='🎥 VIDEO '+m.player1_name;b.onclick=()=>openAdminRankedVideo(m.match_id,m.player1_id,m.player1_name);videoProof.appendChild(b)}
+   if(m.player2_video_path){const b=document.createElement('button');b.className='received';b.textContent='🎥 VIDEO '+m.player2_name;b.onclick=()=>openAdminRankedVideo(m.match_id,m.player2_id,m.player2_name);videoProof.appendChild(b)}
+   if(m.player1_video_path||m.player2_video_path)row.appendChild(videoProof);
    if(m.status==='matched'){
     const actions=document.createElement('div');actions.className='admin-match-actions';
     if(!m.admin_confirmed){
@@ -1275,6 +1355,8 @@ if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{
   await startRankedMatchmaking();
 });
 if(matchmakingClose)matchmakingClose.addEventListener('click',closeRankedMatchmaking);
+if(rankedWinnerVideoBtn)rankedWinnerVideoBtn.addEventListener('click',()=>rankedWinnerVideoInput?.click());
+if(rankedWinnerVideoInput)rankedWinnerVideoInput.addEventListener('change',uploadRankedWinnerVideo);
 if(eloDailyLimitClose)eloDailyLimitClose.addEventListener('click',closeEloDailyLimit);
 if(abandonRankedBtn)abandonRankedBtn.addEventListener('click',abandonRankedMatch);
 if(playerMessageBtn)playerMessageBtn.addEventListener('click',openPrivateMessage);
