@@ -189,6 +189,11 @@ async function renderRankBadge(rank){
   applyRankImage(rankBadgeImage,rank);
 }
 
+function renderRankBadgeOn(element,rankOrElo){
+  const rank=(rankOrElo&&typeof rankOrElo==='object')?rankOrElo:getRankByElo(rankOrElo);
+  applyRankImage(element,rank);
+}
+
 async function renderPlayerDetailRankBadge(rank){
   if(!playerDetailRankBadge)return;
   if(!currentDetailPlayer)return;
@@ -301,7 +306,7 @@ async function loadAdminMatches(){
   for(const m of rows){
    const row=document.createElement('article');row.className='admin-match '+m.status;
    const title=document.createElement('div');title.className='admin-match-vs admin-match-vs-rich';
-   const makePlayer=(side)=>{const name=m[side+'_name'],elo=Number(m[side+'_elo']||200),gameId=m[side+'_game_id']||'--',pos=m[side+'_position']||'--',rank=getRankByElo(elo),avatar=m[side+'_avatar_path'];const card=document.createElement('div');card.className='admin-vs-player';const av=document.createElement('div');av.className='admin-vs-avatar';if(avatar){const {data:u}=supabaseClient.storage.from('profile-photos').getPublicUrl(avatar);if(u?.publicUrl)av.style.backgroundImage='url("'+u.publicUrl+'")'}if(!avatar)av.textContent=String(name||'?').charAt(0).toUpperCase();const info=document.createElement('div');info.className='admin-vs-info';const nm=document.createElement('strong');nm.textContent=name;const id=document.createElement('span');id.textContent='ID '+gameId;const rp=document.createElement('span');rp.textContent='RANKING #'+pos;const el=document.createElement('span');el.textContent=elo+' ELO';const badge=document.createElement('div');badge.className='admin-vs-rank-badge';renderRankBadge(badge,elo);const rn=document.createElement('b');rn.textContent=rank.name;info.append(nm,id,rp,el,rn);card.append(av,badge,info);return card};title.append(makePlayer('player1'));const vs=document.createElement('b');vs.className='admin-vs-word';vs.textContent='VS';title.append(vs,makePlayer('player2'));
+   const makePlayer=(side)=>{const name=m[side+'_name'],elo=Number(m[side+'_elo']||200),gameId=m[side+'_game_id']||'--',pos=m[side+'_position']||'--',rank=getRankByElo(elo),avatar=m[side+'_avatar_path'];const card=document.createElement('div');card.className='admin-vs-player';const av=document.createElement('div');av.className='admin-vs-avatar';if(avatar){const {data:u}=supabaseClient.storage.from('profile-photos').getPublicUrl(avatar);if(u?.publicUrl)av.style.backgroundImage='url("'+u.publicUrl+'")'}if(!avatar)av.textContent=String(name||'?').charAt(0).toUpperCase();const info=document.createElement('div');info.className='admin-vs-info';const nm=document.createElement('strong');nm.textContent=name;const id=document.createElement('span');id.textContent='ID '+gameId;const rp=document.createElement('span');rp.textContent='RANKING #'+pos;const el=document.createElement('span');el.textContent=elo+' ELO';const badge=document.createElement('div');badge.className='admin-vs-rank-badge';renderRankBadgeOn(badge,rank);const rn=document.createElement('b');rn.textContent=rank.name;info.append(nm,id,rp,el,rn);card.append(av,badge,info);return card};title.append(makePlayer('player1'));const vs=document.createElement('b');vs.className='admin-vs-word';vs.textContent='VS';title.append(vs,makePlayer('player2'));
    const meta=document.createElement('small');meta.textContent='#'+m.match_id+' · '+String(m.status).toUpperCase()+' · '+formatCommentDate(m.created_at);
    row.append(title,meta);
    if(m.status==='matched'){
@@ -358,16 +363,13 @@ function getFlag(value){
 async function renderGuestRankShowcase(){
  if(!guestRankShowcase||guestRankShowcase.dataset.ready)return;
  guestRankShowcase.dataset.ready='1';
- try{
-  const sprite=await getRankSpriteUrl();
-  const order=[13,12,19,14,11,15,16,17,10,18,0,1,2,3,4,5,6,7,8,9];
-  order.forEach(spriteIndex=>{
-   const badge=document.createElement('span');badge.className='guest-showcase-badge';
-   badge.style.backgroundImage='url("'+sprite+'")';
-   badge.style.backgroundPosition=((spriteIndex%5)*25)+'% '+(Math.floor(spriteIndex/5)*(100/3))+'%';
+ const order=[10,11,12,13,14,15,16,17,18,19,0,1,2,3,4,5,6,7,8,9];
+ order.forEach(rankIndex=>{
+   const badge=document.createElement('span');
+   badge.className='guest-showcase-badge';
+   renderRankBadgeOn(badge,RANKS[rankIndex]);
    guestRankShowcase.appendChild(badge);
-  });
- }catch(e){console.error('No se pudieron cargar los rangos públicos:',e)}
+ });
 }
 
 async function loadGuestRanking(){
@@ -389,7 +391,7 @@ async function loadGuestRanking(){
    const info=document.createElement('div');info.className='guest-ranking-player-info';
    const n=document.createElement('b');n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();
    const rank=getRankByElo(player.elo_points);const rankLine=document.createElement('span');rankLine.className='guest-ranking-rank';rankLine.textContent=rank.name.toUpperCase();
-   const miniBadge=document.createElement('span');miniBadge.className='guest-ranking-rank-badge';const spriteIndex=Number.isInteger(rank.spriteIndex)?rank.spriteIndex:rank.index;miniBadge.style.backgroundPosition=((spriteIndex%5)*25)+'% '+(Math.floor(spriteIndex/5)*(100/3))+'%';getRankSpriteUrl().then(sprite=>miniBadge.style.backgroundImage='url("'+sprite+'")').catch(()=>{});
+   const miniBadge=document.createElement('span');miniBadge.className='guest-ranking-rank-badge';renderRankBadgeOn(miniBadge,rank);
    info.append(n,rankLine);name.append(avatar,miniBadge,info);
    const country=document.createElement('div');country.className='guest-ranking-country';country.textContent=getFlag(player.country)+' '+String(player.country||'País');
    const elo=document.createElement('strong');elo.className='guest-ranking-elo';elo.textContent=String(Number(player.elo_points)||200);
