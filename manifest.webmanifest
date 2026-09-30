@@ -1,0 +1,9 @@
+{
+  "name": "Ranking Mundial 8BP",
+  "short_name": "Ranking 8BP",
+  "id": "./",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#06121a"
+}
