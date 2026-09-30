@@ -194,6 +194,18 @@ function renderRankBadgeOn(element,rankOrElo){
   applyRankImage(element,rank);
 }
 
+function openRankZoom(rank,player){
+  const modal=document.getElementById('rankZoomModal'),img=document.getElementById('rankZoomImage'),name=document.getElementById('rankZoomName'),stats=document.getElementById('rankZoomStats');
+  if(!modal||!img||!rank)return;
+  img.src=rank.image+'?v=20260930-hq1';
+  img.alt='Insignia '+rank.name;
+  if(name)name.textContent=rank.name.toUpperCase();
+  if(stats&&player)stats.textContent='ELO '+(Number(player.elo_points)||200)+' · '+(Number(player.wins)||0)+' victorias · '+(Number(player.losses)||0)+' derrotas';
+  modal.classList.add('open');modal.setAttribute('aria-hidden','false');
+}
+function closeRankZoom(){const modal=document.getElementById('rankZoomModal');if(modal){modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}}
+document.addEventListener('click',e=>{if(e.target?.id==='rankZoomClose'||e.target?.id==='rankZoomModal')closeRankZoom()});
+
 async function renderPlayerDetailRankBadge(rank){
   if(!playerDetailRankBadge)return;
   if(!currentDetailPlayer)return;
@@ -847,6 +859,10 @@ async function openRankingPlayer(player){
     if(lossStat){lossStat.hidden=false;const label=lossStat.querySelector('small');if(label)label.textContent='DERROTAS';playerDetailLosses.textContent=String(losses);}
     if(playerDetailRank){const rankName=playerDetailRank.querySelector('strong');if(rankName)rankName.textContent=rank.name.toUpperCase();}
     renderPlayerDetailRankBadge(rank);
+    playerDetailRankBadge.style.cursor='zoom-in';
+    playerDetailRankBadge.onclick=event=>{event.stopPropagation();openRankZoom(rank,player);};
+    playerDetailRankBadge.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openRankZoom(rank,player);}};
+    playerDetailRankBadge.tabIndex=0;
   }
 
   updateHeartUI(player?.heart_count||0,false,player?.player_id===currentUser?.id);
