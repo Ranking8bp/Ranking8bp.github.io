@@ -392,11 +392,27 @@ async function renderGuestRankShowcase(){
 }
 
 async function loadGuestRanking(){
- if(!guestRankingList||!supabaseClient)return;
+ if(!guestRankingList)return;
  guestRankingList.innerHTML='<div class="ranking-loading">Cargando clasificación...</div>';
  try{
-  const {data,error}=await supabaseClient.rpc('get_public_ranking');if(error)throw error;
-  const players=(Array.isArray(data)?data:[]).slice(0,100);guestRankingList.replaceChildren();
+  let players=[];
+  if(supabaseClient){
+    const {data,error}=await supabaseClient.rpc('get_public_ranking');
+    if(error)throw error;
+    players=(Array.isArray(data)?data:[]).slice(0,100);
+  }else{
+    const cfg=window.SUPABASE_CONFIG||{};
+    if(!cfg.url||!cfg.key)throw new Error('Configuración de Supabase no disponible');
+    const response=await fetch(cfg.url+'/rest/v1/rpc/get_public_ranking',{
+      method:'POST',
+      headers:{'apikey':cfg.key,'Authorization':'Bearer '+cfg.key,'Content-Type':'application/json'},
+      body:'{}'
+    });
+    if(!response.ok)throw new Error('RPC '+response.status);
+    const data=await response.json();
+    players=(Array.isArray(data)?data:[]).slice(0,100);
+  }
+  guestRankingList.replaceChildren();
   if(guestRankingCount)guestRankingCount.textContent='TOP '+Math.min(100,players.length);
   players.forEach((player,index)=>{
    const row=document.createElement('div');row.className='guest-ranking-row';
