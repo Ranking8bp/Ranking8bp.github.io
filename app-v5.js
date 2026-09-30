@@ -1018,7 +1018,9 @@ function renderFilteredRanking(){
   if(!rankingList||!rankingCount)return;
   const query=String(rankingSearchInput?.value||'').trim().toLocaleLowerCase('es');
   const filtered=rankingPlayersCache.filter(player=>{
-    const name=String(player?.username||player?.account_name||'').toLocaleLowerCase('es');
+    const username=String(player?.username||'').toLocaleLowerCase('es');
+    const accountName=String(player?.account_name||'').toLocaleLowerCase('es');
+    const name=username+' '+accountName;
     return !query||name.includes(query);
   });
   rankingList.replaceChildren();
