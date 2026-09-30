@@ -1003,3 +1003,16 @@ html,body{color-scheme:dark!important}
 #playerDetailModal .player-detail-stat.admin-profile-label{grid-column:1/-1!important;width:100%!important;min-height:76px!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:10px!important}#playerDetailModal .player-detail-stat.admin-profile-label strong{font-size:clamp(18px,5vw,30px)!important;line-height:1!important;white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;letter-spacing:1px!important}
 
 .site-legal-footer{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;gap:10px 22px!important;padding:28px 16px 38px!important;background:#02070c!important;border-top:1px solid rgba(211,169,78,.25)!important}.site-legal-footer a{color:#aeb9c2!important;font-size:12px!important;text-decoration:none!important}.site-legal-footer a:hover{color:#d3a94e!important;text-decoration:underline!important}
+
+
+/* PNG HD individuales de rangos: evitar escalado del sprite antiguo */
+.rank-badge-image,
+.player-detail-rank-badge,
+.guest-ranking-rank-badge,
+.guest-showcase-badge,
+.admin-vs-rank-badge{
+  background-size:contain!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  image-rendering:auto!important;
+}
