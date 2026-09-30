@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">\n  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n  <meta http-equiv="Pragma" content="no-cache" />\n  <meta http-equiv="Expires" content="0" />
+  <title>RANKING IKAR8BP</title>
+  <link rel="stylesheet" href="styles-v5.css?v=20260930-adsenseprep32" />
+<meta name="color-scheme" content="dark">\n<link rel="manifest" href="manifest.webmanifest?v=1">\n<meta name="theme-color" content="#06121a">\n<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8015528442665492" crossorigin="anonymous"></script>
+</head>
+<body>
+  <main class="viewport-shell">
+    <section class="site-canvas" id="siteCanvas">
+      <header class="guest-topbar" id="guestTopbar">
+        <div></div>
+        <div class="topbar-actions">
+          <button class="login-btn" id="loginBtn" type="button">Iniciar sesión</button>
+          <button class="register-btn" id="registerBtn" type="button">Registrarse</button>
+        </div>
+      </header>
+
+      <section class="guest-empty" id="guestEmpty">
+        <div class="guest-rank-showcase" id="guestRankShowcase" aria-label="Rangos disponibles"></div>
+        <div class="guest-ranking-card">
+          <div class="guest-ranking-head"><div><small>RANKING IKAR8BP</small><h2>CLASIFICACIÓN</h2></div><span id="guestRankingCount">TOP 100</span></div>
+          <div class="guest-ranking-columns"><span>#</span><span>JUGADOR</span><span>PAÍS</span><span>ELO</span></div>
+          <div class="guest-ranking-list" id="guestRankingList"><div class="ranking-loading">Cargando clasificación...</div></div>
+        </div>
+      </section>
+
+      <section class="player-profile" id="playerDashboard" hidden>
+        <div class="profile-page-bg"></div>
+
+        <header class="profile-header">
+          <button class="icon-btn back-btn" id="backBtn" type="button" aria-label="Volver">‹</button>
+          <div class="profile-title-wrap">
+            
+            <div class="title-ornament"><span></span><b>⌄</b><span></span></div>
+          </div>
+          <div class="profile-header-actions">
+            <button class="icon-btn inbox-btn" id="inboxBtn" type="button" aria-label="Bandeja de entrada">✉️</button>
+            <button class="icon-btn activity-btn" id="activityBtn" type="button" aria-label="Actividad general">🌎</button>
+            <button class="icon-btn notification-btn" id="notificationBtn" type="button" aria-label="Notificaciones">🔔<span class="notification-badge" id="notificationBadge" hidden>0</span></button>
+            <button class="icon-btn settings-btn" id="settingsBtn" type="button" aria-label="Configuración">⚙</button>
+          </div>
+          <div class="inbox-panel" id="inboxPanel" hidden>
+            <div class="notification-panel-head"><strong>BANDEJA DE ENTRADA ✉️</strong><button id="refreshInboxBtn" type="button">Actualizar</button></div>
+            <div class="notification-list" id="inboxList"><div class="notification-empty">No tienes mensajes.</div></div>
+          </div>
+          <div class="conversation-panel" id="conversationPanel" hidden>
+            <div class="conversation-head"><button id="conversationBackBtn" type="button">‹</button><strong id="conversationTitle">CONVERSACIÓN</strong><button id="conversationCloseBtn" type="button">×</button></div>
+            <div class="conversation-messages" id="conversationMessages"></div>
+            <div class="conversation-compose"><textarea id="conversationInput" maxlength="1000" rows="2" placeholder="Escribe un mensaje..."></textarea><button id="conversationSendBtn" type="button">ENVIAR</button></div>
+          </div>
+          <div class="activity-panel" id="activityPanel" hidden>
+            <div class="notification-panel-head"><strong>ACTIVIDAD GENERAL 🌎</strong><button id="refreshActivityBtn" type="button">Actualizar</button></div>
+            <div class="notification-list" id="activityList"><div class="notification-empty">Cargando actividad...</div></div>
+          </div>
+          <div class="notification-panel" id="notificationPanel" hidden>
+            <div class="notification-panel-head"><strong>NOTIFICACIONES</strong><button id="markNotificationsRead" type="button">Marcar leídas</button></div>
+            <div class="notification-list" id="notificationList"><div class="notification-empty">No tienes notificaciones.</div></div>
+          </div>
+          <div class="settings-menu" id="settingsMenu" hidden>
+            <button id="logoutBtn" type="button">Cerrar sesión</button>
+            <button id="adminModeBtn" type="button" hidden>🛡 MODO ADMINISTRADOR</button><button id="deleteAccountBtn" type="button" style="color:#ff5b5b">Eliminar cuenta</button>
+          </div>
+        </header>
+
+        <section class="identity-section">
+          <div class="portrait-column">
+            <div class="portrait-frame">
+              <img id="profileAvatar" alt="Foto de perfil" hidden />
+              <div class="avatar-placeholder" id="avatarPlaceholder">👤</div>
+              <label class="avatar-edit" for="profilePhotoInput" aria-label="Cambiar foto">✎</label>
+              <input id="profilePhotoInput" class="hidden-file" type="file" accept="image/png,image/jpeg,image/webp" />
+              <div class="portrait-crown">◆</div>
+            </div>
+          </div>
+
+          <div class="identity-copy">
+            <div class="name-line">
+              <h2 id="dashboardPlayerName">JUGADOR</h2>
+              <span class="verified-mark">✓</span>
+            </div>
+            <div class="main-follow-stats">
+              <div><strong id="dashboardFollowersCount">0</strong><span>Seguidores</span></div>
+              <div><strong id="dashboardFollowingCount">0</strong><span>Siguiendo</span></div>
+            </div>
+            <div class="country-line">
+              <span class="country-flag" id="countryFlag">🌎</span>
+              <span id="countryName">País</span>
+            </div>
+            <p class="profile-quote">“Disciplina hoy,<br>ranking mañana.”</p>
+          </div>
+        </section>
+
+        <section class="rank-hero-card">
+          <div class="rank-art">
+            <div id="rankBadgeImage" class="rank-badge-image" role="img" aria-label="Rango Latón">Latón</div>
+          </div>
+
+          <div class="elo-block">
+            <div class="elo-label"><span class="elo-icon">▥</span> ELO <span class="info-dot">i</span></div>
+            <div class="elo-number" id="dashboardElo">200</div>
+            <div class="rank-caption">RANGO COMPETITIVO</div>
+          </div>
+        </section>
+
+        <div class="dashboard-play-area"><button type="button" class="dashboard-play-btn" id="dashboardPlayBtn">JUGAR</button></div><div class="dashboard-chat-area"><button type="button" class="dashboard-chat-btn" id="dashboardChatBtn">CHAT GENERAL</button></div><div class="push-enable-area"><button type="button" class="push-enable-btn" id="pushEnableBtn">🔔 ACTIVAR NOTIFICACIONES</button></div><div class="general-chat-backdrop" id="generalChatModal" hidden><section class="general-chat-card"><header><strong>CHAT GENERAL</strong><button type="button" id="generalChatClose">×</button></header><div class="general-chat-messages" id="generalChatMessages"></div><form class="general-chat-compose" id="generalChatForm"><textarea id="generalChatInput" maxlength="500" placeholder="Escribe un mensaje..." required></textarea><button type="submit">ENVIAR</button></form></section></div>
+
+        <section class="win-loss-grid">
+          <article class="result-card victory-card">
+            <div>
+              <div class="result-label">VICTORIAS</div>
+              <div class="result-number" id="dashboardWins">0</div>
+            </div>
+          </article>
+
+          <article class="result-card defeat-card">
+            <div>
+              <div class="result-label">DERROTAS</div>
+              <div class="result-number" id="dashboardLosses">0</div>
+            </div>
+          </article>
+        </section>
+
+
+        <section class="ranking-card" id="rankingCard">
+          <div class="ranking-title">
+            <span class="ranking-crown">♛</span>
+            <span>TABLA DE CLASIFICACIÓN</span>
+            <span class="ranking-count" id="rankingCount"></span>
+          </div>
+
+          <div class="ranking-header">
+            <span>#</span>
+            <span>JUGADOR</span>
+            <span>PAÍS</span>
+            <span>ELO</span>
+          </div>
+
+          <div class="ranking-list" id="rankingList">
+            <div class="ranking-loading">Cargando clasificación...</div>
+          </div>
+        </section>
+
+        <section class="general-stats-card">
+          <div class="section-title">
+            <span class="section-title-icon">▥</span>
+            <span>ESTADÍSTICAS GENERALES</span>
+            <span class="chevron">›</span>
+          </div>
+          <div class="general-stats-grid">
+            <div class="general-stat">
+              <span class="general-icon">⚔</span>
+              <small>PARTIDAS<br>JUGADAS</small>
+              <strong id="gamesPlayed">0</strong>
+            </div>
+            <div class="general-stat">
+              <span class="general-icon">◎</span>
+              <small>TASA DE VICTORIAS</small>
+              <strong id="winRate">0%</strong>
+            </div>
+            <div class="general-stat">
+              <span class="general-icon">♨</span>
+              <small>RACHA ACTUAL</small>
+              <strong id="currentStreak">0</strong>
+              <em>VICTORIAS</em>
+            </div>
+            <div class="general-stat">
+              <span class="general-icon">♟</span>
+              <small>MEJOR ELO</small>
+              <strong id="bestElo">200</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="profile-links">
+          <button type="button" class="profile-link-card">
+            <span class="link-icon">★</span>
+            <span>HISTORIAL<br>DE PARTIDAS</span>
+            <span class="chevron">›</span>
+          </button>
+          <button type="button" class="profile-link-card">
+            <span class="link-icon">▥</span>
+            <span>TABLA DE<br>CLASIFICACIÓN</span>
+            <span class="chevron">›</span>
+          </button>
+        </section>
+
+        <p class="dashboard-message" id="dashboardMessage" aria-live="polite"></p>
+
+        <nav class="bottom-nav" aria-label="Navegación principal">
+          <button type="button"><span>⌂</span><small>INICIO</small></button>
+          <button type="button"><span>◆</span><small>COMPETIR</small></button>
+          <button type="button" class="active"><span>●</span><small>PERFIL</small></button>
+          <button type="button"><span>♟</span><small>AMIGOS</small></button>
+          <button type="button"><span>▣</span><small>TIENDA</small></button>
+        </nav>
+      </section>
+    </section>
+  </main>
+
+
+  <div class="player-detail-backdrop" id="playerDetailModal" aria-hidden="true">
+    <section class="player-detail-card" role="dialog" aria-modal="true" aria-labelledby="playerDetailName">
+      <button type="button" class="player-detail-close" id="closePlayerDetail" aria-label="Cerrar">×</button>
+
+      <div class="player-detail-head">
+        <div class="player-detail-rank" id="playerDetailRank">
+          <div class="player-detail-rank-badge" id="playerDetailRankBadge" role="img" aria-label="Insignia de rango"></div>
+          <small>RANGO</small>
+          <strong>LATÓN</strong>
+        </div>
+        <div class="player-detail-avatar" id="playerDetailAvatar"><span>J</span></div>
+        <div class="player-detail-identity">
+          <h3 id="playerDetailName">JUGADOR</h3>
+          <div class="player-detail-country">
+            <span id="playerDetailFlag">🌎</span>
+            <span id="playerDetailCountry">País</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="player-follow-area">
+        <div class="player-follow-counts">
+          <div><strong id="playerFollowersCount">0</strong><span>Seguidores</span></div>
+          <div><strong id="playerFollowingCount">0</strong><span>Siguiendo</span></div>
+        </div>
+        <div class="player-profile-actions">
+          <button type="button" class="player-follow-btn" id="playerFollowBtn">SEGUIR</button>
+          <button type="button" class="player-message-btn" id="playerMessageBtn">✉️ MENSAJE</button>
+        </div>
+      </div>
+<div class="player-detail-stats">
+        <div class="player-detail-stat player-detail-id">
+          <small>ID 8 BALL POOL</small>
+          <strong id="playerDetailGameId">—</strong>
+        </div>
+        <div class="player-detail-stat">
+          <small>ELO</small>
+          <strong id="playerDetailElo">200</strong>
+        </div>
+        <div class="player-detail-stat player-detail-win">
+          <small>VICTORIAS</small>
+          <strong id="playerDetailWins">0</strong>
+        </div>
+        <div class="player-detail-stat player-detail-loss">
+          <small>DERROTAS</small>
+          <strong id="playerDetailLosses">0</strong>
+        </div>
+      </div>
+
+      <div class="player-heart-area">
+        <button type="button" class="player-heart-btn" id="playerHeartBtn" aria-pressed="false">
+          <span class="player-heart-icon">♥</span>
+          <span class="player-heart-label">Dar corazón</span>
+        </button>
+        <div class="player-heart-count">
+          <strong id="playerHeartCount">0</strong>
+          <span id="playerHeartCountLabel">jugadores le dieron un corazón</span>
+        </div>
+
+      <section class="profile-comments" id="profileComments">
+        <div class="profile-comments-title">
+          <strong>COMENTARIOS</strong>
+          <span id="profileCommentCount">0</span>
+        </div>
+        <form class="profile-comment-form" id="profileCommentForm">
+          <textarea id="profileCommentInput" maxlength="500" rows="3" placeholder="Escribe un comentario público..." required></textarea>
+          <button id="profileCommentSubmit" type="submit">PUBLICAR</button>
+        </form>
+        <div class="profile-comments-list" id="profileCommentsList">
+          <div class="profile-comments-empty">Cargando comentarios...</div>
+        </div>
+      </section>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="registerModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="registerTitle">
+      <button class="modal-close" id="closeRegisterModal" type="button" aria-label="Cerrar">×</button>
+      <div class="modal-heading">
+        <span class="modal-kicker">REGISTRO DE JUGADOR</span>
+        <h2 id="registerTitle">Registrarse</h2>
+        <p>Ingresa los datos de la cuenta que vas a utilizar.</p>
+      </div>
+      <form class="form-grid" id="registerForm" novalidate>
+        <label class="field"><span class="field-label">Usuario</span><input id="username" type="text" autocomplete="username" placeholder="Crea tu nombre de usuario" minlength="3" maxlength="30" required /><span class="field-note">3 a 30 caracteres. Letras, números, punto, guion o guion bajo.</span></label>
+        <label class="field"><span class="field-label">Contraseña</span><input id="password" type="password" autocomplete="new-password" placeholder="Crea una contraseña" minlength="6" required /></label>
+        <label class="field"><span class="field-label">ID del juego</span><input id="gameId" type="text" inputmode="numeric" autocomplete="off" placeholder="Ejemplo: 123456789" required /></label>
+        <label class="field"><span class="field-label">País</span><input id="country" type="text" autocomplete="country-name" placeholder="Ejemplo: México" required /></label>
+        <p class="form-error" id="registerError" aria-live="polite"></p>
+        <button class="submit-btn" id="registerSubmit" type="submit">Crear cuenta</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="loginModal" aria-hidden="true">
+    <div class="modal-card login-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <button class="modal-close" id="closeLoginModal" type="button" aria-label="Cerrar">×</button>
+      <div class="modal-heading">
+        <span class="modal-kicker">ACCESO DE JUGADOR</span>
+        <h2 id="loginTitle">Iniciar sesión</h2>
+        <p>Usa el usuario y la contraseña con los que te registraste.</p>
+      </div>
+      <form class="form-grid" id="loginForm" novalidate>
+        <label class="field"><span class="field-label">Usuario</span><input id="loginUsername" type="text" autocomplete="username" placeholder="Tu usuario" required /></label>
+        <label class="field"><span class="field-label">Contraseña</span><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Tu contraseña" required /></label>
+        <p class="form-error" id="loginError" aria-live="polite"></p>
+        <button class="submit-btn" id="loginSubmit" type="submit">Entrar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-backdrop" id="adminPanel" hidden><section class="admin-card"><div class="admin-head"><div><small>CONTROL DEL RANKING</small><h2>MODO ADMINISTRADOR</h2></div><button id="adminCloseBtn" type="button">×</button></div><div class="admin-tabs"><button id="adminVsTab" type="button">SALA VS</button><button id="adminPlayersTab" type="button">JUGADORES</button></div><button class="admin-refresh" id="adminRefreshBtn" type="button">ACTUALIZAR</button><div class="admin-match-list" id="adminMatchList"></div><div class="admin-player-list" id="adminPlayerList" hidden></div></section></div>
+  <div class="matchmaking-backdrop" id="matchmakingModal" hidden>
+    <section class="matchmaking-card">
+      <button type="button" class="matchmaking-close" id="matchmakingClose">×</button>
+      <div id="matchmakingSearching">
+        <div class="matchmaking-spinner"></div><h2>BUSCANDO RIVAL</h2><p>Buscando un jugador para partida por ranking...</p>
+      </div>
+      <div id="matchmakingVersus" hidden>
+        <div class="matchmaking-mode">RANKING ARMADO</div>
+        <div class="versus-grid"><div class="versus-player"><div class="versus-avatar" id="versusMyAvatar"><span>?</span></div><strong id="versusMe">TÚ</strong><span id="versusMyRank">LATÓN</span><span id="versusMyPosition">RANKING #--</span><span id="versusMyElo">ELO 200</span></div><b>VS</b><div class="versus-player"><div class="versus-avatar" id="versusOpponentAvatar"><span>?</span></div><strong id="versusOpponent">RIVAL</strong><span id="versusOpponentRank">LATÓN</span><span id="versusOpponentPosition">RANKING #--</span><span id="versusOpponentElo">ELO 200</span></div></div>
+        <div class="elo-stakes"><span>GANADOR <b>+15 ELO</b></span><span>PERDEDOR <b>-15 ELO</b></span></div><div class="confirmed-match-warning" id="confirmedMatchWarning" hidden><strong>PARTIDO CONFIRMADO POR ADMINISTRADOR</strong><span>SI ABANDONAS PIERDES -15 ELO</span><span>SI NO TE PRESENTAS A TU PARTIDO EN EL LIVE PIERDES -15 ELO.</span></div><button type="button" class="abandon-ranked-btn" id="abandonRankedBtn">ABANDONAR EMPAREJAMIENTO</button><div class="player-waiting-room"><strong>PARTIDA EN ESPERA DE RESULTADO</strong><span id="pendingMatchesCount">0 PARTIDOS PENDIENTES</span><small>Esta sala permanecerá visible hasta que el administrador registre o anule el resultado.</small></div>
+      </div>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="private-message-backdrop" id="privateMessageModal" hidden>
+    <section class="private-message-card" role="dialog" aria-modal="true">
+      <button type="button" class="private-message-close" id="privateMessageClose" aria-label="Cerrar">×</button>
+      <h3>MENSAJE PRIVADO</h3>
+      <p id="privateMessageTo">Para: Jugador</p>
+      <textarea id="privateMessageInput" maxlength="1000" rows="5" placeholder="Escribe un mensaje privado..."></textarea>
+      <button type="button" id="privateMessageSend">ENVIAR MENSAJE</button>
+    </section>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config-v3.js?v=20260930-0305"></script>
+  <script src="app-v5.js?v=20260930-adminprofile31"></script>
+<footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer></body>
+</html>
