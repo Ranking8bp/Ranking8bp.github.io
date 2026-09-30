@@ -586,17 +586,33 @@ async function togglePlayerHeart(){
 
 
 function renderGlobalActivity(items){
- if(!activityList)return; activityList.replaceChildren();
+ if(!activityList)return;
+ activityList.replaceChildren();
  if(!items.length){activityList.innerHTML='<div class="notification-empty">Todavía no hay actividad.</div>';return}
  items.forEach(n=>{
-  const item=document.createElement('article'); item.className='notification-item global-activity-item';
-  const icon=document.createElement('span'); icon.className='notification-type-icon';
-  const box=document.createElement('div'); box.className='notification-copy'; const p=document.createElement('p');
-  if(n.type==='registration'){icon.textContent='🌎';p.textContent=String(n.actor_name||'Un jugador')+' se ha registrado en Ranking8BP.'}
-  else if(n.type==='comment'){icon.textContent='💬';p.textContent=String(n.actor_name||'Alguien')+' comentó en el perfil de '+String(n.recipient_name||'un jugador')+'.'}
-  else if(n.type==='comment_heart'){icon.textContent='♥';p.textContent=String(n.actor_name||'Alguien')+' dio corazón al comentario de '+String(n.recipient_name||'un jugador')+'.'}
-  else{icon.textContent='♥';p.textContent=String(n.actor_name||'Alguien')+' dio corazón al perfil de '+String(n.recipient_name||'un jugador')+'.'}
-  const t=document.createElement('time');t.textContent=formatCommentDate(n.created_at);box.append(p,t);item.append(icon,box);activityList.appendChild(item);
+  const item=document.createElement('button');item.type='button';item.className='notification-item global-activity-item';
+  const icon=document.createElement('span');icon.className='notification-type-icon';
+  const box=document.createElement('span');box.className='notification-copy';
+  const p=document.createElement('span');p.className='global-activity-text';
+  const actor=document.createElement('b');actor.className='global-activity-name';actor.textContent=String(n.actor_name||'Alguien');
+  const targetId=n.type==='registration'?n.actor_id:n.recipient_id;
+  if(n.type==='registration'){
+    icon.textContent='🌎';p.append(actor,document.createTextNode(' se ha registrado en Ranking8BP.'));
+  }else if(n.type==='comment'){
+    icon.textContent='💬';p.append(actor,document.createTextNode(' comentó en el perfil de '));
+    const target=document.createElement('b');target.className='global-activity-name';target.textContent=String(n.recipient_name||'un jugador');p.append(target,document.createTextNode('.'));
+    if(n.comment_body){const q=document.createElement('span');q.className='global-activity-comment';q.textContent=' “'+String(n.comment_body)+'”';p.append(q)}
+  }else if(n.type==='comment_heart'){
+    icon.textContent='♥';p.append(actor,document.createTextNode(' dio corazón a un comentario de '));
+    const target=document.createElement('b');target.className='global-activity-name';target.textContent=String(n.recipient_name||'un jugador');p.append(target,document.createTextNode('.'));
+  }else{
+    icon.textContent='♥';p.append(actor,document.createTextNode(' dio corazón al perfil de '));
+    const target=document.createElement('b');target.className='global-activity-name';target.textContent=String(n.recipient_name||'un jugador');p.append(target,document.createTextNode('.'));
+  }
+  const t=document.createElement('time');t.textContent=formatCommentDate(n.created_at);box.append(p,t);item.append(icon,box);
+  item.setAttribute('aria-label','Abrir perfil relacionado con esta actividad');
+  item.addEventListener('click',async()=>{if(!targetId)return;try{const {data,error}=await supabaseClient.rpc('get_profile_by_id',{p_player_id:targetId});if(error)throw error;const player=Array.isArray(data)?data[0]:data;if(player)await openRankingPlayer(player);else showToast('No se encontró ese perfil.')}catch(e){console.error(e);showToast('No se pudo abrir el perfil.')}});
+  activityList.appendChild(item);
  });
 }
 async function loadGlobalActivity(){if(!currentUser||!supabaseClient||!activityList)return;try{const {data,error}=await supabaseClient.rpc('get_global_activity');if(error)throw error;renderGlobalActivity(Array.isArray(data)?data:[])}catch(e){console.error(e);activityList.innerHTML='<div class="notification-empty">No se pudo cargar la actividad.</div>'}}
