@@ -1253,3 +1253,6 @@ html,body{color-scheme:dark!important}
  .dashboard-whatsapp-btn{width:100%;border-radius:12px}
  .dashboard-whatsapp-btn img{max-height:110px}
 }
+
+/* WhatsApp button text fallback */
+.dashboard-whatsapp-btn{line-height:1.05!important;min-height:96px!important;background:linear-gradient(180deg,#25d366,#079b35)!important;border:3px solid #e6b94b!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:14px!important;color:#fff!important;text-decoration:none!important;padding:8px 18px!important;box-sizing:border-box!important}.dashboard-whatsapp-icon{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:58px!important;height:58px!important;border-radius:50%!important;background:#10b944!important;border:5px solid #fff!important;font-size:34px!important;color:#fff!important}.dashboard-whatsapp-text{display:inline-block!important;font-size:clamp(22px,5vw,38px)!important;font-weight:900!important;letter-spacing:.5px!important;text-shadow:0 3px 3px rgba(0,0,0,.45)!important}@media(max-width:600px){.dashboard-whatsapp-btn{min-height:82px!important}.dashboard-whatsapp-icon{width:48px!important;height:48px!important;font-size:28px!important}.dashboard-whatsapp-text{font-size:25px!important}}
