@@ -331,19 +331,26 @@ async function openAdminRankedVideo(matchId,uploaderId,name){
   if(!rankedVideoModal||!rankedVideoPlayer||!supabaseClient)return;
   try{
     rankedVideoStatus.textContent='Obteniendo video...';
-    const {data,error}=await supabaseClient.functions.invoke('get-ranked-match-video',{body:{match_id:matchId,uploader_id:uploaderId}});
-    if(error)throw new Error(error.message||'No se pudo obtener el video.');
-    if(!data?.ok||!data?.url)throw new Error(data?.error||'No se encontró el video.');
+    const {data:{session}}=await supabaseClient.auth.getSession();
+    if(!session?.access_token)throw new Error('La sesión del administrador ha caducado. Inicia sesión nuevamente.');
+    const response=await fetch(SUPABASE_URL+'/functions/v1/get-ranked-match-video',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SUPABASE_ANON_KEY},
+      body:JSON.stringify({match_id:Number(matchId),uploader_id:String(uploaderId)})
+    });
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok||!data?.ok)throw new Error(data?.error||'No se pudo cargar el video.');
     rankedVideoTitle.textContent='VIDEO DEL JUGADOR: '+String(name||'').toUpperCase();
     rankedVideoPlayer.pause();
     rankedVideoPlayer.removeAttribute('src');
     rankedVideoPlayer.load();
     rankedVideoPlayer.src=data.url;
     rankedVideoPlayer.load();
-    rankedVideoStatus.textContent='Video listo. Pulsa ▶ para reproducir.';
     rankedVideoModal.hidden=false;
+    rankedVideoStatus.textContent='Video listo. Pulsa ▶ para reproducir.';
   }catch(e){
     console.error('Video ganador:',e);
+    rankedVideoStatus.textContent=e?.message||'No se pudo cargar el video.';
     showToast(e?.message||'No se pudo cargar el video.');
   }
 }
