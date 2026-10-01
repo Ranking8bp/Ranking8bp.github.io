@@ -377,7 +377,7 @@ function startRankedMatchCountdown(match){
  if(!match?.match_id||match.admin_confirmed)return;
  const startedAt=match.created_at?new Date(match.created_at).getTime():Date.now();
  const tick=async()=>{
-   const remaining=Math.max(0,10000-(Date.now()-startedAt));
+   const remaining=Math.max(0,15000-(Date.now()-startedAt));
    const sec=Math.ceil(remaining/1000);
    if(rankedMatchCountdown)rankedMatchCountdown.hidden=remaining<=0;
    if(rankedMatchCountdownValue)rankedMatchCountdownValue.textContent=String(sec);
