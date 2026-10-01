@@ -269,8 +269,11 @@ async function updateRankedVideoProof(match){
   rankedVideoProof.hidden=!confirmed;
   if(!confirmed)return;
   if(match?.my_video_uploaded){
-    if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='✅ Video enviado. El administrador puede revisarlo.';
+    if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='✅ Video enviado. Esperando que el administrador determine el ganador.';
     if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 VIDEO ENVIADO · SUBIR OTRO';rankedWinnerVideoBtn.disabled=false}
+  }else if(match?.opponent_video_uploaded){
+    if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='⚠️ EL RIVAL SUBIÓ PRUEBAS DE SU VICTORIA · ESPERANDO RESULTADOS.';
+    if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 SUBIR MI EVIDENCIA';rankedWinnerVideoBtn.disabled=false}
   }else{
     if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='El administrador revisará el video antes de confirmar el ganador.';
     if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 SUBIR VIDEO DEL TIRO GANADOR';rankedWinnerVideoBtn.disabled=false}
@@ -513,6 +516,7 @@ async function startRankedMatchmaking(){
    matchmakingModal.hidden=true;
    const msg=String(e?.message||e?.error_description||'');
    if(msg.includes('RANKED_DAILY_LIMIT_REACHED')){await updateRankedDailyStatus();return}
+   if(msg.includes('RANKED_EVIDENCE_PENDING')){showToast('⚠️ Tienes un VS con evidencia pendiente. Espera a que el administrador determine el ganador.');return}
    showToast('No se pudo iniciar la búsqueda de rival. Intenta nuevamente.');
  }
 }
