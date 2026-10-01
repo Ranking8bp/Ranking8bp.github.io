@@ -510,7 +510,11 @@ async function updateRankedChatResponseCountdown(matchId){
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_chat_response_status',{p_match_id:Number(matchId)});if(error)throw error;
   const st=Array.isArray(data)?data[0]:data,box=ensureRankedChatResponseWarning(),value=document.getElementById('rankedChatResponseValue');
-  if(!st||st.replied){stopRankedChatResponseTimer();return}
+  if(!st){
+   const box=ensureRankedChatResponseWarning(),value=document.getElementById('rankedChatResponseValue');
+   if(box)box.hidden=false;if(value)value.textContent='01:00';return
+  }
+  if(st.replied){stopRankedChatResponseTimer();return}
   const left=Math.max(0,Number(st.seconds_left)||0);
   if(box){box.hidden=false;box.classList.toggle('waiting-on-me',!!st.waiting_for_me)}
   if(value)value.textContent='00:'+String(left).padStart(2,'0');
