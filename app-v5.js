@@ -333,9 +333,9 @@ async function openAdminRankedVideo(matchId,uploaderId,name){
     rankedVideoStatus.textContent='Obteniendo video...';
     const {data:{session}}=await supabaseClient.auth.getSession();
     if(!session?.access_token)throw new Error('La sesión del administrador ha caducado. Inicia sesión nuevamente.');
-    const response=await fetch(SUPABASE_URL+'/functions/v1/get-ranked-match-video',{
+    const response=await fetch(cloudConfig.url+'/functions/v1/get-ranked-match-video',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':SUPABASE_ANON_KEY},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':cloudConfig.key},
       body:JSON.stringify({match_id:Number(matchId),uploader_id:String(uploaderId)})
     });
     const data=await response.json().catch(()=>({}));
