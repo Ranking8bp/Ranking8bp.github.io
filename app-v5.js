@@ -673,6 +673,8 @@ async function startRankedMatchmaking(){
    const msg=String(e?.message||e?.error_description||'');
    if(msg.includes('RANKED_DAILY_LIMIT_REACHED')){await updateRankedDailyStatus();return}
    if(msg.includes('RANKED_EVIDENCE_PENDING')){showToast('⚠️ Tienes un VS con evidencia pendiente. Espera a que el administrador determine el ganador.');return}
+   if(msg.includes('RANKED_DAILY_LIMIT_REACHED')){showEloDailyLimit(status?.reset_at);return}
+   if(msg.includes('PLAYER_ALREADY_HAS_ACTIVE_VS')){await restoreActiveRankedVs();showToast('Ya tienes un VS activo.');return}
    showToast('No se pudo iniciar la búsqueda de rival. Intenta nuevamente.');
  }
 }
