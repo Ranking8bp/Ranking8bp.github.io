@@ -655,7 +655,6 @@ async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient)return;
  rankedSearchActive=true;
  const status=await updateRankedDailyStatus();
- if(Number(status?.games_today||0)>=5){showEloDailyLimit(status.reset_at);return}
  matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true;
  try{
   const {data,error}=await supabaseClient.rpc('join_ranked_matchmaking');
@@ -672,8 +671,7 @@ async function startRankedMatchmaking(){
  }catch(e){
    console.error('Error búsqueda ELO:',e);
    const msg=String(e?.message||e?.error_description||'');
-   if(msg.includes('RANKED_DAILY_LIMIT_REACHED')){if(matchmakingModal)matchmakingModal.hidden=true;await updateRankedDailyStatus();showEloDailyLimit(status?.reset_at);return}
-   if(msg.includes('RANKED_EVIDENCE_PENDING')){if(matchmakingModal)matchmakingModal.hidden=true;showToast('⚠️ Tienes un VS con evidencia pendiente. Espera a que el administrador determine el ganador.');return}
+    if(msg.includes('RANKED_EVIDENCE_PENDING')){if(matchmakingModal)matchmakingModal.hidden=true;showToast('⚠️ Tienes un VS con evidencia pendiente. Espera a que el administrador determine el ganador.');return}
    if(msg.includes('PLAYER_ALREADY_HAS_ACTIVE_VS')){await restoreActiveRankedVs();showToast('Ya tienes un VS activo.');return}
    /* A temporary matchmaking/heartbeat error must never close BUSCANDO RIVAL. */
    if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}
