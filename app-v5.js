@@ -799,7 +799,7 @@ async function loadAdminMatches(){
  if(!adminMatchList||!supabaseClient)return;
  adminMatchList.innerHTML='<div class="admin-empty">Cargando...</div>';
  try{
-  const {data,error}=await supabaseClient.rpc('admin_get_ranked_matches');if(error)throw error;
+  const [{data,error},{data:videoRows,error:videoErr}]=await Promise.all([supabaseClient.rpc('admin_get_ranked_matches'),supabaseClient.rpc('admin_get_ranked_videos')]);if(error)throw error;if(videoErr)console.error('Videos admin:',videoErr);const videos=Array.isArray(videoRows)?videoRows:[];
   const rows=(Array.isArray(data)?data:[]).filter(m=>m.status==='matched');adminMatchList.replaceChildren();
   if(!rows.length){adminMatchList.innerHTML='<div class="admin-empty">No hay partidos en espera.</div>';return}
   for(const m of rows){
@@ -810,10 +810,10 @@ async function loadAdminMatches(){
    row.append(title,meta);
    const timer=document.createElement('div');timer.className='admin-vs-time-left';row.appendChild(timer);
    const updateTime=()=>{const start=new Date(m.confirmed_at||m.created_at).getTime();const end=start+30*60*1000;const left=Math.max(0,Math.ceil((end-Date.now())/1000));const mm=Math.floor(left/60),ss=left%60;timer.textContent=left>0?'⏱️ TIEMPO RESTANTE '+String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0'):'⏱️ TIEMPO FINALIZADO';timer.classList.toggle('expired',left<=0)};updateTime();const timerId=setInterval(()=>{if(!row.isConnected){clearInterval(timerId);return}updateTime()},1000);
-   const videoProof=document.createElement('div');videoProof.className='admin-video-proof';
-   if(m.player1_video_path){const b=document.createElement('button');b.className='received';b.textContent='🎥 VIDEO '+m.player1_name;b.onclick=()=>openAdminRankedVideo(m.match_id,m.player1_id,m.player1_name);videoProof.appendChild(b)}
-   if(m.player2_video_path){const b=document.createElement('button');b.className='received';b.textContent='🎥 VIDEO '+m.player2_name;b.onclick=()=>openAdminRankedVideo(m.match_id,m.player2_id,m.player2_name);videoProof.appendChild(b)}
-   if(m.player1_video_path||m.player2_video_path)row.appendChild(videoProof);
+   const videoProof=document.createElement('div');videoProof.className='admin-video-proof';const mv=videos.filter(v=>Number(v.match_id)===Number(m.match_id));const p1v=m.player1_video_path||mv.find(v=>v.uploader_id===m.player1_id)?.video_path;const p2v=m.player2_video_path||mv.find(v=>v.uploader_id===m.player2_id)?.video_path;
+   if(p1v){const b=document.createElement('button');b.className='received';b.textContent='🎥 VIDEO '+m.player1_name;b.onclick=()=>openAdminRankedVideo(m.match_id,m.player1_id,m.player1_name);videoProof.appendChild(b)}
+   if(p2v){const b=document.createElement('button');b.className='received';b.textContent='🎥 VIDEO '+m.player2_name;b.onclick=()=>openAdminRankedVideo(m.match_id,m.player2_id,m.player2_name);videoProof.appendChild(b)}
+   if(p1v||p2v)row.appendChild(videoProof);
    if(m.status==='matched'){
     const actions=document.createElement('div');actions.className='admin-match-actions';const chatBtn=document.createElement('button');chatBtn.className='admin-chat-btn';chatBtn.textContent='VER CHAT';chatBtn.onclick=e=>{e.preventDefault();e.stopPropagation();openAdminVsChat(m.match_id,m.player1_name,m.player2_name)};chatBtn.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();openAdminVsChat(m.match_id,m.player1_name,m.player2_name)},{passive:false});actions.appendChild(chatBtn);
     if(!m.admin_confirmed){
