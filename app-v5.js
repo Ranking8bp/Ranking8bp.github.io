@@ -1443,6 +1443,8 @@ function openAdminPlayerEditor(player){
     finally{save.disabled=false}
   };
 }
+async function loadPlayerDetailCompetitive(player){const streak=document.getElementById('playerDetailStreak'),label=document.getElementById('playerDetailStreakLabel'),box=document.getElementById('playerDetailMatchHistory');if(!streak||!box||!supabaseClient)return;streak.textContent='0';if(label)label.textContent='victorias seguidas';box.innerHTML='<div class="profile-comments-empty">Cargando historial...</div>';const id=player?.player_id||player?.id;if(!id){box.textContent='No hay historial disponible.';return}try{const {data,error}=await supabaseClient.rpc('get_player_competitive_profile',{p_profile_id:id});if(error)throw error;streak.textContent=String(data?.current_streak||0);box.replaceChildren();const h=Array.isArray(data?.history)?data.history:[];if(!h.length){box.textContent='Aún no tiene partidas terminadas.';return}h.forEach(v=>{const row=document.createElement('div');row.className='player-history-row '+(v.result==='WON'?'won':'lost');const result=document.createElement('b');result.textContent=v.result==='WON'?'GANÓ':'PERDIÓ';const rival=document.createElement('span');rival.textContent='vs '+String(v.rival||'Jugador');const elo=document.createElement('strong');elo.textContent=(Number(v.elo_change)>0?'+':'')+String(v.elo_change)+' ELO';row.append(result,rival,elo);box.appendChild(row)})}catch(e){console.error('Historial del jugador:',e);box.textContent='No se pudo cargar el historial.'}}
+
 async function openRankingPlayer(player){
   if(!playerDetailModal)return;
   currentDetailPlayer=player;
@@ -1503,6 +1505,7 @@ async function openRankingPlayer(player){
   loadPlayerHeartState(player).catch(error=>console.error('Error cargando corazones:',error));
   loadFollowStats(player).catch(error=>console.error('Error cargando seguidores:',error));
   loadProfileComments().catch(error=>console.error('Error cargando comentarios:',error));
+  loadPlayerDetailCompetitive(player).catch(error=>console.error('Error cargando historial:',error));
 
   if(player?.avatar_path&&supabaseClient){
     try{
