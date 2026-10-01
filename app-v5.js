@@ -43,6 +43,7 @@ const dashboardWins=document.getElementById('dashboardWins');
 const dashboardLosses=document.getElementById('dashboardLosses');
 const dashboardPlayBtn=document.getElementById('dashboardPlayBtn');
 const playersOnlineCount=document.getElementById('playersOnlineCount');
+const playersOnlineCount=document.getElementById('playersOnlineCount');
 const eloDailyLimitModal=document.getElementById('eloDailyLimitModal'),eloDailyLimitClose=document.getElementById('eloDailyLimitClose'),eloDailyCountdown=document.getElementById('eloDailyCountdown');
 let eloDailyResetAt=null,eloDailyCountdownTimer=null;
 const matchmakingModal=document.getElementById('matchmakingModal');
