@@ -1210,3 +1210,5 @@ html,body{color-scheme:dark!important}
 .ranked-vs-chat-compose{display:flex;gap:7px;padding:10px;border-top:1px solid rgba(67,179,255,.2)}
 .ranked-vs-chat-compose textarea{flex:1;resize:none;box-sizing:border-box;border:1px solid #294553;border-radius:8px;background:#071017;color:#fff;padding:9px;font:700 10px Arial,sans-serif;outline:none}
 .ranked-vs-chat-compose button{border:0;border-radius:8px;padding:0 14px;background:#1789c9;color:#fff;font:900 10px Arial,sans-serif;cursor:pointer}
+
+.ranked-player-confirm{margin-top:9px}.ranked-player-confirm button{border:1px solid rgba(92,231,151,.7);border-radius:9px;background:#117440;color:#fff;padding:9px 16px;font:900 11px Arial,sans-serif;cursor:pointer}.ranked-player-confirm button:disabled{opacity:.65;cursor:default}.ranked-player-confirm small{display:block;margin-top:6px;color:#c5d0d6;font:700 9px Arial,sans-serif}
