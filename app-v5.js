@@ -472,11 +472,19 @@ async function loadRankedVsChat(matchId){
  }catch(e){console.error('Chat VS:',e)}
 }
 function startRankedVsChat(match){
- const active=!!match?.match_id&&String(match?.status||'matched')==='matched';
- if(rankedVsChat)rankedVsChat.hidden=!active;
+ const id=Number(match?.match_id||currentRankedMatchId||0);
+ const active=id>0;
+ if(rankedVsChat){
+   rankedVsChat.hidden=!active;
+   if(active){rankedVsChat.removeAttribute('hidden');rankedVsChat.style.display='block'}
+   else rankedVsChat.style.removeProperty('display');
+ }
  if(!active){if(rankedVsChatTimer)clearInterval(rankedVsChatTimer);rankedVsChatTimer=null;rankedVsChatMatchId=null;return}
- const id=Number(match.match_id);if(rankedVsChatMatchId===id&&rankedVsChatTimer)return;
- if(rankedVsChatTimer)clearInterval(rankedVsChatTimer);rankedVsChatMatchId=id;loadRankedVsChat(id);rankedVsChatTimer=setInterval(()=>loadRankedVsChat(id),2000);
+ if(rankedVsChatMatchId===id&&rankedVsChatTimer)return;
+ if(rankedVsChatTimer)clearInterval(rankedVsChatTimer);
+ rankedVsChatMatchId=id;
+ loadRankedVsChat(id);
+ rankedVsChatTimer=setInterval(()=>loadRankedVsChat(id),2000);
 }
 async function sendRankedVsChat(){
  const message=String(rankedVsChatInput?.value||'').trim();if(!message||!rankedVsChatMatchId||!currentUser)return;
@@ -492,6 +500,8 @@ function showRankedMatch(match){
  if(!matchmakingModal)return;
  currentRankedMatchId=match.match_id;
  matchmakingSearching.hidden=true;matchmakingVersus.hidden=false;
+ /* The VS chat must be visible immediately on every device as soon as a match exists. */
+ startRankedVsChat(match);
  versusMe.textContent=String(currentProfile?.account_name||currentProfile?.username||'TÚ').toUpperCase();
  const myGameId=String(match.my_game_id??'').trim();
  const opponentGameId=String(match.opponent_game_id??'').trim();
