@@ -366,7 +366,16 @@
       <span>El límite se reinicia automáticamente cada día.</span>
     </section>
   </div>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="ranked-video-modal" id="rankedVideoModal" hidden>
+  <section class="ranked-video-card" role="dialog" aria-modal="true" aria-labelledby="rankedVideoTitle">
+    <button type="button" class="ranked-video-close" id="rankedVideoClose" aria-label="Cerrar">×</button>
+    <small>PRUEBA DEL TIRO GANADOR</small>
+    <h3 id="rankedVideoTitle">VIDEO DEL JUGADOR</h3>
+    <video id="rankedVideoPlayer" controls playsinline preload="metadata"></video>
+    <p id="rankedVideoStatus"></p>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
   <div class="private-message-backdrop" id="privateMessageModal" hidden>
     <section class="private-message-card" role="dialog" aria-modal="true">
       <button type="button" class="private-message-close" id="privateMessageClose" aria-label="Cerrar">×</button>
@@ -378,6 +387,6 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20260930-auto-confirm01"></script>
+  <script src="app-v5.js?v=20260930-winner-video-play01"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer></body>
 </html>
