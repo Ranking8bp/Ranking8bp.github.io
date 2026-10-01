@@ -88,7 +88,7 @@ const rankingList=document.getElementById('rankingList');
 const rankingCount=document.getElementById('rankingCount');
 const rankingSearchInput=document.getElementById('rankingSearchInput');
 let rankingPlayersCache=[];
-let onlinePlayerIds=new Set(),onlinePresenceTimer=null;
+let onlinePlayerIds=new Set(),onlinePresenceTimer=null,rankingStreaks=new Map();
 const playerDetailModal=document.getElementById('playerDetailModal');
 const closePlayerDetail=document.getElementById('closePlayerDetail');
 const playerDetailAvatar=document.getElementById('playerDetailAvatar');
@@ -876,6 +876,7 @@ async function loadGuestRanking(){
   const {data,error}=await supabaseClient.rpc('get_public_ranking');
   if(error)throw error;
   guestRankingPlayers=(Array.isArray(data)?data:[]).slice(0,100);
+  await refreshRankingStreaks();
   renderGuestRanking();
  }catch(e){
   console.error('Ranking público:',e);
@@ -912,7 +913,7 @@ function renderGuestRanking(){
     if(avatarData?.publicUrl){const img=document.createElement('img');img.src=avatarData.publicUrl;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();avatar.appendChild(img)}
    }
    const info=document.createElement('div');info.className='guest-ranking-player-info';
-   const n=document.createElement('b');n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();const od=onlineDotFor(player);if(od)n.appendChild(od);
+   const n=document.createElement('b');n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();const sid=String(player?.player_id||player?.id||'');const sv=Number(rankingStreaks.get(sid)||0);if(sv>0){const ss=document.createElement('span');ss.className='ranking-streak';ss.textContent=' +'+sv;ss.title='Racha de '+sv+' victoria'+(sv===1?'':'s');n.appendChild(ss)}const od=onlineDotFor(player);if(od)n.appendChild(od);
    const rank=getRankByElo(player.elo_points);const rankLine=document.createElement('span');rankLine.className='guest-ranking-rank';rankLine.textContent=rank.name.toUpperCase();
    const miniBadge=document.createElement('span');miniBadge.className='guest-ranking-rank-badge';renderRankBadgeOn(miniBadge,rank);
    miniBadge.setAttribute('role','button');miniBadge.tabIndex=0;miniBadge.title='Ver perfil y estadísticas';
@@ -1546,6 +1547,7 @@ function buildRankingRow(player,index){
   const name=document.createElement('span');
   name.className='ranking-player-name';
   name.textContent=String(player?.username||player?.account_name||'Jugador').toUpperCase();
+  const sid=String(player?.player_id||player?.id||'');const sv=Number(rankingStreaks.get(sid)||0);if(sv>0){const ss=document.createElement('span');ss.className='ranking-streak';ss.textContent=' +'+sv;ss.title='Racha de '+sv+' victoria'+(sv===1?'':'s');name.appendChild(ss)}
   const od=onlineDotFor(player);if(od)name.appendChild(od);
   playerCell.appendChild(name);
 
@@ -1567,6 +1569,8 @@ function buildRankingRow(player,index){
   return row;
 }
 
+async function refreshRankingStreaks(){if(!supabaseClient)return;try{const {data,error}=await supabaseClient.rpc('get_ranked_current_streaks');if(error)throw error;rankingStreaks=new Map((data||[]).map(x=>[String(x.player_id),Number(x.streak)||0]));renderFilteredRanking();renderGuestRanking()}catch(e){console.error('Rachas:',e)}}
+
 async function loadRanking(attempt=0){
   if(!rankingList||!rankingCount||!supabaseClient)return;
   if(attempt===0){
@@ -1587,6 +1591,7 @@ async function loadRanking(attempt=0){
 
     const players=Array.isArray(data)?data:[];
     rankingPlayersCache=players;
+    await refreshRankingStreaks();
     renderFilteredRanking();
 
 
