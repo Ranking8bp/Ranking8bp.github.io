@@ -1184,3 +1184,10 @@ html,body{color-scheme:dark!important}
 .ranked-video-card video{display:block;width:100%;max-height:70vh;background:#000;border-radius:12px}
 .ranked-video-close{position:absolute;right:10px;top:8px;width:40px;height:40px;border:0;border-radius:50%;background:#182630;color:#fff;font-size:27px;cursor:pointer}
 #rankedVideoStatus{margin:10px 0 0;color:#aeb9c2;font-size:12px}
+
+.ranked-match-rules{width:min(680px,92%);box-sizing:border-box;margin:10px auto 14px;padding:16px 17px;border:1px solid rgba(201,145,21,.55);border-radius:12px;background:rgba(8,17,24,.96);text-align:left}
+.ranked-match-rules[hidden]{display:none}
+.ranked-match-rules h3{margin:2px 0 12px;text-align:center;color:#e7c86f;font:900 13px/1.25 Arial,sans-serif;letter-spacing:.45px}
+.ranked-match-rules h3:nth-of-type(2){margin-top:18px}
+.ranked-match-rules p{margin:0 0 9px;color:#f2f3f4;font:800 10.5px/1.5 Arial,sans-serif;letter-spacing:.08px}
+@media(max-width:520px){.ranked-match-rules{padding:14px 13px}.ranked-match-rules h3{font-size:12px}.ranked-match-rules p{font-size:9.5px;line-height:1.48}}
