@@ -328,22 +328,23 @@ async function uploadRankedWinnerVideo(){
   }finally{rankedWinnerVideoBtn.disabled=false}
 }
 async function openAdminRankedVideo(matchId,uploaderId,name){
-  if(!rankedVideoModal||!rankedVideoPlayer)return;
-  rankedVideoModal.hidden=false;
-  rankedVideoTitle.textContent='VIDEO DEL JUGADOR: '+String(name||'').toUpperCase();
-  rankedVideoStatus.textContent='Cargando video...';
-  rankedVideoPlayer.pause();rankedVideoPlayer.removeAttribute('src');rankedVideoPlayer.load();
+  if(!rankedVideoModal||!rankedVideoPlayer||!supabaseClient)return;
   try{
+    rankedVideoStatus.textContent='Obteniendo video...';
     const {data,error}=await supabaseClient.functions.invoke('get-ranked-match-video',{body:{match_id:matchId,uploader_id:uploaderId}});
     if(error)throw new Error(error.message||'No se pudo obtener el video.');
     if(!data?.ok||!data?.url)throw new Error(data?.error||'No se encontró el video.');
+    rankedVideoTitle.textContent='VIDEO DEL JUGADOR: '+String(name||'').toUpperCase();
+    rankedVideoPlayer.pause();
+    rankedVideoPlayer.removeAttribute('src');
+    rankedVideoPlayer.load();
     rankedVideoPlayer.src=data.url;
     rankedVideoPlayer.load();
-    rankedVideoStatus.textContent='Video cargado. Pulsa ▶ para reproducir.';
-    try{await rankedVideoPlayer.play();}catch(_){/* el navegador puede requerir tocar ▶ */}
+    rankedVideoStatus.textContent='Video listo. Pulsa ▶ para reproducir.';
+    rankedVideoModal.hidden=false;
   }catch(e){
     console.error('Video ganador:',e);
-    rankedVideoStatus.textContent=e?.message||'No se pudo cargar el video.';
+    showToast(e?.message||'No se pudo cargar el video.');
   }
 }
 function closeAdminRankedVideo(){
@@ -1422,6 +1423,7 @@ if(rankedWinnerVideoBtn)rankedWinnerVideoBtn.addEventListener('click',()=>ranked
 if(rankedWinnerVideoInput)rankedWinnerVideoInput.addEventListener('change',uploadRankedWinnerVideo);
 if(rankedVideoClose)rankedVideoClose.addEventListener('click',closeAdminRankedVideo);
 if(rankedVideoModal)rankedVideoModal.addEventListener('click',e=>{if(e.target===rankedVideoModal)closeAdminRankedVideo()});
+if(rankedVideoPlayer)rankedVideoPlayer.addEventListener('click',e=>e.stopPropagation());
 if(eloDailyLimitClose)eloDailyLimitClose.addEventListener('click',closeEloDailyLimit);
 if(abandonRankedBtn)abandonRankedBtn.addEventListener('click',abandonRankedMatch);
 if(playerMessageBtn)playerMessageBtn.addEventListener('click',openPrivateMessage);
