@@ -529,13 +529,10 @@ async function updateRankedChatResponseCountdown(matchId){
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_chat_response_status',{p_match_id:Number(matchId)});if(error)throw error;
   const st=Array.isArray(data)?data[0]:data,box=ensureRankedChatResponseWarning(),value=document.getElementById('rankedChatResponseValue');
-  if(!st){
-   const box=ensureRankedChatResponseWarning(),value=document.getElementById('rankedChatResponseValue');
-   if(box)box.hidden=false;if(value)value.textContent='01:00';return
-  }
+  if(!st){if(box){box.hidden=false;box.classList.remove('waiting-on-me');const title=box.querySelector('strong'),p=box.querySelector('p');if(title)title.textContent='⏱️ TIEMPO DE RESPUESTA';if(p)p.textContent='Cuando uno escriba, el otro tendrá 1 minuto para responder.'}if(value)value.textContent='01:00';return}
   if(st.replied){stopRankedChatResponseTimer();return}
   const left=Math.max(0,Number(st.seconds_left)||0);
-  if(box){box.hidden=false;box.classList.toggle('waiting-on-me',!!st.waiting_for_me)}
+  if(box){box.hidden=false;box.classList.toggle('waiting-on-me',!!st.waiting_for_me);const title=box.querySelector('strong'),p=box.querySelector('p');if(title)title.textContent=st.waiting_for_me?'⚠️ RESPONDE EN EL CHAT':'⏱️ ESPERANDO RESPUESTA';if(p)p.textContent=st.waiting_for_me?'Tienes 1 minuto para responder o el VS será anulado.':'Tu rival tiene 1 minuto para responder.'}
   if(value)value.textContent='00:'+String(left).padStart(2,'0');
   if(left<=0&&!rankedChatResponseExpiring){
    rankedChatResponseExpiring=true;
