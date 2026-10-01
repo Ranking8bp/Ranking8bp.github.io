@@ -520,9 +520,12 @@ async function watchCurrentRankedMatch(){
   if(data&&data.length&&Number(data[0].match_id)===Number(currentRankedMatchId)){const confirmed=!!data[0].admin_confirmed;updateRankedPlayerConfirm(data[0]);if(confirmed){stopRankedMatchCountdown();startRankedPlayTimer(data[0])}else{stopRankedPlayTimer();startRankedMatchCountdown(data[0])}updateRankedVideoProof(data[0]);if(confirmedMatchWarning)confirmedMatchWarning.hidden=!confirmed;if(rankedMatchRules)rankedMatchRules.hidden=!confirmed;startRankedVsChat(data[0]);if(abandonRankedBtn){abandonRankedBtn.hidden=confirmed;abandonRankedBtn.disabled=confirmed}if(matchmakingClose){matchmakingClose.hidden=confirmed;matchmakingClose.disabled=confirmed}}
   if(!data||!data.length||Number(data[0].match_id)!==Number(currentRankedMatchId)){
    currentRankedMatchId=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
-   if(matchmakingModal)matchmakingModal.hidden=false;if(matchmakingSearching)matchmakingSearching.hidden=false;if(matchmakingVersus)matchmakingVersus.hidden=true;
-   showToast('Tu rival abandonó. Buscando un nuevo rival...');
-   await startRankedMatchmaking();return;
+   stopRankedPlayTimer();
+   if(rankedVsChatTimer){clearInterval(rankedVsChatTimer);rankedVsChatTimer=null}rankedVsChatMatchId=null;
+   if(rankedVsChat)rankedVsChat.hidden=true;
+   if(matchmakingModal)matchmakingModal.hidden=true;if(matchmakingSearching)matchmakingSearching.hidden=false;if(matchmakingVersus)matchmakingVersus.hidden=true;
+   showToast('VS finalizado o anulado. Toca JUGAR cuando quieras buscar otro rival.');
+   await updateRankedDailyStatus();return;
   }
  }catch(e){console.error(e)}
 }
