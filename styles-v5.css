@@ -1266,3 +1266,5 @@ html,body{color-scheme:dark!important}
 
 /* Centrar contador de jugadores debajo del boton JUGAR */
 .dashboard-play-area{display:flex;flex-direction:column;align-items:center}.players-online-now{width:100%;box-sizing:border-box;justify-content:center;text-align:center;margin:8px auto 0;position:static!important;transform:none!important}
+
+.players-playing-row{display:flex!important;width:100%!important;clear:both!important;position:relative!important;float:none!important;box-sizing:border-box!important;align-items:center!important;justify-content:center!important;gap:6px!important;margin:-18px auto 18px!important;text-align:center!important;font-size:13px!important;font-weight:800!important;color:#d9e5dc!important}.players-playing-row .online-player-dot{margin:0!important;width:9px!important;height:9px!important}.players-playing-row strong{color:#20e36b!important;font-size:15px!important}
