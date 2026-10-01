@@ -1172,3 +1172,6 @@ html,body{color-scheme:dark!important}
 .admin-video-proof{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
 .admin-video-proof button{border:1px solid #3b8dd1;border-radius:8px;background:#10263a;color:#d9edff;padding:8px 10px;font-size:11px;font-weight:900;cursor:pointer}
 .admin-video-proof .received{border-color:#2dbd4a;background:#102b18;color:#a8e9b6}
+
+.ranked-match-countdown{width:min(680px,92%);margin:10px auto 6px;padding:11px 14px;border:1px solid rgba(231,200,111,.35);border-radius:11px;background:#0b151d;color:#e7c86f;text-align:center;font:900 13px Arial,sans-serif;letter-spacing:.6px}
+.ranked-match-countdown b{font-size:24px;display:inline-block;min-width:28px}
