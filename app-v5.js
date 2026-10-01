@@ -75,7 +75,7 @@ const rankedWinnerVideoInput=document.getElementById('rankedWinnerVideoInput');
 const rankedWinnerVideoBtn=document.getElementById('rankedWinnerVideoBtn');
 const rankedWinnerVideoStatus=document.getElementById('rankedWinnerVideoStatus');
 let pendingMatchesTimer=null;
-let matchmakingTimer=null,currentRankedMatchId=null,matchmakingHeartbeatTimer=null;
+let matchmakingTimer=null,currentRankedMatchId=null,matchmakingHeartbeatTimer=null,rankedSearchActive=false;
 const gamesPlayed=document.getElementById('gamesPlayed');
 const winRate=document.getElementById('winRate');
 const currentStreak=document.getElementById('currentStreak');
@@ -543,6 +543,7 @@ rankedVsChatSend?.addEventListener('touchend',e=>{e.preventDefault();e.stopPropa
 rankedVsChatInput?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendRankedVsChat()}});
 function showRankedMatch(match){
  if(!matchmakingModal)return;
+ rankedSearchActive=false;
  currentRankedMatchId=match.match_id;
  matchmakingSearching.hidden=true;matchmakingVersus.hidden=false;
  /* The VS chat must be visible immediately on every device as soon as a match exists. */
@@ -652,6 +653,7 @@ function maybeOpenDirectMatchmaking(){
 
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient)return;
+ rankedSearchActive=true;
  const status=await updateRankedDailyStatus();
  if(Number(status?.games_today||0)>=5){showEloDailyLimit(status.reset_at);return}
  matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true;
@@ -681,6 +683,7 @@ async function startRankedMatchmaking(){
  }
 }
 async function closeRankedMatchmaking(){
+ rankedSearchActive=false;
  if(currentRankedMatchId&&supabaseClient){try{const {data}=await supabaseClient.rpc('get_my_active_ranked_match');const m=Array.isArray(data)?data[0]:data;if(m?.admin_confirmed){showToast('Este VS está confirmado. Debes esperar el resultado.');return}}catch(e){console.error(e)}}
  clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
  if(matchmakingModal)matchmakingModal.hidden=true;
@@ -1678,8 +1681,8 @@ function startNotificationRefresh(){
     notificationRefreshTimer=setInterval(()=>{if(currentUser)loadNotifications().catch(()=>{})},15000);
   }
 }
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser){loadNotifications().catch(()=>{});restoreActiveRankedVs().catch(()=>{})}});
-window.addEventListener('pageshow',()=>{if(currentUser)restoreActiveRankedVs().catch(()=>{})});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser){loadNotifications().catch(()=>{});if(rankedSearchActive){if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}pollRankedMatch().catch(()=>{})}else restoreActiveRankedVs().catch(()=>{})}});
+window.addEventListener('pageshow',()=>{if(currentUser){if(rankedSearchActive){if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}pollRankedMatch().catch(()=>{})}else restoreActiveRankedVs().catch(()=>{})}});
 async function restoreActiveRankedVs(){
  if(!currentUser||!supabaseClient)return;
  try{
