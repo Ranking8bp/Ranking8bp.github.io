@@ -669,13 +669,15 @@ async function startRankedMatchmaking(){
   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(heartbeatRankedSearch,3000);heartbeatRankedSearch();
  }catch(e){
    console.error('Error búsqueda ELO:',e);
-   matchmakingModal.hidden=true;
    const msg=String(e?.message||e?.error_description||'');
-   if(msg.includes('RANKED_DAILY_LIMIT_REACHED')){await updateRankedDailyStatus();return}
-   if(msg.includes('RANKED_EVIDENCE_PENDING')){showToast('⚠️ Tienes un VS con evidencia pendiente. Espera a que el administrador determine el ganador.');return}
-   if(msg.includes('RANKED_DAILY_LIMIT_REACHED')){showEloDailyLimit(status?.reset_at);return}
+   if(msg.includes('RANKED_DAILY_LIMIT_REACHED')){if(matchmakingModal)matchmakingModal.hidden=true;await updateRankedDailyStatus();showEloDailyLimit(status?.reset_at);return}
+   if(msg.includes('RANKED_EVIDENCE_PENDING')){if(matchmakingModal)matchmakingModal.hidden=true;showToast('⚠️ Tienes un VS con evidencia pendiente. Espera a que el administrador determine el ganador.');return}
    if(msg.includes('PLAYER_ALREADY_HAS_ACTIVE_VS')){await restoreActiveRankedVs();showToast('Ya tienes un VS activo.');return}
-   showToast('No se pudo iniciar la búsqueda de rival. Intenta nuevamente.');
+   /* A temporary matchmaking/heartbeat error must never close BUSCANDO RIVAL. */
+   if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}
+   clearInterval(matchmakingTimer);matchmakingTimer=setInterval(pollRankedMatch,1500);
+   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(heartbeatRankedSearch,3000);
+   showToast('Buscando rival…');
  }
 }
 async function closeRankedMatchmaking(){
