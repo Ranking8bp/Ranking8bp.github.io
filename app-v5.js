@@ -472,9 +472,9 @@ async function loadRankedVsChat(matchId){
  }catch(e){console.error('Chat VS:',e)}
 }
 function startRankedVsChat(match){
- const confirmed=!!match?.admin_confirmed;
- if(rankedVsChat)rankedVsChat.hidden=!confirmed;
- if(!confirmed){if(rankedVsChatTimer)clearInterval(rankedVsChatTimer);rankedVsChatTimer=null;rankedVsChatMatchId=null;return}
+ const active=!!match?.match_id&&String(match?.status||'matched')==='matched';
+ if(rankedVsChat)rankedVsChat.hidden=!active;
+ if(!active){if(rankedVsChatTimer)clearInterval(rankedVsChatTimer);rankedVsChatTimer=null;rankedVsChatMatchId=null;return}
  const id=Number(match.match_id);if(rankedVsChatMatchId===id&&rankedVsChatTimer)return;
  if(rankedVsChatTimer)clearInterval(rankedVsChatTimer);rankedVsChatMatchId=id;loadRankedVsChat(id);rankedVsChatTimer=setInterval(()=>loadRankedVsChat(id),2000);
 }
