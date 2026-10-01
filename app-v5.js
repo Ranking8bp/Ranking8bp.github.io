@@ -791,6 +791,10 @@ async function cleanupRankedMatchVideos(matchId){
   if(!response.ok||!data?.ok)console.error('No se pudieron eliminar videos del VS:',data?.error||response.status);
  }catch(e){console.error('Limpieza videos VS:',e)}
 }
+async function openAdminVsChat(matchId,p1,p2){const modal=document.getElementById('adminVsChatModal'),box=document.getElementById('adminVsChatMessages'),title=document.getElementById('adminVsChatTitle');if(!modal||!box||!supabaseClient)return;if(title)title.textContent=String(p1||'Jugador')+' VS '+String(p2||'Jugador');modal.hidden=false;box.textContent='Cargando conversación...';try{const res=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:Number(matchId)});if(res.error)throw res.error;box.replaceChildren();if(!res.data?.length){box.textContent='Todavía no han enviado mensajes en este VS.';return}res.data.forEach(m=>{const d=document.createElement('div');d.className='admin-vs-chat-message';const h=document.createElement('b');h.textContent=String(m.sender_name||'Jugador')+' · '+new Date(m.created_at).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});const body=document.createElement('p');body.textContent=String(m.message||'');d.append(h,body);box.appendChild(d)});box.scrollTop=box.scrollHeight}catch(e){box.textContent='No se pudo cargar el chat.'}}
+function closeAdminVsChat(){const m=document.getElementById('adminVsChatModal');if(m)m.hidden=true}
+document.addEventListener('click',e=>{if(e.target&&['adminVsChatClose','adminVsChatModal'].includes(e.target.id))closeAdminVsChat()});
+
 async function loadAdminMatches(){
  if(!adminMatchList||!supabaseClient)return;
  adminMatchList.innerHTML='<div class="admin-empty">Cargando...</div>';
@@ -809,7 +813,7 @@ async function loadAdminMatches(){
    if(m.player2_video_path){const b=document.createElement('button');b.className='received';b.textContent='🎥 VIDEO '+m.player2_name;b.onclick=()=>openAdminRankedVideo(m.match_id,m.player2_id,m.player2_name);videoProof.appendChild(b)}
    if(m.player1_video_path||m.player2_video_path)row.appendChild(videoProof);
    if(m.status==='matched'){
-    const actions=document.createElement('div');actions.className='admin-match-actions';
+    const actions=document.createElement('div');actions.className='admin-match-actions';const chatBtn=document.createElement('button');chatBtn.className='admin-chat-btn';chatBtn.textContent='VER CHAT';chatBtn.onclick=()=>openAdminVsChat(m.match_id,m.player1_name,m.player2_name);actions.appendChild(chatBtn);
     if(!m.admin_confirmed){
      const confirmBtn=document.createElement('button');confirmBtn.className='confirm-vs';confirmBtn.textContent='CONFIRMAR VS';
      confirmBtn.onclick=async()=>{if(!confirm('¿Confirmar este VS? Después de confirmarlo los jugadores ya no podrán abandonar.'))return;const {error}=await supabaseClient.rpc('admin_confirm_ranked_match',{p_match_id:m.match_id});if(error){showToast('No se pudo confirmar el VS.');return}await loadAdminMatches();showToast('VS confirmado. Ahora selecciona quién ganó.')};
