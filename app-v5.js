@@ -613,7 +613,7 @@ async function updateRankedDailyStatus(){
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_daily_status');if(error)throw error;
   const st=Array.isArray(data)?data[0]:data;
-  const limited=Number(st?.games_today||0)>=3;
+  const limited=Number(st?.games_today||0)>=5;
   if(dashboardPlayBtn){
     dashboardPlayBtn.classList.toggle('elo-daily-limited',limited);
     dashboardPlayBtn.setAttribute('aria-label',limited?'Límite diario de ELO alcanzado':'Jugar por ELO');
@@ -653,7 +653,7 @@ function maybeOpenDirectMatchmaking(){
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient)return;
  const status=await updateRankedDailyStatus();
- if(Number(status?.games_today||0)>=3){showEloDailyLimit(status.reset_at);return}
+ if(Number(status?.games_today||0)>=5){showEloDailyLimit(status.reset_at);return}
  matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true;
  try{
   const {data,error}=await supabaseClient.rpc('join_ranked_matchmaking');
