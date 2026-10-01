@@ -487,14 +487,23 @@ function startRankedVsChat(match){
  rankedVsChatTimer=setInterval(()=>loadRankedVsChat(id),2000);
 }
 async function sendRankedVsChat(){
- const message=String(rankedVsChatInput?.value||'').trim();if(!message||!rankedVsChatMatchId||!currentUser)return;
+ const message=String(rankedVsChatInput?.value||'').trim();
+ if(!message||!currentUser||!supabaseClient)return;
+ if(!rankedVsChatMatchId){
+   try{const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');if(error)throw error;const m=Array.isArray(data)?data[0]:data;if(m?.match_id){currentRankedMatchId=m.match_id;rankedVsChatMatchId=Number(m.match_id)}}catch(e){console.error('Recuperar VS para chat:',e)}
+ }
+ if(!rankedVsChatMatchId){showToast('No se encontró el VS activo.');return}
  rankedVsChatSend.disabled=true;
  try{
-  const {error}=await supabaseClient.from('ranked_match_messages').insert({match_id:rankedVsChatMatchId,sender_id:currentUser.id,message});
-  if(error)throw error;rankedVsChatInput.value='';await loadRankedVsChat(rankedVsChatMatchId);
- }catch(e){console.error(e);showToast('No se pudo enviar el mensaje.')}finally{rankedVsChatSend.disabled=false}
+  const {error}=await supabaseClient.rpc('send_ranked_match_chat',{p_match_id:Number(rankedVsChatMatchId),p_message:message});
+  if(error)throw error;
+  rankedVsChatInput.value='';
+  rankedVsChatInput.blur();
+  await loadRankedVsChat(rankedVsChatMatchId);
+ }catch(e){console.error('Enviar chat VS:',e);showToast('No se pudo enviar el mensaje. Intenta nuevamente.')}finally{rankedVsChatSend.disabled=false}
 }
-rankedVsChatSend?.addEventListener('click',sendRankedVsChat);
+rankedVsChatSend?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();sendRankedVsChat()});
+rankedVsChatSend?.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();sendRankedVsChat()},{passive:false});
 rankedVsChatInput?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendRankedVsChat()}});
 function showRankedMatch(match){
  if(!matchmakingModal)return;
