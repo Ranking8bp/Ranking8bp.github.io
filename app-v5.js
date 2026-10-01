@@ -86,6 +86,7 @@ const rankingList=document.getElementById('rankingList');
 const rankingCount=document.getElementById('rankingCount');
 const rankingSearchInput=document.getElementById('rankingSearchInput');
 let rankingPlayersCache=[];
+let onlinePlayerIds=new Set(),onlinePresenceTimer=null;
 const playerDetailModal=document.getElementById('playerDetailModal');
 const closePlayerDetail=document.getElementById('closePlayerDetail');
 const playerDetailAvatar=document.getElementById('playerDetailAvatar');
@@ -879,6 +880,11 @@ async function loadGuestRanking(){
   guestRankingList.innerHTML='<div class="ranking-loading ranking-error">No se pudo cargar la clasificación.</div>';
  }
 }
+function onlineDotFor(player){const id=String(player?.id||player?.user_id||'');if(!onlinePlayerIds.has(id))return null;const d=document.createElement('span');d.className='online-player-dot';d.title='En línea';d.setAttribute('aria-label','En línea');return d}
+async function refreshOnlinePlayers(){if(!supabaseClient)return;try{const {data,error}=await supabaseClient.rpc('get_online_players');if(error)throw error;onlinePlayerIds=new Set((data||[]).map(x=>String(x.user_id)));renderFilteredRanking();renderGuestRanking()}catch(e){console.error('Presencia:',e)}}
+async function touchOnlinePresence(){if(!currentUser||!supabaseClient)return;try{await supabaseClient.rpc('touch_online_presence');await refreshOnlinePlayers()}catch(e){console.error('Presencia:',e)}}
+function startOnlinePresence(){clearInterval(onlinePresenceTimer);if(!currentUser)return;touchOnlinePresence();onlinePresenceTimer=setInterval(touchOnlinePresence,30000)}
+
 function renderGuestRanking(){
  if(!guestRankingList)return;
  const q=String(guestRankingSearchInput?.value||'').trim().toLocaleLowerCase('es');
@@ -901,7 +907,7 @@ function renderGuestRanking(){
     if(avatarData?.publicUrl){const img=document.createElement('img');img.src=avatarData.publicUrl;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();avatar.appendChild(img)}
    }
    const info=document.createElement('div');info.className='guest-ranking-player-info';
-   const n=document.createElement('b');n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();
+   const n=document.createElement('b');n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();const od=onlineDotFor(player);if(od)n.appendChild(od);
    const rank=getRankByElo(player.elo_points);const rankLine=document.createElement('span');rankLine.className='guest-ranking-rank';rankLine.textContent=rank.name.toUpperCase();
    const miniBadge=document.createElement('span');miniBadge.className='guest-ranking-rank-badge';renderRankBadgeOn(miniBadge,rank);
    miniBadge.setAttribute('role','button');miniBadge.tabIndex=0;miniBadge.title='Ver perfil y estadísticas';
@@ -944,7 +950,7 @@ async function setPlayerUI(profile,user){
   const games=wins+losses;
   const rate=games>0?Math.round((wins/games)*100):0;
 
-  dashboardPlayerName.textContent=String(playerName).toUpperCase();
+  dashboardPlayerName.textContent=String(playerName).toUpperCase();const selfDot=document.createElement('span');selfDot.className='online-player-dot';selfDot.title='En línea';dashboardPlayerName.appendChild(selfDot);
   countryName.textContent=profile?.country||'País';
   countryFlag.textContent=getFlag(profile?.country);
   const isAdminDashboard=profile?.is_admin===true||String(profile?.username||'').toLowerCase()==='ikar8bp';
@@ -1530,6 +1536,7 @@ function buildRankingRow(player,index){
   const name=document.createElement('span');
   name.className='ranking-player-name';
   name.textContent=String(player?.username||player?.account_name||'Jugador').toUpperCase();
+  const od=onlineDotFor(player);if(od)name.appendChild(od);
   playerCell.appendChild(name);
 
   const countryCell=document.createElement('div');
@@ -1754,7 +1761,7 @@ async function restoreActiveRankedVs(){
    startRankedVsChat(m);
  }catch(e){console.error('Restaurar VS activo:',e)}
 }
-setTimeout(startNotificationRefresh,1000);
+setTimeout(startNotificationRefresh,1000);setTimeout(()=>{startOnlinePresence();refreshOnlinePlayers()},1200);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser)touchOnlinePresence()});
 if(playerDetailModal)playerDetailModal.addEventListener('click',event=>{if(event.target===playerDetailModal)closeRankingPlayer()});
 
 profilePhotoInput.addEventListener('change',async()=>{
@@ -1823,7 +1830,7 @@ loginForm.addEventListener('submit',async event=>{
   finally{setLoginBusy(false)}
 });
 
-logoutBtn.addEventListener('click',async()=>{settingsMenu.hidden=true;if(supabaseClient)await supabaseClient.auth.signOut();setGuestUI();showToast('Sesión cerrada.')});
+logoutBtn.addEventListener('click',async()=>{settingsMenu.hidden=true;clearInterval(onlinePresenceTimer);onlinePresenceTimer=null;if(supabaseClient)await supabaseClient.auth.signOut();setGuestUI();showToast('Sesión cerrada.')});
 
 if(deleteAccountBtn)deleteAccountBtn.addEventListener('click',async()=>{
   settingsMenu.hidden=true;
