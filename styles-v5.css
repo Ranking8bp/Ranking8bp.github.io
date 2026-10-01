@@ -1279,3 +1279,5 @@ html,body{color-scheme:dark!important}
 
 /* Racha: + y número siempre amarillos en la tabla */
 .ranking-player-name .ranking-streak,.guest-ranking-player-info b .ranking-streak{color:#ffd400!important;-webkit-text-fill-color:#ffd400!important;opacity:1!important;font-weight:1000!important}
+
+.player-history-meta{display:flex;flex-direction:column;align-items:flex-end;gap:2px}.player-history-meta small{color:#9eacbc;font-size:10px;white-space:nowrap;font-weight:700}
