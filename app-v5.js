@@ -1629,7 +1629,20 @@ function startNotificationRefresh(){
     notificationRefreshTimer=setInterval(()=>{if(currentUser)loadNotifications().catch(()=>{})},15000);
   }
 }
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser)loadNotifications().catch(()=>{})});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser){loadNotifications().catch(()=>{});restoreActiveRankedVs().catch(()=>{})}});
+window.addEventListener('pageshow',()=>{if(currentUser)restoreActiveRankedVs().catch(()=>{})});
+async function restoreActiveRankedVs(){
+ if(!currentUser||!supabaseClient)return;
+ try{
+   const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');
+   if(error)throw error;
+   const m=Array.isArray(data)?data[0]:data;
+   if(!m?.match_id)return;
+   if(matchmakingModal)matchmakingModal.hidden=false;
+   showRankedMatch(m);
+   startRankedVsChat(m);
+ }catch(e){console.error('Restaurar VS activo:',e)}
+}
 setTimeout(startNotificationRefresh,1000);
 if(playerDetailModal)playerDetailModal.addEventListener('click',event=>{if(event.target===playerDetailModal)closeRankingPlayer()});
 
