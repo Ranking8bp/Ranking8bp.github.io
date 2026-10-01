@@ -63,6 +63,7 @@ const confirmedMatchWarning=document.getElementById('confirmedMatchWarning');
 const rankedMatchCountdown=document.getElementById('rankedMatchCountdown'),rankedMatchCountdownValue=document.getElementById('rankedMatchCountdownValue');
 let rankedMatchCountdownTimer=null;
 const rankedVideoProof=document.getElementById('rankedVideoProof');
+const rankedVideoModal=document.getElementById('rankedVideoModal'),rankedVideoPlayer=document.getElementById('rankedVideoPlayer'),rankedVideoClose=document.getElementById('rankedVideoClose'),rankedVideoTitle=document.getElementById('rankedVideoTitle'),rankedVideoStatus=document.getElementById('rankedVideoStatus');
 const rankedWinnerVideoInput=document.getElementById('rankedWinnerVideoInput');
 const rankedWinnerVideoBtn=document.getElementById('rankedWinnerVideoBtn');
 const rankedWinnerVideoStatus=document.getElementById('rankedWinnerVideoStatus');
@@ -327,12 +328,29 @@ async function uploadRankedWinnerVideo(){
   }finally{rankedWinnerVideoBtn.disabled=false}
 }
 async function openAdminRankedVideo(matchId,uploaderId,name){
+  if(!rankedVideoModal||!rankedVideoPlayer)return;
+  rankedVideoModal.hidden=false;
+  rankedVideoTitle.textContent='VIDEO DEL JUGADOR: '+String(name||'').toUpperCase();
+  rankedVideoStatus.textContent='Cargando video...';
+  rankedVideoPlayer.pause();rankedVideoPlayer.removeAttribute('src');rankedVideoPlayer.load();
   try{
     const {data,error}=await supabaseClient.functions.invoke('get-ranked-match-video',{body:{match_id:matchId,uploader_id:uploaderId}});
-    if(error||!data?.ok)throw new Error(data?.error||error?.message||'No se pudo abrir el video.');
-    window.open(data.url,'_blank','noopener,noreferrer');
-  }catch(e){console.error(e);showToast(e?.message||'No se pudo abrir el video de '+name+'.')}
+    if(error)throw new Error(error.message||'No se pudo obtener el video.');
+    if(!data?.ok||!data?.url)throw new Error(data?.error||'No se encontró el video.');
+    rankedVideoPlayer.src=data.url;
+    rankedVideoPlayer.load();
+    rankedVideoStatus.textContent='Video cargado. Pulsa ▶ para reproducir.';
+    try{await rankedVideoPlayer.play();}catch(_){/* el navegador puede requerir tocar ▶ */}
+  }catch(e){
+    console.error('Video ganador:',e);
+    rankedVideoStatus.textContent=e?.message||'No se pudo cargar el video.';
+  }
 }
+function closeAdminRankedVideo(){
+ if(rankedVideoPlayer){rankedVideoPlayer.pause();rankedVideoPlayer.removeAttribute('src');rankedVideoPlayer.load()}
+ if(rankedVideoModal)rankedVideoModal.hidden=true;
+}
+
 
 function stopRankedMatchCountdown(){
  if(rankedMatchCountdownTimer){clearInterval(rankedMatchCountdownTimer);rankedMatchCountdownTimer=null}
@@ -1402,6 +1420,8 @@ if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{
 if(matchmakingClose)matchmakingClose.addEventListener('click',closeRankedMatchmaking);
 if(rankedWinnerVideoBtn)rankedWinnerVideoBtn.addEventListener('click',()=>rankedWinnerVideoInput?.click());
 if(rankedWinnerVideoInput)rankedWinnerVideoInput.addEventListener('change',uploadRankedWinnerVideo);
+if(rankedVideoClose)rankedVideoClose.addEventListener('click',closeAdminRankedVideo);
+if(rankedVideoModal)rankedVideoModal.addEventListener('click',e=>{if(e.target===rankedVideoModal)closeAdminRankedVideo()});
 if(eloDailyLimitClose)eloDailyLimitClose.addEventListener('click',closeEloDailyLimit);
 if(abandonRankedBtn)abandonRankedBtn.addEventListener('click',abandonRankedMatch);
 if(playerMessageBtn)playerMessageBtn.addEventListener('click',openPrivateMessage);
