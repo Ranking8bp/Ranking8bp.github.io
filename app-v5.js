@@ -872,6 +872,7 @@ async function renderGuestRankShowcase(){
 }
 
 async function loadGuestRanking(){
+ loadLatestRankingResult().catch(()=>{});
  if(!guestRankingList)return;
  guestRankingList.innerHTML='<div class="ranking-loading">Cargando clasificación...</div>';
  try{
@@ -1573,7 +1574,10 @@ function buildRankingRow(player,index){
 
 async function refreshRankingStreaks(){if(!supabaseClient)return;try{const {data,error}=await supabaseClient.rpc('get_ranked_current_streaks');if(error)throw error;rankingStreaks=new Map((data||[]).map(x=>[String(x.player_id),Number(x.streak)||0]));renderFilteredRanking();renderGuestRanking()}catch(e){console.error('Rachas:',e)}}
 
+async function loadLatestRankingResult(){if(!supabaseClient)return;const boxes=[document.getElementById('latestRankingResult'),document.getElementById('guestLatestRankingResult')].filter(Boolean);try{const {data,error}=await supabaseClient.rpc('get_latest_ranked_result');if(error)throw error;const r=Array.isArray(data)?data[0]:data;if(!r){boxes.forEach(x=>x.textContent='Aún no hay resultados en el Ranking.');return}const d=new Date(r.finished_at);const time=new Intl.DateTimeFormat('es-MX',{timeZone:'America/Mexico_City',hour:'numeric',minute:'2-digit',hour12:true}).format(d);const date=new Intl.DateTimeFormat('es-MX',{timeZone:'America/Mexico_City',day:'numeric',month:'long'}).format(d);boxes.forEach(x=>{x.replaceChildren();const tag=document.createElement('small');tag.textContent='ÚLTIMO RESULTADO';const line=document.createElement('strong');line.textContent=String(r.winner_name)+' ganó a '+String(r.loser_name)+' a las '+time+' el '+date;x.append(tag,line)})}catch(e){console.error('Último resultado:',e);boxes.forEach(x=>x.textContent='No se pudo cargar el último resultado.')}}
+
 async function loadRanking(attempt=0){
+  loadLatestRankingResult().catch(()=>{});
   if(!rankingList||!rankingCount||!supabaseClient)return;
   if(attempt===0){
     rankingList.innerHTML='<div class="ranking-loading">Cargando clasificación...</div>';
