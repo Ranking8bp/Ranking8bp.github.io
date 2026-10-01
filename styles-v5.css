@@ -1263,3 +1263,6 @@ html,body{color-scheme:dark!important}
 .online-player-dot{display:inline-block;width:10px;height:10px;margin-left:7px;border-radius:50%;background:#20e36b;box-shadow:0 0 7px rgba(32,227,107,.9);vertical-align:middle;flex:0 0 auto}
 
 .players-online-now{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;font-size:13px;font-weight:800;letter-spacing:.4px;color:#d9e5dc}.players-online-now .online-player-dot{margin-left:0;width:9px;height:9px}.players-online-now strong{color:#20e36b;font-size:15px}
+
+/* Centrar contador de jugadores debajo del boton JUGAR */
+.dashboard-play-area{display:flex;flex-direction:column;align-items:center}.players-online-now{width:100%;box-sizing:border-box;justify-content:center;text-align:center;margin:8px auto 0;position:static!important;transform:none!important}
