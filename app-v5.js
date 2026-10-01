@@ -302,20 +302,32 @@ rankedClaimWon?.addEventListener('click',()=>submitRankedResultClaim('WON'));
 rankedClaimLost?.addEventListener('click',()=>submitRankedResultClaim('LOST'));
 
 async function updateRankedVideoProof(match){
-  if(!rankedVideoProof)return;
-  const confirmed=!!match?.admin_confirmed;
-  rankedVideoProof.hidden=!confirmed;
-  if(!confirmed)return;
-  if(match?.my_video_uploaded){
-    if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='✅ Video enviado. Esperando que el administrador determine el ganador.';
-    if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 VIDEO ENVIADO · SUBIR OTRO';rankedWinnerVideoBtn.disabled=false}
-  }else if(match?.opponent_video_uploaded){
-    if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='⚠️ EL RIVAL SUBIÓ PRUEBAS DE SU VICTORIA · ESPERANDO RESULTADOS.';
-    if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 SUBIR MI EVIDENCIA';rankedWinnerVideoBtn.disabled=false}
-  }else{
-    if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='El administrador revisará el video antes de confirmar el ganador.';
-    if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 SUBIR VIDEO DEL TIRO GANADOR';rankedWinnerVideoBtn.disabled=false}
-  }
+  if(!rankedVideoProof||!supabaseClient||!match?.match_id)return;
+  const confirmed=!!match.admin_confirmed;
+  if(!confirmed){rankedVideoProof.hidden=true;return}
+  try{
+    const {data,error}=await supabaseClient.rpc('get_ranked_result_wait_status',{p_match_id:Number(match.match_id)});
+    if(error)throw error;
+    const st=Array.isArray(data)?data[0]:data;
+    const mine=String(st?.my_claim||'').toUpperCase(),other=String(st?.opponent_claim||'').toUpperCase();
+    const required=!!st?.evidence_required;
+    if(mine==='WON'&&!other&&!required){
+      rankedVideoProof.hidden=false;
+      const left=Math.max(0,Number(st?.seconds_left)||0),mm=String(Math.floor(left/60)).padStart(2,'0'),ss=String(left%60).padStart(2,'0');
+      if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='⏱️ Tu rival tiene '+mm+':'+ss+' para marcar PERDÍ. Si no responde, deberás enviar evidencia.';
+      if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 EVIDENCIA DISPONIBLE EN '+mm+':'+ss;rankedWinnerVideoBtn.disabled=true}
+      return;
+    }
+    if(!required){rankedVideoProof.hidden=true;return}
+    rankedVideoProof.hidden=false;
+    if(match.my_video_uploaded){
+      if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='✅ Evidencia enviada. El VS está pendiente de revisión del administrador.';
+      if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 VIDEO ENVIADO · SUBIR OTRO';rankedWinnerVideoBtn.disabled=false}
+    }else{
+      if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent=st?.disputed?'⚠️ Resultado en disputa. Envía tu evidencia para revisión del administrador.':'⚠️ Pasaron 3 minutos sin respuesta. Debes enviar video de evidencia para que el administrador revise tu victoria.';
+      if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 SUBIR VIDEO DE EVIDENCIA';rankedWinnerVideoBtn.disabled=false}
+    }
+  }catch(e){console.error('Estado evidencia VS:',e)}
 }
 function getVideoExtension(file){
   const t=String(file?.type||'').toLowerCase();
@@ -333,6 +345,10 @@ async function getVideoDuration(file){
 }
 async function uploadRankedWinnerVideo(){
   if(!currentUser||!supabaseClient||!currentRankedMatchId)return;
+  const {data:permission,error:permissionError}=await supabaseClient.rpc('get_ranked_result_wait_status',{p_match_id:Number(currentRankedMatchId)});
+  if(permissionError){showToast('No se pudo comprobar el estado del VS.');return}
+  const permissionRow=Array.isArray(permission)?permission[0]:permission;
+  if(!permissionRow?.evidence_required){showToast('La evidencia se habilita después de 3 minutos sin respuesta del rival.');return}
   const file=rankedWinnerVideoInput?.files?.[0];
   if(!file)return;
   try{
