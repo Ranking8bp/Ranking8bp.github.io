@@ -715,11 +715,13 @@ function maybeOpenDirectMatchmaking(){
   setTimeout(()=>startRankedMatchmaking().catch(e=>console.error('Acceso directo a rival:',e)),120);
 }
 
+async function renderSearchingPlayerProfile(){const n=document.getElementById('searchingPlayerName'),e=document.getElementById('searchingPlayerElo'),r=document.getElementById('searchingPlayerRank'),av=document.getElementById('searchingPlayerAvatar');if(!n||!currentProfile)return;const name=String(currentProfile.account_name||currentProfile.username||'JUGADOR').toUpperCase();const elo=Number(currentProfile.elo_points)||200;n.textContent=name;if(e)e.textContent='ELO '+elo;if(r)r.textContent=getRankByElo(elo).name.toUpperCase();if(av){av.replaceChildren();const f=document.createElement('span');f.textContent=name.charAt(0)||'J';av.appendChild(f);if(currentProfile.avatar_path&&supabaseClient){try{const {data}=await supabaseClient.storage.from('profile-photos').createSignedUrl(currentProfile.avatar_path,3600);if(data?.signedUrl){const img=document.createElement('img');img.src=data.signedUrl;img.alt='Foto de '+name;img.onload=()=>av.replaceChildren(img)}}catch(x){}}}}
+
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient)return;
  rankedSearchActive=true;
  const status=await updateRankedDailyStatus();
- matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true;
+ matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true;renderSearchingPlayerProfile().catch(()=>{});
  try{
   const {data,error}=await supabaseClient.rpc('join_ranked_matchmaking');
   if(error){
