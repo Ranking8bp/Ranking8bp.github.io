@@ -42,6 +42,7 @@ const dashboardElo=document.getElementById('dashboardElo');
 const dashboardWins=document.getElementById('dashboardWins');
 const dashboardLosses=document.getElementById('dashboardLosses');
 const dashboardPlayBtn=document.getElementById('dashboardPlayBtn');
+const playersOnlineCount=document.getElementById('playersOnlineCount');
 const eloDailyLimitModal=document.getElementById('eloDailyLimitModal'),eloDailyLimitClose=document.getElementById('eloDailyLimitClose'),eloDailyCountdown=document.getElementById('eloDailyCountdown');
 let eloDailyResetAt=null,eloDailyCountdownTimer=null;
 const matchmakingModal=document.getElementById('matchmakingModal');
@@ -881,7 +882,7 @@ async function loadGuestRanking(){
  }
 }
 function onlineDotFor(player){const id=String(player?.id||player?.user_id||'');if(!onlinePlayerIds.has(id))return null;const d=document.createElement('span');d.className='online-player-dot';d.title='En línea';d.setAttribute('aria-label','En línea');return d}
-async function refreshOnlinePlayers(){if(!supabaseClient)return;try{const {data,error}=await supabaseClient.rpc('get_online_players');if(error)throw error;onlinePlayerIds=new Set((data||[]).map(x=>String(x.user_id)));renderFilteredRanking();renderGuestRanking()}catch(e){console.error('Presencia:',e)}}
+async function refreshOnlinePlayers(){if(!supabaseClient)return;try{const {data,error}=await supabaseClient.rpc('get_online_players');if(error)throw error;onlinePlayerIds=new Set((data||[]).map(x=>String(x.user_id)));if(playersOnlineCount)playersOnlineCount.textContent=String(onlinePlayerIds.size);renderFilteredRanking();renderGuestRanking()}catch(e){console.error('Presencia:',e)}}
 async function touchOnlinePresence(){if(!currentUser||!supabaseClient)return;try{await supabaseClient.rpc('touch_online_presence');await refreshOnlinePlayers()}catch(e){console.error('Presencia:',e)}}
 function startOnlinePresence(){clearInterval(onlinePresenceTimer);if(!currentUser)return;touchOnlinePresence();onlinePresenceTimer=setInterval(touchOnlinePresence,30000)}
 
