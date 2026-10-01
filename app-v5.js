@@ -302,9 +302,9 @@ async function uploadRankedWinnerVideo(){
     rankedWinnerVideoBtn.disabled=true;
     rankedWinnerVideoStatus.textContent='Comprobando video...';
     if(!/^video\/(mp4|webm|quicktime|x-m4v)$/.test(String(file.type||'')))throw new Error('Formato no permitido. Usa MP4, WEBM o MOV.');
-    if(file.size>50*1024*1024)throw new Error('El video no puede superar 50 MB.');
+    if(file.size>500*1024*1024)throw new Error('El video no puede superar 500 MB.');
     const duration=await getVideoDuration(file);
-    if(!Number.isFinite(duration)||duration>15.05)throw new Error('El video debe durar máximo 15 segundos.');
+    if(!Number.isFinite(duration)||duration>1200.05)throw new Error('El video debe durar máximo 20 minutos.');
     if(duration<0.1)throw new Error('El video no es válido.');
     const ext=getVideoExtension(file);
     const path=String(currentRankedMatchId)+'/'+currentUser.id+'/winner-'+Date.now()+'.'+ext;
@@ -556,6 +556,15 @@ async function setupAdminMode(){
  if(!currentUser||!supabaseClient||!adminModeBtn)return;
  try{const {data,error}=await supabaseClient.from('profiles').select('is_admin').eq('id',currentUser.id).single();if(error)throw error;adminModeBtn.hidden=!data?.is_admin}catch(e){adminModeBtn.hidden=true}
 }
+async function cleanupRankedMatchVideos(matchId){
+ try{
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  if(!session?.access_token)return;
+  const response=await fetch(cloudConfig.url+'/functions/v1/cleanup-ranked-match-videos',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':cloudConfig.key},body:JSON.stringify({match_id:Number(matchId)})});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||!data?.ok)console.error('No se pudieron eliminar videos del VS:',data?.error||response.status);
+ }catch(e){console.error('Limpieza videos VS:',e)}
+}
 async function loadAdminMatches(){
  if(!adminMatchList||!supabaseClient)return;
  adminMatchList.innerHTML='<div class="admin-empty">Cargando...</div>';
@@ -584,12 +593,12 @@ async function loadAdminMatches(){
      actions.appendChild(winnerTitle);
      for(const [id,name] of [[m.player1_id,m.player1_name],[m.player2_id,m.player2_name]]){
       const winBtn=document.createElement('button');winBtn.className='admin-winner-btn';winBtn.textContent='GANA '+name;
-      winBtn.onclick=async()=>{if(!confirm('¿Confirmar a '+name+' como ganador? Se aplicará +15 ELO al ganador y -15 ELO al perdedor.'))return;const {error}=await supabaseClient.rpc('admin_resolve_ranked_match',{p_match_id:m.match_id,p_winner_id:id});if(error){showToast('No se pudo guardar el resultado.');return}await loadAdminMatches();showToast('Resultado aplicado.')};
+      winBtn.onclick=async()=>{if(!confirm('¿Confirmar a '+name+' como ganador? Se aplicará +15 ELO al ganador y -15 ELO al perdedor.'))return;const {error}=await supabaseClient.rpc('admin_resolve_ranked_match',{p_match_id:m.match_id,p_winner_id:id});if(error){showToast('No se pudo guardar el resultado.');return}await cleanupRankedMatchVideos(m.match_id);await loadAdminMatches();showToast('Resultado aplicado. Evidencias eliminadas.')};
       actions.appendChild(winBtn);
      }
     }
     const cancel=document.createElement('button');cancel.className='cancel';cancel.textContent='ANULAR VS';
-    cancel.onclick=async()=>{if(!confirm('¿Anular este VS sin cambiar ELO?'))return;const {error}=await supabaseClient.rpc('admin_cancel_ranked_match',{p_match_id:m.match_id});if(error){showToast('No se pudo anular.');return}await loadAdminMatches();showToast('VS anulado.')};
+    cancel.onclick=async()=>{if(!confirm('¿Anular este VS sin cambiar ELO?'))return;const {error}=await supabaseClient.rpc('admin_cancel_ranked_match',{p_match_id:m.match_id});if(error){showToast('No se pudo anular.');return}await cleanupRankedMatchVideos(m.match_id);await loadAdminMatches();showToast('VS anulado. Evidencias eliminadas.')};
     actions.appendChild(cancel);row.appendChild(actions);
    }
    adminMatchList.appendChild(row);
