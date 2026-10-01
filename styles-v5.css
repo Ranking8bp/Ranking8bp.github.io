@@ -1175,3 +1175,12 @@ html,body{color-scheme:dark!important}
 
 .ranked-match-countdown{width:min(680px,92%);margin:10px auto 6px;padding:11px 14px;border:1px solid rgba(231,200,111,.35);border-radius:11px;background:#0b151d;color:#e7c86f;text-align:center;font:900 13px Arial,sans-serif;letter-spacing:.6px}
 .ranked-match-countdown b{font-size:24px;display:inline-block;min-width:28px}
+
+.ranked-video-modal{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:18px;background:rgba(0,0,0,.82)}
+.ranked-video-modal[hidden]{display:none}
+.ranked-video-card{position:relative;width:min(720px,94vw);max-height:92vh;overflow:auto;padding:22px;border:1px solid rgba(231,200,111,.38);border-radius:18px;background:#09131b;box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center}
+.ranked-video-card>small{color:#e7c86f;font-weight:900;letter-spacing:1px}
+.ranked-video-card h3{margin:7px 35px 15px;color:#fff;font-size:18px}
+.ranked-video-card video{display:block;width:100%;max-height:70vh;background:#000;border-radius:12px}
+.ranked-video-close{position:absolute;right:10px;top:8px;width:40px;height:40px;border:0;border-radius:50%;background:#182630;color:#fff;font-size:27px;cursor:pointer}
+#rankedVideoStatus{margin:10px 0 0;color:#aeb9c2;font-size:12px}
