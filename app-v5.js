@@ -553,7 +553,7 @@ async function loadRankedVsChat(matchId){
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:Number(matchId)});
   if(error)throw error;
-  await supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:Number(matchId)}).catch(()=>{});
+  try{await supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:Number(matchId)})}catch(_){}
   rankedVsChatMessages.replaceChildren();
   if(!data?.length){const e=document.createElement('div');e.className='ranked-vs-chat-empty';e.textContent='Todavía no hay mensajes. Escribe para coordinar el partido.';rankedVsChatMessages.appendChild(e);return}
   for(const m of data){
