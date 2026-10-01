@@ -352,13 +352,6 @@
       <div id="matchmakingVersus" hidden>
         <div class="matchmaking-mode">RANKING ARMADO</div>
         <div class="versus-grid"><div class="versus-player"><div class="versus-avatar" id="versusMyAvatar"><span>?</span></div><strong id="versusMe">TÚ</strong><span id="versusMyRank">LATÓN</span><span id="versusMyPosition">RANKING #--</span><span id="versusMyElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusMyGameId">--</strong><button type="button" id="copyMyGameId" title="Copiar ID">📋 COPIAR</button></div></div><b>VS</b><div class="versus-player"><div class="versus-avatar" id="versusOpponentAvatar"><span>?</span></div><strong id="versusOpponent">RIVAL</strong><span id="versusOpponentRank">LATÓN</span><span id="versusOpponentPosition">RANKING #--</span><span id="versusOpponentElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusOpponentGameId">--</strong><button type="button" id="copyOpponentGameId" title="Copiar ID">📋 COPIAR</button></div></div></div>
-        <div class="elo-stakes"><span>GANADOR <b>+15 ELO</b></span><span>PERDEDOR <b>-15 ELO</b></span></div><div class="ranked-match-countdown" id="rankedMatchCountdown" hidden>CONFIRMANDO EN <b id="rankedMatchCountdownValue">15</b> s<div class="ranked-player-confirm"><button type="button" id="rankedPlayerConfirmBtn">✓ CONFIRMAR PARTIDA</button><small id="rankedPlayerConfirmStatus">Si ambos confirman, el VS inicia inmediatamente.</small></div></div>
-        <div class="ranked-play-timer" id="rankedPlayTimer" hidden>
-          <span>TIEMPO PARA COORDINAR, JUGAR Y SUBIR PRUEBAS</span>
-          <strong id="rankedPlayTimerValue">30:00</strong>
-          <small id="rankedPlayTimerNote">Si llega a 00:00 y nadie subió evidencia, el VS se anulará automáticamente.<br><b>Mientras este VS esté confirmado, ninguno de los dos jugadores podrá buscar un nuevo rival hasta que el enfrentamiento termine o sea anulado.</b></small>
-        </div>
-        <div class="confirmed-match-warning" id="confirmedMatchWarning" hidden><strong>PARTIDO CONFIRMADO POR ADMINISTRADOR</strong><span>SI ABANDONAS PIERDES -15 ELO</span><span>SI NO TE PRESENTAS A TU PARTIDO EN EL LIVE PIERDES -15 ELO.</span></div>
         <section class="ranked-vs-chat" id="rankedVsChat" hidden>
           <div class="ranked-vs-chat-head"><strong>💬 CHAT DEL VS</strong><span>Solo jugadores de este VS y administrador</span></div>
           <div class="ranked-vs-chat-messages" id="rankedVsChatMessages"><div class="ranked-vs-chat-empty">Todavía no hay mensajes.</div></div>
@@ -367,6 +360,13 @@
             <button type="button" id="rankedVsChatSend">ENVIAR</button>
           </div>
         </section>
+        <div class="elo-stakes"><span>GANADOR <b>+15 ELO</b></span><span>PERDEDOR <b>-15 ELO</b></span></div><div class="ranked-match-countdown" id="rankedMatchCountdown" hidden>CONFIRMANDO EN <b id="rankedMatchCountdownValue">15</b> s<div class="ranked-player-confirm"><button type="button" id="rankedPlayerConfirmBtn">✓ CONFIRMAR PARTIDA</button><small id="rankedPlayerConfirmStatus">Si ambos confirman, el VS inicia inmediatamente.</small></div></div>
+        <div class="ranked-play-timer" id="rankedPlayTimer" hidden>
+          <span>TIEMPO PARA COORDINAR, JUGAR Y SUBIR PRUEBAS</span>
+          <strong id="rankedPlayTimerValue">30:00</strong>
+          <small id="rankedPlayTimerNote">Si llega a 00:00 y nadie subió evidencia, el VS se anulará automáticamente.<br><b>Mientras este VS esté confirmado, ninguno de los dos jugadores podrá buscar un nuevo rival hasta que el enfrentamiento termine o sea anulado.</b></small>
+        </div>
+        <div class="confirmed-match-warning" id="confirmedMatchWarning" hidden><strong>PARTIDO CONFIRMADO POR ADMINISTRADOR</strong><span>SI ABANDONAS PIERDES -15 ELO</span><span>SI NO TE PRESENTAS A TU PARTIDO EN EL LIVE PIERDES -15 ELO.</span></div>
         <section class="ranked-match-rules" id="rankedMatchRules" hidden>
           <h3>GUÍA PARA TU PARTIDO POR RANKING</h3>
           <p>• COPIA EL ID DE TU RIVAL Y COORDINA EN EL CHAT DEL VS PARA QUE ENTREN AL JUEGO PARA REALIZAR SU ENFRENTAMIENTO. TIENEN QUE PONERSE DE ACUERDO QUIÉN VA A DESAFIAR AL OTRO JUGADOR Y QUIÉN VA A ACEPTAR EL DESAFÍO.</p>
@@ -438,6 +438,6 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261001-admin-vs-chat01"></script>
+  <script src="app-v5.js?v=20261001-chat-top-timer02"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer></body>
 </html>
