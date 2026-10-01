@@ -341,7 +341,8 @@
       <div id="matchmakingVersus" hidden>
         <div class="matchmaking-mode">RANKING ARMADO</div>
         <div class="versus-grid"><div class="versus-player"><div class="versus-avatar" id="versusMyAvatar"><span>?</span></div><strong id="versusMe">TÚ</strong><span id="versusMyRank">LATÓN</span><span id="versusMyPosition">RANKING #--</span><span id="versusMyElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusMyGameId">--</strong><button type="button" id="copyMyGameId" title="Copiar ID">📋 COPIAR</button></div></div><b>VS</b><div class="versus-player"><div class="versus-avatar" id="versusOpponentAvatar"><span>?</span></div><strong id="versusOpponent">RIVAL</strong><span id="versusOpponentRank">LATÓN</span><span id="versusOpponentPosition">RANKING #--</span><span id="versusOpponentElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusOpponentGameId">--</strong><button type="button" id="copyOpponentGameId" title="Copiar ID">📋 COPIAR</button></div></div></div>
-        <div class="elo-stakes"><span>GANADOR <b>+15 ELO</b></span><span>PERDEDOR <b>-15 ELO</b></span></div><div class="confirmed-match-warning" id="confirmedMatchWarning" hidden><strong>PARTIDO CONFIRMADO POR ADMINISTRADOR</strong><span>SI ABANDONAS PIERDES -15 ELO</span><span>SI NO TE PRESENTAS A TU PARTIDO EN EL LIVE PIERDES -15 ELO.</span></div>
+        <div class="elo-stakes"><span>GANADOR <b>+15 ELO</b></span><span>PERDEDOR <b>-15 ELO</b></span></div><div class="ranked-match-countdown" id="rankedMatchCountdown" hidden>CONFIRMANDO EN <b id="rankedMatchCountdownValue">10</b> s</div>
+        <div class="confirmed-match-warning" id="confirmedMatchWarning" hidden><strong>PARTIDO CONFIRMADO POR ADMINISTRADOR</strong><span>SI ABANDONAS PIERDES -15 ELO</span><span>SI NO TE PRESENTAS A TU PARTIDO EN EL LIVE PIERDES -15 ELO.</span></div>
         <div class="ranked-video-proof" id="rankedVideoProof" hidden>
           <strong>¿GANASTE EL PARTIDO?</strong>
           <span>Sube un video de máximo <b>15 segundos</b> donde se vea el tiro con el que ganaste.</span>
@@ -377,6 +378,6 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20260930-vsidfix01"></script>
+  <script src="app-v5.js?v=20260930-auto-confirm01"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer></body>
 </html>
