@@ -1242,3 +1242,14 @@ html,body{color-scheme:dark!important}
 .ranked-false-win-warning{margin-top:11px;padding:10px;border:1px solid rgba(255,80,80,.55);border-radius:9px;background:rgba(120,15,25,.28);color:#ffd4d4;font:900 10px/1.4 Arial,sans-serif}
 
 .ranked-evidence-reminder{margin-top:11px;padding:11px;border:1px solid rgba(231,200,111,.65);border-radius:9px;background:rgba(142,108,20,.22);color:#ffe9a6;font:900 10px/1.45 Arial,sans-serif}
+
+.dashboard-whatsapp-area{width:100%;display:flex;justify-content:center;margin:12px 0 2px}
+.dashboard-whatsapp-btn{display:block;width:min(100%,620px);line-height:0;border-radius:16px;overflow:hidden;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45));transition:transform .16s ease,filter .16s ease}
+.dashboard-whatsapp-btn:hover{transform:translateY(-2px);filter:drop-shadow(0 11px 22px rgba(0,255,70,.25))}
+.dashboard-whatsapp-btn:active{transform:scale(.985)}
+.dashboard-whatsapp-btn img{display:block;width:100%;height:auto;max-height:150px;object-fit:contain;object-position:center;image-rendering:auto}
+@media(max-width:600px){
+ .dashboard-whatsapp-area{margin:9px 0 1px;padding:0 4px}
+ .dashboard-whatsapp-btn{width:100%;border-radius:12px}
+ .dashboard-whatsapp-btn img{max-height:110px}
+}
