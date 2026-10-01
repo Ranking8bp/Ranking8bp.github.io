@@ -553,6 +553,7 @@ async function loadRankedVsChat(matchId){
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:Number(matchId)});
   if(error)throw error;
+  await supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:Number(matchId)}).catch(()=>{});
   rankedVsChatMessages.replaceChildren();
   if(!data?.length){const e=document.createElement('div');e.className='ranked-vs-chat-empty';e.textContent='Todavía no hay mensajes. Escribe para coordinar el partido.';rankedVsChatMessages.appendChild(e);return}
   for(const m of data){
@@ -560,7 +561,7 @@ async function loadRankedVsChat(matchId){
    const n=document.createElement('b');n.textContent=(m.is_admin?'ADMIN · ':'')+String(m.sender_name||'Jugador');
    const body=document.createElement('div');body.textContent=m.message;
    const tm=document.createElement('small');tm.textContent=new Date(m.created_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-   d.append(n,body,tm);rankedVsChatMessages.appendChild(d);
+   const seen=document.createElement('small');seen.className='chat-seen';seen.textContent=m.read_by_other?'✓✓ LEÍDO':'✓ ENVIADO';d.append(n,body,tm);if(m.sender_id===currentUser?.id||m.is_admin)d.append(seen);rankedVsChatMessages.appendChild(d);
   }
   rankedVsChatMessages.scrollTop=rankedVsChatMessages.scrollHeight;
  }catch(e){console.error('Chat VS:',e)}
@@ -788,7 +789,9 @@ async function cleanupRankedMatchVideos(matchId){
   if(!response.ok||!data?.ok)console.error('No se pudieron eliminar videos del VS:',data?.error||response.status);
  }catch(e){console.error('Limpieza videos VS:',e)}
 }
-async function openAdminVsChat(matchId,p1,p2){const modal=document.getElementById('adminVsChatModal'),box=document.getElementById('adminVsChatMessages'),title=document.getElementById('adminVsChatTitle');if(!modal||!box||!supabaseClient)return;if(title)title.textContent=String(p1||'Jugador')+' VS '+String(p2||'Jugador');modal.hidden=false;modal.removeAttribute('hidden');modal.style.display='grid';box.textContent='Cargando conversación...';try{const res=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:Number(matchId)});if(res.error)throw res.error;box.replaceChildren();if(!res.data?.length){box.textContent='Todavía no han enviado mensajes en este VS.';return}res.data.forEach(m=>{const d=document.createElement('div');d.className='admin-vs-chat-message';const h=document.createElement('b');h.textContent=String(m.sender_name||'Jugador')+' · '+new Date(m.created_at).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});const body=document.createElement('p');body.textContent=String(m.message||'');d.append(h,body);box.appendChild(d)});box.scrollTop=box.scrollHeight}catch(e){box.textContent='No se pudo cargar el chat.'}}
+async function openAdminVsChat(matchId,p1,p2){const modal=document.getElementById('adminVsChatModal'),box=document.getElementById('adminVsChatMessages'),title=document.getElementById('adminVsChatTitle');if(!modal||!box||!supabaseClient)return;if(title)title.textContent=String(p1||'Jugador')+' VS '+String(p2||'Jugador');modal.hidden=false;modal.removeAttribute('hidden');modal.style.display='grid';modal.style.zIndex='2147483647';modal.dataset.matchId=String(matchId);box.textContent='Cargando conversación...';try{const res=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:Number(matchId)});if(res.error)throw res.error;await supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:Number(matchId)}).catch(()=>{});box.replaceChildren();if(!res.data?.length){box.textContent='Todavía no han enviado mensajes en este VS.';return}res.data.forEach(m=>{const d=document.createElement('div');d.className='admin-vs-chat-message';const h=document.createElement('b');h.textContent=String(m.sender_name||'Jugador')+' · '+new Date(m.created_at).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});const body=document.createElement('p');body.textContent=String(m.message||'');const seen=document.createElement('small');seen.className='chat-seen';seen.textContent=m.read_by_other?'✓✓ LEÍDO':'✓ ENVIADO';d.append(h,body);if(m.sender_id===currentUser?.id)d.append(seen);box.appendChild(d)});box.scrollTop=box.scrollHeight}catch(e){box.textContent='No se pudo cargar el chat.'}}
+async function sendAdminVsChat(){const modal=document.getElementById('adminVsChatModal'),input=document.getElementById('adminVsChatInput'),btn=document.getElementById('adminVsChatSend'),id=Number(modal?.dataset.matchId||0),msg=String(input?.value||'').trim();if(!id||!msg)return;if(btn)btn.disabled=true;try{const res=await supabaseClient.rpc('send_ranked_match_chat',{p_match_id:id,p_message:msg});if(res.error)throw res.error;input.value='';await openAdminVsChat(id,document.getElementById('adminVsChatTitle')?.textContent?.split(' VS ')[0],document.getElementById('adminVsChatTitle')?.textContent?.split(' VS ')[1])}catch(e){showToast('No se pudo enviar el mensaje.')}finally{if(btn)btn.disabled=false}}
+document.addEventListener('click',e=>{if(e.target?.id==='adminVsChatSend'){e.preventDefault();sendAdminVsChat()}});
 function closeAdminVsChat(){const m=document.getElementById('adminVsChatModal');if(m){m.hidden=true;m.style.removeProperty('display')}}
 document.addEventListener('click',e=>{if(e.target&&['adminVsChatClose','adminVsChatModal'].includes(e.target.id))closeAdminVsChat()});
 
