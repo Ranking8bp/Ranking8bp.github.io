@@ -982,7 +982,7 @@ async function setPlayerUI(profile,user){
   const rankTask=isAdminDashboard?Promise.resolve():renderRankBadge(rank);
   const avatarTask=profile?.avatar_path?loadAvatar(profile.avatar_path):Promise.resolve(clearAvatar());
   const followTask=loadDashboardFollowStats(profile?.id||user?.id);
-  const competitiveTask=loadCompetitiveHub(profile?.id||user?.id);
+  const competitiveHub=document.getElementById('competitiveHub');if(competitiveHub)competitiveHub.hidden=isAdminDashboard;const competitiveTask=isAdminDashboard?Promise.resolve():loadCompetitiveHub(profile?.id||user?.id);
   await Promise.allSettled([rankingTask,rankTask,avatarTask,followTask,competitiveTask]);
   maybeOpenDirectMatchmaking();
 }
