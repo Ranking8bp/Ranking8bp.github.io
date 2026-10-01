@@ -1197,3 +1197,16 @@ html,body{color-scheme:dark!important}
 .ranked-play-timer span{display:block;color:#e7c86f;font:900 10px/1.3 Arial,sans-serif;letter-spacing:.7px}
 .ranked-play-timer strong{display:block;margin:5px 0 3px;color:#fff;font:900 32px/1 Arial,sans-serif;letter-spacing:2px}
 .ranked-play-timer small{display:block;color:#aeb9c2;font:700 9px/1.4 Arial,sans-serif}
+
+.ranked-vs-chat{width:min(680px,92%);box-sizing:border-box;margin:10px auto 14px;border:1px solid rgba(67,179,255,.4);border-radius:13px;background:#08141d;overflow:hidden;text-align:left}
+.ranked-vs-chat[hidden]{display:none}
+.ranked-vs-chat-head{padding:11px 13px;background:rgba(33,128,190,.13);border-bottom:1px solid rgba(67,179,255,.25)}
+.ranked-vs-chat-head strong{display:block;color:#70c9ff;font:900 12px Arial,sans-serif}.ranked-vs-chat-head span{display:block;margin-top:3px;color:#94a9b7;font:700 9px Arial,sans-serif}
+.ranked-vs-chat-messages{height:190px;overflow:auto;padding:11px;box-sizing:border-box}
+.ranked-vs-chat-empty{text-align:center;color:#70818d;font:700 10px Arial,sans-serif;padding:50px 5px}
+.ranked-vs-chat-msg{max-width:82%;margin:0 0 9px;padding:8px 10px;border-radius:10px;background:#132632;color:#fff;font:700 10px/1.4 Arial,sans-serif;word-break:break-word}
+.ranked-vs-chat-msg.mine{margin-left:auto;background:#173a50}.ranked-vs-chat-msg.admin{border:1px solid rgba(231,200,111,.55)}
+.ranked-vs-chat-msg b{display:block;margin-bottom:3px;color:#70c9ff;font-size:9px}.ranked-vs-chat-msg.admin b{color:#e7c86f}.ranked-vs-chat-msg small{display:block;margin-top:3px;color:#718794;font-size:8px;text-align:right}
+.ranked-vs-chat-compose{display:flex;gap:7px;padding:10px;border-top:1px solid rgba(67,179,255,.2)}
+.ranked-vs-chat-compose textarea{flex:1;resize:none;box-sizing:border-box;border:1px solid #294553;border-radius:8px;background:#071017;color:#fff;padding:9px;font:700 10px Arial,sans-serif;outline:none}
+.ranked-vs-chat-compose button{border:0;border-radius:8px;padding:0 14px;background:#1789c9;color:#fff;font:900 10px Arial,sans-serif;cursor:pointer}
