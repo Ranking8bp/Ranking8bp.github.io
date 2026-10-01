@@ -67,7 +67,7 @@ const rankedMatchCountdown=document.getElementById('rankedMatchCountdown'),ranke
 const rankedPlayerConfirmBtn=document.getElementById('rankedPlayerConfirmBtn'),rankedPlayerConfirmStatus=document.getElementById('rankedPlayerConfirmStatus');
 let rankedMatchCountdownTimer=null;
 const rankedPlayTimer=document.getElementById('rankedPlayTimer'),rankedPlayTimerValue=document.getElementById('rankedPlayTimerValue'),rankedPlayTimerNote=document.getElementById('rankedPlayTimerNote');
-let rankedPlayTimerInterval=null,rankedPlayTimerMatchId=null;
+let rankedPlayTimerInterval=null,rankedPlayTimerMatchId=null,rankedPlayTimerState={myEvidence:false,opponentEvidence:false};
 const rankedResultReport=document.getElementById('rankedResultReport'),rankedClaimWon=document.getElementById('rankedClaimWon'),rankedClaimLost=document.getElementById('rankedClaimLost'),rankedResultStatus=document.getElementById('rankedResultStatus');
 const rankedVideoProof=document.getElementById('rankedVideoProof');
 const rankedVideoModal=document.getElementById('rankedVideoModal'),rankedVideoPlayer=document.getElementById('rankedVideoPlayer'),rankedVideoClose=document.getElementById('rankedVideoClose'),rankedVideoTitle=document.getElementById('rankedVideoTitle'),rankedVideoStatus=document.getElementById('rankedVideoStatus');
@@ -456,10 +456,13 @@ function stopRankedPlayTimer(){
 function startRankedPlayTimer(match){
  if(!match?.admin_confirmed||!match?.confirmed_at){stopRankedPlayTimer();return}
  const matchId=Number(match.match_id);
- const hasEvidence=!!match.my_video_uploaded||!!match.opponent_video_uploaded;
- if(rankedPlayTimerMatchId===matchId&&rankedPlayTimerInterval)return;
+ if(rankedPlayTimerMatchId===matchId&&rankedPlayTimerInterval){
+   rankedPlayTimerState={myEvidence:!!match.my_video_uploaded,opponentEvidence:!!match.opponent_video_uploaded};
+   return;
+ }
  if(rankedPlayTimerInterval)clearInterval(rankedPlayTimerInterval);
  rankedPlayTimerMatchId=matchId;
+ rankedPlayTimerState={myEvidence:!!match.my_video_uploaded,opponentEvidence:!!match.opponent_video_uploaded};
  if(rankedPlayTimer)rankedPlayTimer.hidden=false;
  const confirmedAt=new Date(match.confirmed_at).getTime();
  let expiring=false;
@@ -467,6 +470,7 @@ function startRankedPlayTimer(match){
    const left=Math.max(0,30*60*1000-(Date.now()-confirmedAt));
    const total=Math.ceil(left/1000),min=Math.floor(total/60),sec=total%60;
    if(rankedPlayTimerValue)rankedPlayTimerValue.textContent=String(min).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+   const hasEvidence=rankedPlayTimerState.myEvidence||rankedPlayTimerState.opponentEvidence;
    if(hasEvidence&&rankedPlayTimerNote)rankedPlayTimerNote.textContent='Ya se subió evidencia. El VS queda pendiente hasta que el administrador determine el ganador.';
    if(left<=0&&!expiring){
      if(hasEvidence){if(rankedPlayTimerValue)rankedPlayTimerValue.textContent='00:00';return}
