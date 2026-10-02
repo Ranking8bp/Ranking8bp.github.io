@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>RANKING IKAR8BP</title>
-  <link rel="stylesheet" href="styles-v5.css?v=20261002-rank-progress-live05" />
+  <link rel="stylesheet" href="styles-v5.css?v=20261002-gold-longbar06" />
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest?v=1">
 <meta name="theme-color" content="#06121a">
@@ -86,6 +86,26 @@
  #playerDashboard .rank-progress-row{gap:6px!important;margin-top:7px!important}
  #playerDashboard .rank-progress-track{height:10px!important;min-width:48px!important}
  #playerDashboard .rank-progress-text{font-size:10px!important}
+}
+</style><style id="rank-gold-longbar-fix">
+#playerDashboard .dashboard-rank-name,
+#playerDashboard .elo-number{
+ color:#ffd447!important;
+ background:linear-gradient(180deg,#fff0a0 0%,#ffd447 35%,#e5a514 70%,#fff08a 100%);
+ -webkit-background-clip:text;
+ background-clip:text;
+ -webkit-text-fill-color:transparent;
+ text-shadow:0 2px 14px rgba(255,190,30,.18);
+}
+#playerDashboard .rank-progress-row{width:100%!important;max-width:none!important}
+#playerDashboard .rank-progress-track{flex:1 1 auto!important;width:auto!important;min-width:240px!important;max-width:none!important}
+#playerDashboard .rank-progress-fill{background:linear-gradient(90deg,#d99400,#ffd84d,#fff09a)!important;box-shadow:0 0 13px rgba(255,194,28,.45)!important}
+@media(max-width:700px){
+ #playerDashboard .elo-block{width:54%!important}
+ #playerDashboard .rank-art{width:46%!important}
+ #playerDashboard .rank-progress-row{width:100%!important;gap:7px!important}
+ #playerDashboard .rank-progress-track{min-width:0!important;width:100%!important;flex:1 1 100%!important}
+ #playerDashboard .rank-progress-text{flex:0 0 auto!important}
 }
 </style></head>
 <body>
