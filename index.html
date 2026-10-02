@@ -152,15 +152,15 @@
  html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
  #playerDashboard{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
  #playerDashboard .identity-section,#playerDashboard .rank-hero-card,#playerDashboard .competitive-hub,#playerDashboard .dashboard-play-area{width:calc(100% - 40px)!important;max-width:620px!important;margin-left:auto!important;margin-right:auto!important}
- #playerDashboard .rank-hero-card{height:190px!important;min-height:190px!important;grid-template-columns:42% 58%!important;overflow:hidden!important}
- #playerDashboard .rank-art{height:190px!important;min-width:0!important;overflow:hidden!important}
- #playerDashboard .rank-badge-image{width:145px!important;height:145px!important;min-width:145px!important;min-height:145px!important;max-width:145px!important;max-height:145px!important}
- #playerDashboard .elo-block{min-width:0!important;max-width:100%!important;padding:0 14px 0 6px!important;transform:translate(0,-18px)!important;overflow:hidden!important}
- #playerDashboard .rank-competitive-title{font-size:13px!important;line-height:1.1!important;white-space:normal!important;max-width:100%!important}
- #playerDashboard .dashboard-rank-name{font-size:15px!important}
+ #playerDashboard .rank-hero-card{overflow:hidden!important}
+ #playerDashboard .rank-art{min-width:0!important;overflow:hidden!important}
+ 
+ #playerDashboard .elo-block{min-width:0!important;max-width:100%!important;padding:0 14px 0 6px!important;overflow:hidden!important}
+ #playerDashboard .rank-competitive-title{line-height:1.1!important;white-space:normal!important;max-width:100%!important}
+ 
  #playerDashboard .elo-main-line{width:100%!important;max-width:100%!important;gap:6px!important;flex-wrap:nowrap!important}
- #playerDashboard .elo-word{font-size:24px!important;flex:0 0 auto!important}
- #playerDashboard .elo-number{font-size:44px!important;line-height:1!important;min-width:0!important;max-width:100%!important}
+ #playerDashboard .elo-word{flex:0 0 auto!important}
+ #playerDashboard .elo-number{line-height:1!important;min-width:0!important;max-width:100%!important}
  #playerDashboard .rank-progress-row{width:100%!important;max-width:100%!important;padding-right:2px!important}
  #playerDashboard .competitive-hub{overflow:hidden!important}
  #playerDashboard .season-strip,#playerDashboard .top3-showcase,#playerDashboard .achievements-box,#playerDashboard .match-history-box{max-width:100%!important;overflow:hidden!important}
@@ -630,7 +630,7 @@ document.addEventListener('input',function(e){
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261002-jess-editor31"></script>
+  <script src="app-v5.js?v=20261002-jess-editor32"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
