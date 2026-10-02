@@ -1303,3 +1303,7 @@ html,body{color-scheme:dark!important}
 @media(max-width:700px){.ranking-elo{gap:2px;justify-content:flex-start}.ranking-elo-rank{width:30px;height:30px;flex-basis:30px}.ranking-elo-number{min-width:20px;font-size:13px}}
 
 .admin-vs-player-open-profile{cursor:pointer;border-radius:10px;transition:background .15s ease,transform .15s ease}.admin-vs-player-open-profile:active{transform:scale(.985)}.admin-vs-player-open-profile:focus-visible{outline:2px solid #d2aa4c;outline-offset:3px}@media(hover:hover){.admin-vs-player-open-profile:hover{background:rgba(255,255,255,.045)}}
+
+/* Perfil del jugador debe mostrarse por encima del panel administrador */
+.player-detail-backdrop{z-index:2147483646!important}
+.rank-zoom-backdrop{z-index:2147483647!important}
