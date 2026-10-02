@@ -1686,3 +1686,9 @@ img,svg,video,canvas{max-width:100%}
 .ikar-moderator-area[hidden]{display:none!important}
 .ikar-moderator-btn{width:min(92%,520px);min-height:52px;border:1px solid #ff5a5a;border-radius:12px;background:linear-gradient(180deg,#d71920,#97080d);color:#fff;font-weight:900;font-size:18px;letter-spacing:1.2px;box-shadow:0 8px 22px rgba(180,0,0,.28);cursor:pointer}
 .ikar-moderator-btn:active{transform:scale(.985)}
+
+/* Visible MOD ON/OFF control in admin player cards */
+.admin-mod-label{display:block!important;color:#fff!important;font-size:10px!important;font-weight:900!important}
+.admin-mod-control{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px!important;margin-top:5px!important;width:100%!important}
+.admin-mod-control button{display:block!important;min-height:38px!important;border:1px solid #435866!important;border-radius:7px!important;background:#07131b!important;color:#aebbc3!important;font-weight:900!important;font-size:12px!important}
+.admin-mod-control button.active{border-color:#d7ad4c!important;background:#9b741f!important;color:#fff!important}
