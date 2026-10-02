@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>RANKING IKAR8BP</title>
-  <link rel="stylesheet" href="styles-v5.css?v=20261002-rank-progress04" />
+  <link rel="stylesheet" href="styles-v5.css?v=20261002-rank-progress-live05" />
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest?v=1">
 <meta name="theme-color" content="#06121a">
@@ -518,6 +518,20 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261002-admin-vs-profile02"></script>
-<footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer></body>
+  <script src="app-v5.js?v=20261002-rank-progress-live05"></script>
+<footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
+(function(){
+ function syncRankProgress(){
+  var eloEl=document.getElementById('dashboardElo'),nameEl=document.getElementById('dashboardRankName'),fill=document.getElementById('rankProgressFill'),txt=document.getElementById('rankProgressText');
+  if(!eloEl||!nameEl||!fill||!txt)return;
+  var elo=parseInt(eloEl.textContent,10)||200;
+  var ranks=[["LATÓN",200],["BRONCE I",230],["BRONCE II",300],["BRONCE III",380],["PLATA I",470],["PLATA II",570],["PLATA III",680],["ORO I",800],["ORO II",930],["ORO III",1070],["AMATISTA I",1220],["AMATISTA II",1380],["AMATISTA III",1550],["ESMERALDA I",1730],["ESMERALDA II",1920],["ESMERALDA III",2120],["DIAMANTE I",2330],["DIAMANTE II",2550],["DIAMANTE III",2770],["DIAMANTE NEGRO",3000]];
+  var i=0;for(var n=0;n<ranks.length;n++){if(elo>=ranks[n][1])i=n;else break}
+  nameEl.textContent=ranks[i][0];
+  if(i<ranks.length-1){var a=Math.max(200,ranks[i][1]),b=ranks[i+1][1],pct=Math.max(0,Math.min(100,(elo-a)/(b-a)*100));fill.style.width=pct+"%";txt.textContent=elo+" / "+b}
+  else{fill.style.width="100%";txt.textContent=elo+" · MÁXIMO"}
+ }
+ document.addEventListener("DOMContentLoaded",function(){syncRankProgress();setInterval(syncRankProgress,1000)});
+})();
+</script></body>
 </html>
