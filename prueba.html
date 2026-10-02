@@ -9,30 +9,36 @@
 .info{min-width:0;padding:0 2px 0 14px}.title{color:#ffe58a;font-weight:800;font-size:10px;white-space:nowrap}.rank{color:#ffd400;font-family:Georgia,serif;font-weight:800;font-size:31px;line-height:1.15;margin-top:8px}
 .elo{display:flex;align-items:baseline;gap:8px;margin-top:6px}.elo span:first-child{font-family:Georgia,serif;font-weight:800;font-size:18px}.num{color:#ffd400;font-family:Georgia,serif;font-size:48px;font-weight:800;line-height:1}
 .progress{display:flex;align-items:center;gap:6px;width:100%;margin-top:9px}.track{height:10px;flex:1;border-radius:99px;background:#08111d;border:1px solid #26364a;overflow:hidden}.fill{width:0%;height:100%;background:#ffd400}.txt{font-size:9px;white-space:nowrap}
-.controls{margin-top:18px;padding:12px;border:1px solid #282828;border-radius:12px;background:#0b0b0b}.controls label{display:flex;justify-content:space-between;font-size:12px;color:#bbb;margin:9px 0}.controls input{width:58%}
+.controls{margin-top:18px;padding:12px;border:1px solid #282828;border-radius:12px;background:#0b0b0b}.controls label{display:grid;grid-template-columns:1fr 48% 34px;align-items:center;gap:8px;font-size:12px;color:#ddd;margin:14px 0}.controls input{width:100%}.controls b{color:#ffd400;text-align:right}
 @media(max-width:430px){.preview{width:94vw}.card{grid-template-columns:43% 57%;height:250px}.art{height:220px}.badge{width:210px;height:210px}.info{padding-left:8px}.title{font-size:10px}.rank{font-size:29px}.num{font-size:44px}}
 </style></head>
-<body><main class="preview"><div class="note">VISTA DE PRUEBA 20261002-controls-v2 · desliza abajo para ver los controles</div>
+<body><main class="preview"><div class="note">VISTA DE PRUEBA · EDITOR COMPLETO V3 · baja para usar los controles</div>
 <section class="card"><div class="art"><img class="badge" id="badge" src="assets/ranks/01_Laton.png" alt="Latón"></div>
 <div class="info"><div class="title">RANGO COMPETITIVO</div><div class="rank">LATÓN</div><div class="elo"><span>ELO</span><span class="num">200</span></div><div class="progress"><div class="track"><div class="fill"></div></div><span class="txt">200 / 230</span></div></div></section>
-<div class="controls">
-<label>Tamaño insignia <input id="badgeSize" type="range" min="120" max="340" value="220"></label>
-<label>Subir / bajar insignia <input id="badgeY" type="range" min="-100" max="100" value="0"></label>
-<label>RANGO COMPETITIVO <input id="titleSize" type="range" min="7" max="24" value="10"></label>
-<label>LATÓN <input id="rankSize" type="range" min="18" max="60" value="31"></label>
-<label>ELO <input id="eloLabelSize" type="range" min="10" max="40" value="18"></label>
-<label>200 <input id="eloNumberSize" type="range" min="24" max="80" value="48"></label>
-<label>200 / 230 <input id="progressTextSize" type="range" min="7" max="24" value="9"></label>
-<label>Tarjeta <input id="cardHeight" type="range" min="210" max="360" value="270"></label>
+<div class="controls" id="editorPanel">
+<h3 style="margin:0 0 12px;color:#ffd400;font-size:16px">EDITOR DE LA TARJETA</h3>
+<label>Tamaño insignia <input id="badgeSize" type="range" min="100" max="360" value="220"><b id="badgeSizeVal">220</b></label>
+<label>Mover insignia ↔ <input id="badgeX" type="range" min="-120" max="120" value="0"><b id="badgeXVal">0</b></label>
+<label>Subir / bajar insignia ↕ <input id="badgeY" type="range" min="-120" max="120" value="0"><b id="badgeYVal">0</b></label>
+<label>RANGO COMPETITIVO <input id="titleSize" type="range" min="6" max="30" value="10"><b id="titleSizeVal">10</b></label>
+<label>LATÓN <input id="rankSize" type="range" min="16" max="70" value="31"><b id="rankSizeVal">31</b></label>
+<label>ELO <input id="eloLabelSize" type="range" min="8" max="45" value="18"><b id="eloLabelSizeVal">18</b></label>
+<label>Número 200 <input id="eloNumberSize" type="range" min="20" max="90" value="48"><b id="eloNumberSizeVal">48</b></label>
+<label>200 / 230 <input id="progressTextSize" type="range" min="6" max="30" value="9"><b id="progressTextSizeVal">9</b></label>
+<label>Altura tarjeta <input id="cardHeight" type="range" min="180" max="420" value="270"><b id="cardHeightVal">270</b></label>
 </div>
 </main><script>
-const q=s=>document.querySelector(s);
-badgeSize.oninput=e=>{badge.style.width=e.target.value+'px';badge.style.height=e.target.value+'px'};
-badgeY.oninput=e=>badge.style.transform='translateY('+e.target.value+'px)';
-titleSize.oninput=e=>q('.title').style.fontSize=e.target.value+'px';
-rankSize.oninput=e=>q('.rank').style.fontSize=e.target.value+'px';
-eloLabelSize.oninput=e=>q('.elo span:first-child').style.fontSize=e.target.value+'px';
-eloNumberSize.oninput=e=>q('.num').style.fontSize=e.target.value+'px';
-progressTextSize.oninput=e=>q('.txt').style.fontSize=e.target.value+'px';
-cardHeight.oninput=e=>q('.card').style.height=e.target.value+'px';
+const q=s=>document.querySelector(s), badge=q('#badge');
+let bx=0,by=0;
+function bind(id,fn){const el=q('#'+id),out=q('#'+id+'Val');el.addEventListener('input',()=>{out.textContent=el.value;fn(+el.value)})}
+function moveBadge(){badge.style.transform='translate('+bx+'px,'+by+'px)'}
+bind('badgeSize',v=>{badge.style.width=v+'px';badge.style.height=v+'px'});
+bind('badgeX',v=>{bx=v;moveBadge()});
+bind('badgeY',v=>{by=v;moveBadge()});
+bind('titleSize',v=>q('.title').style.fontSize=v+'px');
+bind('rankSize',v=>q('.rank').style.fontSize=v+'px');
+bind('eloLabelSize',v=>q('.elo span:first-child').style.fontSize=v+'px');
+bind('eloNumberSize',v=>q('.num').style.fontSize=v+'px');
+bind('progressTextSize',v=>q('.txt').style.fontSize=v+'px');
+bind('cardHeight',v=>q('.card').style.height=v+'px');
 </script></body></html>
