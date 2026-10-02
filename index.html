@@ -322,113 +322,100 @@
  #playerDashboard .rank-hero-card .rank-progress-row{transform:none!important}
 }
 </style>
-<style id="badge-position-direct-final">
-@media(max-width:700px){
- #playerDashboard #rankBadgeImage.rank-badge-overlay{
-   align-self:center!important;
-   position:relative!important;
-   top:-38px!important;
-   transform:none!important;
- }
-}
-</style>
-<style id="rank-visible-image-down-final">
-@media(max-width:700px){
- #playerDashboard #rankBadgeImage{
-   overflow:visible!important;
- }
- #playerDashboard #rankBadgeImage > img.rank-original-img{
-   position:relative!important;
-   top:0!important;
-   transform:none!important;
-   margin:0!important;
- }
-}
-</style>
-<style id="rank-badge-text-alignment-final">
-@media(max-width:700px){
- #playerDashboard #rankBadgeImage.rank-badge-overlay{
-   top:-38px!important;
- }
- #playerDashboard .rank-hero-card > .elo-block{
-   transform:translateY(92px)!important;
- }
-}
-</style>
-<style id="rank-card-content-hidden-final">
-#playerDashboard .rank-hero-card > #rankBadgeImage,
-#playerDashboard .rank-hero-card > .rank-art,
-#playerDashboard .rank-hero-card > .elo-block{
-  display:none!important;
-}
-</style>
-<style id="standalone-rank-badge-final">
-#playerDashboard .rank-hero-card{
-  display:block!important;
-  width:100%!important;
-  max-width:none!important;
-  height:170px!important;
-  min-height:170px!important;
-  margin:0 auto 6px!important;
-  padding:0!important;
-  background:none!important;
-  background-image:none!important;
-  border:0!important;
-  box-shadow:none!important;
-  overflow:visible!important;
-  position:relative!important;
-}
-#playerDashboard .rank-hero-card > .rank-art,
-#playerDashboard .rank-hero-card > .elo-block{
-  display:none!important;
-}
-#playerDashboard .rank-hero-card > #rankBadgeImage{
-  display:flex!important;
-  position:absolute!important;
-  left:50%!important;
-  top:50%!important;
-  width:160px!important;
-  height:160px!important;
-  min-width:160px!important;
-  min-height:160px!important;
-  max-width:160px!important;
-  max-height:160px!important;
-  margin:0!important;
-  padding:0!important;
-  transform:translate(-50%,-50%)!important;
-  background:none!important;
-  border:0!important;
-  box-shadow:none!important;
-  overflow:visible!important;
-  align-items:center!important;
-  justify-content:center!important;
-}
-#playerDashboard .rank-hero-card > #rankBadgeImage > img.rank-original-img{
-  display:block!important;
-  position:static!important;
-  width:100%!important;
-  height:100%!important;
-  object-fit:contain!important;
-  margin:0!important;
-  transform:none!important;
-}
-</style>
-<style id="standalone-rank-badge-center-fix">
+<style id="rank-card-reference-final">
 @media(max-width:700px){
  #playerDashboard .rank-hero-card{
+   display:grid!important;
+   grid-template-columns:48% 52%!important;
+   align-items:center!important;
+   width:calc(100% - 40px)!important;
+   max-width:620px!important;
+   height:220px!important;
+   min-height:220px!important;
+   margin:14px auto 18px!important;
+   padding:10px 16px!important;
+   box-sizing:border-box!important;
    position:relative!important;
-   width:100%!important;
-   max-width:100%!important;
-   margin-left:0!important;
-   margin-right:0!important;
+   overflow:hidden!important;
+   border:1.5px solid rgba(201,155,63,.82)!important;
+   border-radius:22px!important;
+   background:url("./assets/fondo-perfil.png?v=13") center/cover no-repeat!important;
+   box-shadow:none!important;
+   transform:none!important;
  }
- #playerDashboard .rank-hero-card > #rankBadgeImage{
-   position:absolute!important;
-   left:50%!important;
-   right:auto!important;
-   top:50%!important;
+ #playerDashboard .rank-hero-card>.rank-art{display:none!important}
+ #playerDashboard .rank-hero-card>#rankBadgeImage{
+   display:flex!important;
+   grid-column:1!important;
+   grid-row:1!important;
+   position:relative!important;
+   left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+   justify-self:center!important;
+   align-self:center!important;
+   width:185px!important;height:185px!important;
+   min-width:185px!important;min-height:185px!important;
+   max-width:185px!important;max-height:185px!important;
+   margin:0!important;padding:0!important;
+   transform:none!important;
+   background:none!important;border:0!important;box-shadow:none!important;
+   overflow:visible!important;
+   align-items:center!important;justify-content:center!important;
+ }
+ #playerDashboard .rank-hero-card>#rankBadgeImage>img.rank-original-img{
+   display:block!important;
+   position:static!important;
+   width:100%!important;height:100%!important;
+   object-fit:contain!important;
    margin:0!important;
-   transform:translate(-50%,-50%)!important;
+   transform:none!important;
+ }
+ #playerDashboard .rank-hero-card>.elo-block{
+   display:flex!important;
+   grid-column:2!important;
+   grid-row:1!important;
+   position:relative!important;
+   left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+   width:100%!important;
+   height:auto!important;
+   min-width:0!important;
+   margin:0!important;
+   padding:0 4px!important;
+   box-sizing:border-box!important;
+   transform:none!important;
+   align-self:center!important;
+   align-items:flex-start!important;
+   justify-content:center!important;
+   overflow:visible!important;
+ }
+ #playerDashboard .rank-competitive-title{
+   margin:0 0 2px!important;
+   font-size:13px!important;
+   line-height:1.05!important;
+ }
+ #playerDashboard .dashboard-rank-name{
+   margin:0 0 5px!important;
+   font-size:31px!important;
+   line-height:1!important;
+ }
+ #playerDashboard .elo-main-line{
+   margin:0!important;
+   display:flex!important;
+   align-items:baseline!important;
+   gap:7px!important;
+   transform:none!important;
+ }
+ #playerDashboard .elo-word{
+   font-size:29px!important;
+   line-height:1!important;
+ }
+ #playerDashboard .elo-number{
+   font-size:58px!important;
+   line-height:.95!important;
+ }
+ #playerDashboard .rank-progress-row{
+   width:100%!important;
+   margin-top:10px!important;
+   transform:none!important;
  }
 }
 </style>
