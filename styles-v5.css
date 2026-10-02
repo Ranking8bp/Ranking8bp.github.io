@@ -1497,3 +1497,23 @@ html,body{color-scheme:dark!important}
   border-color:rgba(204,164,78,.48)!important;
   box-shadow:inset 0 0 42px rgba(0,0,0,.42),0 8px 24px rgba(0,0,0,.28)!important;
 }
+
+
+/* PROFILE PANELS — same visible background as header */
+#playerDashboard .rank-hero-card,
+#playerDashboard .season-strip,
+#playerDashboard .top3-showcase,
+#playerDashboard .competitive-grid>div,
+#playerDashboard .achievements-box,
+#playerDashboard .match-history-box{
+ background:
+   linear-gradient(90deg,rgba(1,4,8,.38),rgba(3,9,15,.30)),
+   url('assets/fondo-perfil.png') center/cover no-repeat!important;
+ border:1px solid rgba(211,166,55,.72)!important;
+ box-shadow:inset 0 0 28px rgba(0,0,0,.22),0 8px 24px rgba(0,0,0,.28)!important;
+}
+#playerDashboard .season-strip,
+#playerDashboard .top3-showcase,
+#playerDashboard .competitive-grid>div,
+#playerDashboard .achievements-box,
+#playerDashboard .match-history-box{background-position:center!important}
