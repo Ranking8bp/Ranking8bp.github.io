@@ -1791,6 +1791,7 @@ registerForm.addEventListener('submit',async event=>{
 
   const usernameValue=username.value.trim(),passwordValue=password.value,idValue=gameId.value.trim(),countryValue=country.value.trim();
   if(!validUsername(usernameValue)){registerError.textContent='El usuario solo puede tener letras, números, punto, guion o guion bajo.';return}
+  if(usernameValue.toLowerCase().includes('ikar')){registerError.textContent='No está permitido usar IKAR en ninguna parte del nombre o usuario.';return}
   if(passwordValue.length<6){registerError.textContent='La contraseña debe tener al menos 6 caracteres.';return}
   if(!idValue||!countryValue){registerError.textContent='Completa todos los datos.';return}
 
