@@ -1583,3 +1583,51 @@ html{-webkit-text-size-adjust:100%!important;text-size-adjust:100%!important}
  #playerDashboard .rank-progress-text{font-size:9px!important}
  #playerDashboard .rank-progress-track{height:9px!important}
 }
+
+
+/* 2026-10-02: perfil móvil estable en Chrome/TikTok WebView */
+#playerDashboard .rank-hero-card{
+  box-sizing:border-box!important;
+  align-items:center!important;
+}
+#playerDashboard .rank-hero-card>.rank-art,
+#playerDashboard .rank-hero-card>.elo-block{
+  box-sizing:border-box!important;
+  align-self:center!important;
+}
+#playerDashboard .elo-block{
+  height:100%!important;
+  min-width:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  padding:12px 14px 12px 4px!important;
+  transform:none!important;
+}
+#playerDashboard .rank-competitive-title{margin:0 0 5px!important;line-height:1.05!important}
+#playerDashboard .dashboard-rank-name{margin:0 0 8px!important;line-height:1.05!important}
+#playerDashboard .elo-line{margin:0 0 8px!important;line-height:1!important}
+#playerDashboard .rank-progress-text{margin:0 0 5px!important}
+#playerDashboard .rank-progress-track{margin:0!important}
+#playerDashboard .top3-avatar.ranking-avatar,
+#playerDashboard .top3-avatar.ranking-avatar img{
+  box-sizing:border-box!important;
+  border-radius:50%!important;
+  aspect-ratio:1/1!important;
+}
+#playerDashboard .top3-avatar.ranking-avatar{
+  width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;max-width:58px!important;max-height:58px!important;flex:0 0 58px!important;
+}
+#playerDashboard .top3-avatar.ranking-avatar img{
+  width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:100%!important;max-height:100%!important;object-fit:cover!important;
+}
+@media(max-width:430px){
+ #playerDashboard .rank-hero-card{width:94%!important;height:180px!important;min-height:180px!important;grid-template-columns:43% 57%!important;overflow:hidden!important}
+ #playerDashboard .rank-art{height:180px!important}
+ #playerDashboard .rank-badge-image{width:160px!important;height:160px!important;min-width:160px!important;min-height:160px!important;max-width:160px!important;max-height:160px!important}
+ #playerDashboard .elo-block{transform:none!important;padding:10px 10px 10px 2px!important}
+ #playerDashboard .rank-competitive-title{font-size:13px!important}
+ #playerDashboard .dashboard-rank-name{font-size:16px!important}
+ #playerDashboard .elo-word{font-size:25px!important}
+ #playerDashboard .elo-number{font-size:43px!important}
+}
