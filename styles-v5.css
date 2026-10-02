@@ -1517,3 +1517,29 @@ html,body{color-scheme:dark!important}
 #playerDashboard .competitive-grid>div,
 #playerDashboard .achievements-box,
 #playerDashboard .match-history-box{background-position:center!important}
+
+
+/* PROFILE LOWER AREA — one continuous background below rank card */
+#playerDashboard .competitive-hub{
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:hidden!important;
+  border-radius:20px!important;
+  padding:12px!important;
+  box-sizing:border-box!important;
+  background:
+    linear-gradient(180deg,rgba(1,4,8,.28),rgba(1,4,8,.38)),
+    url('assets/fondo-perfil.png') center/cover no-repeat!important;
+  border:1px solid rgba(211,166,55,.42)!important;
+  box-shadow:inset 0 0 36px rgba(0,0,0,.24),0 10px 28px rgba(0,0,0,.28)!important;
+}
+#playerDashboard .competitive-hub .season-strip,
+#playerDashboard .competitive-hub .top3-showcase,
+#playerDashboard .competitive-hub .competitive-grid>div,
+#playerDashboard .competitive-hub .achievements-box,
+#playerDashboard .competitive-hub .match-history-box{
+  background:rgba(2,7,12,.42)!important;
+  backdrop-filter:blur(1px)!important;
+  -webkit-backdrop-filter:blur(1px)!important;
+  border-color:rgba(211,166,55,.58)!important;
+}
