@@ -949,6 +949,17 @@ async function setPlayerUI(profile,user){
     if(rankHero){rankHero.hidden=false;rankHero.classList.remove('admin-only-card');}
     if(winLossGrid)winLossGrid.hidden=false;
     dashboardElo.textContent=elo;
+    const dashboardRankName=document.getElementById('dashboardRankName');
+    const rankProgressFill=document.getElementById('rankProgressFill');
+    const rankProgressText=document.getElementById('rankProgressText');
+    const nextRank=RANKS[rank.index+1]||null;
+    const rankStart=Math.max(200,Number(rank.min)||200);
+    const rankEnd=nextRank?Number(nextRank.min):rankStart;
+    const rankSpan=Math.max(1,rankEnd-rankStart);
+    const rankPct=nextRank?Math.max(0,Math.min(100,((elo-rankStart)/rankSpan)*100)):100;
+    if(dashboardRankName)dashboardRankName.textContent=String(rank.name||'').toUpperCase();
+    if(rankProgressFill)rankProgressFill.style.width=rankPct+'%';
+    if(rankProgressText)rankProgressText.textContent=nextRank?(elo+' / '+rankEnd):(elo+' · MÁXIMO');
     dashboardWins.textContent=wins;
     dashboardLosses.textContent=losses;
   }
