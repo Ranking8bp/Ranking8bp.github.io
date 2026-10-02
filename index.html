@@ -176,6 +176,33 @@
    display:block!important;
  }
 }
+</style><style id="rank-progress-five-times">
+#playerDashboard .rank-progress-row{
+  width:100%!important;
+  max-width:100%!important;
+  overflow:visible!important;
+}
+#playerDashboard .rank-progress-track{
+  transform:scaleX(5)!important;
+  transform-origin:left center!important;
+  flex:0 0 18%!important;
+  width:18%!important;
+  min-width:0!important;
+  max-width:none!important;
+}
+#playerDashboard .rank-progress-text{
+  margin-left:72%!important;
+  flex:0 0 auto!important;
+}
+@media(max-width:700px){
+ #playerDashboard .rank-progress-track{
+   transform:scaleX(5)!important;
+   transform-origin:left center!important;
+   flex:0 0 17%!important;
+   width:17%!important;
+ }
+ #playerDashboard .rank-progress-text{margin-left:68%!important}
+}
 </style></head>
 <body>
   <main class="viewport-shell">
