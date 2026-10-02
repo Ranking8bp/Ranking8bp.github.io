@@ -1410,3 +1410,38 @@ html,body{color-scheme:dark!important}
  #playerDashboard .dashboard-chat-area{width:45%!important;margin-right:3%!important}
  #playerDashboard .dashboard-whatsapp-btn,#playerDashboard .dashboard-chat-btn{height:60px!important;font-size:13px!important}
 }
+
+/* PROFILE HEADER — reference layout 2026-10-02 */
+#playerDashboard .identity-section{display:grid!important;grid-template-columns:42% 58%!important;gap:0!important;align-items:center!important;width:100%!important;max-width:760px!important;margin:0 auto 18px!important;padding:10px 14px 22px!important;box-sizing:border-box!important}
+#playerDashboard .portrait-column{width:100%!important;justify-content:center!important}
+#playerDashboard .portrait-frame{width:min(36vw,270px)!important;height:min(36vw,270px)!important;padding:7px!important;border-radius:50%!important}
+#playerDashboard .portrait-frame:before{inset:10px!important}
+#playerDashboard #profileAvatar,#playerDashboard .avatar-placeholder{border-width:5px!important}
+#playerDashboard .avatar-edit{right:0!important;bottom:8%!important;width:54px!important;height:54px!important;font-size:26px!important;border-width:2px!important}
+#playerDashboard .portrait-crown{display:none!important}
+#playerDashboard .identity-copy{width:100%!important;padding-left:12px!important;overflow:visible!important}
+#playerDashboard .name-line{gap:9px!important;align-items:center!important;flex-wrap:nowrap!important}
+#playerDashboard .name-line h2{margin:0!important;font-size:clamp(30px,8.5vw,58px)!important;line-height:1!important;color:#f1d476!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#playerDashboard .verified-mark{width:30px!important;height:30px!important;flex:0 0 30px!important;border-radius:7px!important;border-width:3px!important;font-size:19px!important}
+#playerDashboard .country-line{margin:14px 0 0!important;gap:10px!important;font-size:22px!important;color:#fff!important}
+#playerDashboard .country-flag{font-size:35px!important}
+#playerDashboard .main-follow-stats{display:flex!important;justify-content:flex-start!important;gap:0!important;margin-top:24px!important;width:100%!important}
+#playerDashboard .main-follow-stats>div{min-width:42%!important;padding:0 16px!important;text-align:center!important;border-right:1px solid rgba(255,255,255,.14)!important}
+#playerDashboard .main-follow-stats>div:first-child{padding-left:0!important}
+#playerDashboard .main-follow-stats>div:last-child{border-right:0!important}
+#playerDashboard .main-follow-stats strong{display:block!important;font-size:34px!important;line-height:1!important;color:#fff!important}
+#playerDashboard .main-follow-stats span{display:block!important;margin-top:7px!important;font-size:15px!important;letter-spacing:.5px!important;color:#c4c8ce!important}
+@media(max-width:700px){
+ #playerDashboard .identity-section{grid-template-columns:43% 57%!important;padding:8px 8px 18px!important}
+ #playerDashboard .portrait-frame{width:min(39vw,210px)!important;height:min(39vw,210px)!important}
+ #playerDashboard .identity-copy{padding-left:8px!important}
+ #playerDashboard .name-line h2{font-size:clamp(27px,8vw,45px)!important}
+ #playerDashboard .verified-mark{width:25px!important;height:25px!important;flex-basis:25px!important;font-size:15px!important}
+ #playerDashboard .country-line{font-size:18px!important;margin-top:10px!important}
+ #playerDashboard .country-flag{font-size:30px!important}
+ #playerDashboard .main-follow-stats{margin-top:18px!important}
+ #playerDashboard .main-follow-stats>div{padding:0 9px!important}
+ #playerDashboard .main-follow-stats strong{font-size:29px!important}
+ #playerDashboard .main-follow-stats span{font-size:12px!important}
+ #playerDashboard .avatar-edit{width:44px!important;height:44px!important;font-size:21px!important}
+}
