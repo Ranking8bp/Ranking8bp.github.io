@@ -15,8 +15,24 @@
 <body><main class="preview"><div class="note">VISTA DE PRUEBA · no modifica el sitio principal</div>
 <section class="card"><div class="art"><img class="badge" id="badge" src="assets/ranks/01_Laton.png" alt="Latón"></div>
 <div class="info"><div class="title">RANGO COMPETITIVO</div><div class="rank">LATÓN</div><div class="elo"><span>ELO</span><span class="num">200</span></div><div class="progress"><div class="track"><div class="fill"></div></div><span class="txt">200 / 230</span></div></div></section>
-<div class="controls"><label>Insignia <input id="badgeSize" type="range" min="150" max="300" value="225"></label><label>Tarjeta <input id="cardHeight" type="range" min="210" max="330" value="270"></label></div>
+<div class="controls">
+<label>Tamaño insignia <input id="badgeSize" type="range" min="120" max="340" value="220"></label>
+<label>Subir / bajar insignia <input id="badgeY" type="range" min="-100" max="100" value="0"></label>
+<label>RANGO COMPETITIVO <input id="titleSize" type="range" min="7" max="24" value="10"></label>
+<label>LATÓN <input id="rankSize" type="range" min="18" max="60" value="31"></label>
+<label>ELO <input id="eloLabelSize" type="range" min="10" max="40" value="18"></label>
+<label>200 <input id="eloNumberSize" type="range" min="24" max="80" value="48"></label>
+<label>200 / 230 <input id="progressTextSize" type="range" min="7" max="24" value="9"></label>
+<label>Tarjeta <input id="cardHeight" type="range" min="210" max="360" value="270"></label>
+</div>
 </main><script>
+const q=s=>document.querySelector(s);
 badgeSize.oninput=e=>{badge.style.width=e.target.value+'px';badge.style.height=e.target.value+'px'};
-cardHeight.oninput=e=>document.querySelector('.card').style.height=e.target.value+'px';
+badgeY.oninput=e=>badge.style.transform='translateY('+e.target.value+'px)';
+titleSize.oninput=e=>q('.title').style.fontSize=e.target.value+'px';
+rankSize.oninput=e=>q('.rank').style.fontSize=e.target.value+'px';
+eloLabelSize.oninput=e=>q('.elo span:first-child').style.fontSize=e.target.value+'px';
+eloNumberSize.oninput=e=>q('.num').style.fontSize=e.target.value+'px';
+progressTextSize.oninput=e=>q('.txt').style.fontSize=e.target.value+'px';
+cardHeight.oninput=e=>q('.card').style.height=e.target.value+'px';
 </script></body></html>
