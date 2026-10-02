@@ -51,9 +51,13 @@ async function loadGlobalDesign(){
  setTimeout(()=>applyGlobalDesign(GLOBAL_DESIGN_DEFAULTS),1200);
 }
 function setupGlobalDesignEditor(profile){
- // Editor global desactivado. Ningún usuario (incluido Jess8bp) puede alterar el diseño.
+ // Eliminación total del editor global, incluso si quedó HTML antiguo en caché/DOM.
  const panel=document.getElementById('globalDesignEditor');
- if(panel)panel.hidden=true;
+ if(panel)panel.remove();
+ const controls=document.getElementById('globalDesignControls');
+ if(controls)controls.remove();
+ const save=document.getElementById('saveGlobalDesign');
+ if(save)save.remove();
 }
 loadGlobalDesign();
 
