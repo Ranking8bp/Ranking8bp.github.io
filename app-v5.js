@@ -1017,7 +1017,7 @@ async function setPlayerUI(profile,user){
   const rankHero=document.querySelector('#playerDashboard .rank-hero-card');
   const winLossGrid=document.querySelector('#playerDashboard .win-loss-grid');
   if(isAdminDashboard){
-    if(rankHero){rankHero.hidden=false;rankHero.classList.add('admin-only-card');rankHero.innerHTML='<div class="admin-only-title">ADMINISTRADOR</div>';}
+    if(rankHero){rankHero.hidden=true;rankHero.classList.remove('admin-only-card');rankHero.replaceChildren();}
     if(winLossGrid)winLossGrid.hidden=true;
   }else{
     if(rankHero){rankHero.hidden=false;rankHero.classList.remove('admin-only-card');}
@@ -1538,7 +1538,7 @@ async function openRankingPlayer(player){
   if(isAdminProfile){
     if(playerDetailRank)playerDetailRank.hidden=true;
     if(idStat)idStat.hidden=true;
-    if(eloStat){eloStat.hidden=false;eloStat.classList.add('admin-profile-label');const label=eloStat.querySelector('small');if(label)label.textContent='';playerDetailElo.textContent='ADMINISTRADOR';}
+    if(eloStat){eloStat.hidden=true;eloStat.classList.remove('admin-profile-label');const label=eloStat.querySelector('small');if(label)label.textContent='';playerDetailElo.textContent='';}
     if(winStat)winStat.hidden=true;
     if(lossStat)lossStat.hidden=true;
   }else{
