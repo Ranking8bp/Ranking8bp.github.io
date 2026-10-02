@@ -1516,3 +1516,8 @@ html,body{color-scheme:dark!important}
 
 /* RANK BADGE — movement only, no shine/glow */
 #playerDashboard .rank-badge-image::after{content:none!important;display:none!important;animation:none!important;background:none!important;filter:none!important;opacity:0!important}
+
+/* RANK BADGE — movement using saved editor position */
+#playerDashboard .rank-badge-image{animation:rankBadgeSavedPositionMove 2.8s ease-in-out infinite!important}
+@keyframes rankBadgeSavedPositionMove{0%,100%{transform:translate(var(--badge-x,0px),var(--badge-y,0px))!important}50%{transform:translate(var(--badge-x,0px),calc(var(--badge-y,0px) - 12px))!important}}
+@media(max-width:700px){#playerDashboard .rank-badge-image{animation:rankBadgeSavedPositionMoveMobile 2.8s ease-in-out infinite!important}@keyframes rankBadgeSavedPositionMoveMobile{0%,100%{transform:translate(var(--badge-x,0px),var(--badge-y,0px))!important}50%{transform:translate(var(--badge-x,0px),calc(var(--badge-y,0px) - 10px))!important}}}
