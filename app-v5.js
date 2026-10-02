@@ -988,15 +988,14 @@ function createRankingAvatar(player){
   wrap.appendChild(fallback);
 
   if(player?.avatar_path&&supabaseClient){
-    supabaseClient.storage.from('profile-photos').createSignedUrl(player.avatar_path,3600)
-      .then(({data,error})=>{
-        if(error||!data?.signedUrl)return;
-        const img=document.createElement('img');
-        img.src=data.signedUrl;
-        img.alt='';
-        img.onload=()=>{wrap.replaceChildren(img)};
-      })
-      .catch(()=>{});
+    const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
+    if(data?.publicUrl){
+      const img=document.createElement('img');
+      img.src=data.publicUrl+'?v='+encodeURIComponent(String(player.avatar_path));
+      img.alt='Foto de '+String(displayName);
+      img.onload=()=>{wrap.replaceChildren(img)};
+      img.onerror=()=>{img.remove()};
+    }
   }
   return wrap;
 }
