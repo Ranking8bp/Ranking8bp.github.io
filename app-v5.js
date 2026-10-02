@@ -97,6 +97,7 @@ const countryName=document.getElementById('countryName');
 const dashboardElo=document.getElementById('dashboardElo');
 const dashboardWins=document.getElementById('dashboardWins');
 const dashboardLosses=document.getElementById('dashboardLosses');
+const competitiveWins=document.getElementById('competitiveWins'),competitiveLosses=document.getElementById('competitiveLosses');
 const dashboardPlayBtn=document.getElementById('dashboardPlayBtn');
 const playersOnlineCount=document.getElementById('playersOnlineCount');
 const playersOnlineNow=document.getElementById('playersOnlineNow'),playingVsModal=document.getElementById('playingVsModal'),playingVsClose=document.getElementById('playingVsClose'),playingVsList=document.getElementById('playingVsList');
@@ -1018,8 +1019,8 @@ async function setPlayerUI(profile,user){
     if(dashboardRankName)dashboardRankName.textContent=String(rank.name||'').toUpperCase();
     if(rankProgressFill)rankProgressFill.style.width=rankPct+'%';
     if(rankProgressText)rankProgressText.textContent=nextRank?(elo+' / '+rankEnd):(elo+' · MÁXIMO');
-    dashboardWins.textContent=wins;
-    dashboardLosses.textContent=losses;
+    dashboardWins.textContent=wins;if(competitiveWins)competitiveWins.textContent=wins;
+    dashboardLosses.textContent=losses;if(competitiveLosses)competitiveLosses.textContent=losses;
   }
   gamesPlayed.textContent=isAdminDashboard?'—':games;
   winRate.textContent=isAdminDashboard?'—':rate+'%';
