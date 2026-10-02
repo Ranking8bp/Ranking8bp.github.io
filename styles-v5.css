@@ -1317,3 +1317,22 @@ html,body{color-scheme:dark!important}
 .player-detail-rank-badge{width:58px!important;height:58px!important;margin:0!important;background-color:transparent!important}
 .player-detail-rank small,.player-detail-rank strong{display:none!important}
 @media(max-width:700px){.player-detail-head{padding-right:52px}.player-detail-name-row{gap:7px}.player-detail-rank-badge{width:48px!important;height:48px!important}}
+
+/* LIVE: insignia de perfil 3x más grande a la derecha del nombre */
+.player-detail-name-row{align-items:center;overflow:visible}
+.player-detail-rank{overflow:visible!important}
+.player-detail-rank-badge{
+  width:174px!important;
+  height:174px!important;
+  flex:0 0 174px!important;
+  margin:0!important;
+  background-color:transparent!important;
+}
+@media(max-width:700px){
+  .player-detail-rank-badge{
+    width:144px!important;
+    height:144px!important;
+    flex-basis:144px!important;
+  }
+  .player-detail-name-row{gap:8px}
+}
