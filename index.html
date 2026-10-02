@@ -168,6 +168,21 @@
  #playerDashboard .top3-card{min-width:0!important;max-width:100%!important}
 }
 </style>
+<style id="force-rank-lower-final">
+/* MÁXIMA PRIORIDAD: bajar insignia y todo el contenido derecho */
+#playerDashboard .rank-hero-card > .rank-art{
+  transform:translateY(30px)!important;
+  top:auto!important;
+}
+#playerDashboard .rank-hero-card > .elo-block{
+  transform:translateY(0px)!important;
+  top:auto!important;
+}
+@media(max-width:700px){
+ #playerDashboard .rank-hero-card > .rank-art{transform:translateY(26px)!important}
+ #playerDashboard .rank-hero-card > .elo-block{transform:translateY(18px)!important}
+}
+</style>
 </head>
 <body>
   <main class="viewport-shell">
