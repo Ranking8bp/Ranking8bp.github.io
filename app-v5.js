@@ -341,7 +341,7 @@ async function uploadRankedWinnerVideo(){
   const {data:permission,error:permissionError}=await supabaseClient.rpc('get_ranked_result_wait_status',{p_match_id:Number(currentRankedMatchId)});
   if(permissionError){showToast('No se pudo comprobar el estado del VS.');return}
   const permissionRow=Array.isArray(permission)?permission[0]:permission;
-  if(!permissionRow?.evidence_required){showToast('La evidencia se habilita después de 3 minutos sin respuesta del rival.');return}
+  if(!permissionRow?.evidence_required){showToast('No necesitas subir evidencia para este resultado.');return}
   const file=rankedWinnerVideoInput?.files?.[0];
   if(!file)return;
   try{
@@ -357,16 +357,7 @@ async function uploadRankedWinnerVideo(){
     rankedWinnerVideoStatus.textContent='Subiendo video...';
     const {error:uploadError}=await supabaseClient.storage.from('ranked-match-videos').upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'});
     if(uploadError)throw uploadError;
-    const {data:existing}=await supabaseClient.from('ranked_match_videos').select('id').eq('match_id',currentRankedMatchId).eq('uploader_id',currentUser.id).maybeSingle();
-    let dbError=null;
-    if(existing?.id){
-      const {error}=await supabaseClient.from('ranked_match_videos').update({video_path:path,created_at:new Date().toISOString()}).eq('id',existing.id);
-      dbError=error;
-    }else{
-      const {error}=await supabaseClient.from('ranked_match_videos').insert({match_id:currentRankedMatchId,uploader_id:currentUser.id,video_path:path});
-      dbError=error;
-    }
-    if(dbError)throw dbError;
+    const {error:saveError}=await supabaseClient.rpc('save_ranked_match_video',{p_match_id:Number(currentRankedMatchId),p_video_path:path});if(saveError)throw saveError;
     rankedWinnerVideoStatus.textContent='✅ Video enviado correctamente. El administrador lo revisará.';
     rankedWinnerVideoBtn.textContent='🎥 VIDEO ENVIADO · SUBIR OTRO';
     rankedWinnerVideoInput.value='';
