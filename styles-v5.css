@@ -1307,3 +1307,13 @@ html,body{color-scheme:dark!important}
 /* Perfil del jugador debe mostrarse por encima del panel administrador */
 .player-detail-backdrop{z-index:2147483646!important}
 .rank-zoom-backdrop{z-index:2147483647!important}
+
+/* LIVE: insignia de rango al lado derecho del nombre */
+.player-detail-head{padding-right:58px}
+.player-detail-identity{min-width:0;flex:1}
+.player-detail-name-row{display:flex;align-items:center;gap:10px;min-width:0}
+.player-detail-name-row h3{min-width:0;margin:0}
+.player-detail-rank{position:static!important;min-width:0!important;max-width:none!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;display:flex!important;align-items:center;gap:5px;flex:0 0 auto}
+.player-detail-rank-badge{width:58px!important;height:58px!important;margin:0!important;background-color:transparent!important}
+.player-detail-rank small,.player-detail-rank strong{display:none!important}
+@media(max-width:700px){.player-detail-head{padding-right:52px}.player-detail-name-row{gap:7px}.player-detail-rank-badge{width:48px!important;height:48px!important}}
