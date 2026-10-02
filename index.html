@@ -246,6 +246,30 @@
  }
 }
 </style>
+<style id="mobile-dashboard-width-lock">
+/* Misma anchura visual en navegadores móviles y WebViews */
+@media(max-width:700px){
+ html,body{width:100%!important;min-width:0!important;overflow-x:hidden!important}
+ #playerDashboard{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+ }
+ #playerDashboard .identity-section,
+ #playerDashboard .rank-hero-card,
+ #playerDashboard .competitive-hub,
+ #playerDashboard .dashboard-play-area,
+ #playerDashboard .dashboard-whatsapp-area{
+  width:calc(100% - 40px)!important;
+  max-width:620px!important;
+  min-width:0!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  box-sizing:border-box!important;
+ }
+}
+</style>
 </head>
 <body>
   <main class="viewport-shell">
