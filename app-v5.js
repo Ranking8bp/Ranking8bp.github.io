@@ -1,3 +1,24 @@
+
+const GLOBAL_DESIGN_DEFAULTS={badgeSize:170,badgeX:-8,badgeY:-35,cardHeight:180,textX:0,textY:-39,titleSize:15,rankSize:16,eloLabelSize:28,eloNumberSize:48,progressSize:9,barHeight:9,cardWidth:94,artWidth:43};
+let globalDesignSettings={...GLOBAL_DESIGN_DEFAULTS};
+function applyGlobalDesign(s){
+ globalDesignSettings={...GLOBAL_DESIGN_DEFAULTS,...(s||{})};const d=globalDesignSettings;
+ let st=document.getElementById('globalDesignRuntimeStyle');if(!st){st=document.createElement('style');st.id='globalDesignRuntimeStyle';document.head.appendChild(st)}
+ st.textContent='@media(max-width:700px){#playerDashboard .rank-hero-card{width:'+d.cardWidth+'%!important;height:'+d.cardHeight+'px!important;min-height:'+d.cardHeight+'px!important;grid-template-columns:'+d.artWidth+'% '+(100-d.artWidth)+'%!important}#playerDashboard .rank-art{height:'+d.cardHeight+'px!important}#playerDashboard .rank-badge-image{width:'+d.badgeSize+'px!important;height:'+d.badgeSize+'px!important;min-width:'+d.badgeSize+'px!important;min-height:'+d.badgeSize+'px!important;transform:translate('+d.badgeX+'px,'+d.badgeY+'px)!important}#playerDashboard .elo-block{transform:translate('+d.textX+'px,'+d.textY+'px)!important}#playerDashboard .rank-competitive-title{font-size:'+d.titleSize+'px!important}#playerDashboard .dashboard-rank-name{font-size:'+d.rankSize+'px!important}#playerDashboard .elo-word{font-size:'+d.eloLabelSize+'px!important}#playerDashboard .elo-number{font-size:'+d.eloNumberSize+'px!important}#playerDashboard .rank-progress-text{font-size:'+d.progressSize+'px!important}#playerDashboard .rank-progress-track{height:'+d.barHeight+'px!important}}';
+ const box=document.getElementById('globalDesignControls');if(box)box.querySelectorAll('input[data-k]').forEach(i=>{if(d[i.dataset.k]!=null)i.value=d[i.dataset.k]});
+}
+async function loadGlobalDesign(){
+ if(!supabaseClient)return;try{const {data}=await supabaseClient.from('site_design_settings').select('settings').eq('id',1).maybeSingle();applyGlobalDesign(data?.settings||{})}catch(e){applyGlobalDesign({})}
+}
+function setupGlobalDesignEditor(profile){
+ const panel=document.getElementById('globalDesignEditor');if(!panel)return;
+ const allowed=String(profile?.username||'').toLowerCase()==='jess8bp';panel.hidden=!allowed;if(!allowed)return;
+ const box=document.getElementById('globalDesignControls'),status=document.getElementById('globalDesignStatus'),save=document.getElementById('saveGlobalDesign');
+ box.querySelectorAll('input[data-k]').forEach(i=>{i.oninput=()=>{const n={...globalDesignSettings};n[i.dataset.k]=Number(i.value);applyGlobalDesign(n)}});
+ save.onclick=async()=>{save.disabled=true;status.textContent='Guardando...';try{const {error}=await supabaseClient.from('site_design_settings').update({settings:globalDesignSettings,updated_by:currentUser.id,updated_at:new Date().toISOString()}).eq('id',1);if(error)throw error;status.textContent='✓ Guardado. Este diseño se aplicará a todos.'}catch(e){status.textContent='Error al guardar: '+(e.message||e)}finally{save.disabled=false}};
+}
+loadGlobalDesign();
+
 const guestTopbar=document.getElementById('guestTopbar');
 const guestEmpty=document.getElementById('guestEmpty');
 const playerDashboard=document.getElementById('playerDashboard');
@@ -928,6 +949,7 @@ async function setPlayerUI(profile,user){
   guestTopbar.hidden=true;guestEmpty.hidden=true;playerDashboard.hidden=false;
 
   const playerName=profile?.username||user?.user_metadata?.username||profile?.account_name||'Jugador';
+  setupGlobalDesignEditor(profile);
   const elo=Number.isFinite(Number(profile?.elo_points))?Number(profile.elo_points):200;
   const rank=getRankByElo(elo);
   const rankName=rank.name;
