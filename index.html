@@ -270,6 +270,51 @@
  }
 }
 </style>
+<style id="dashboard-universal-width-lock">
+@media(max-width:700px){
+ #playerDashboard{
+   --dashboard-mobile-width:calc(100% - 40px);
+ }
+ #playerDashboard .identity-section,
+ #playerDashboard .rank-hero-card,
+ #playerDashboard .competitive-hub,
+ #playerDashboard .dashboard-play-area,
+ #playerDashboard .players-playing-row,
+ #playerDashboard .dashboard-whatsapp-area,
+ #playerDashboard .dashboard-chat-area,
+ #playerDashboard .season-strip,
+ #playerDashboard .top3-showcase,
+ #playerDashboard .competitive-grid,
+ #playerDashboard .achievements-box,
+ #playerDashboard .match-history-box{
+   box-sizing:border-box!important;
+ }
+ #playerDashboard .identity-section,
+ #playerDashboard .rank-hero-card,
+ #playerDashboard .competitive-hub,
+ #playerDashboard .dashboard-play-area,
+ #playerDashboard .players-playing-row,
+ #playerDashboard .dashboard-whatsapp-area,
+ #playerDashboard .dashboard-chat-area{
+   width:var(--dashboard-mobile-width)!important;
+   max-width:620px!important;
+   min-width:0!important;
+   margin-left:auto!important;
+   margin-right:auto!important;
+ }
+ #playerDashboard .competitive-hub .season-strip,
+ #playerDashboard .competitive-hub .top3-showcase,
+ #playerDashboard .competitive-hub .competitive-grid,
+ #playerDashboard .competitive-hub .achievements-box,
+ #playerDashboard .competitive-hub .match-history-box{
+   width:100%!important;
+   max-width:100%!important;
+   min-width:0!important;
+   margin-left:0!important;
+   margin-right:0!important;
+ }
+}
+</style>
 </head>
 <body>
   <main class="viewport-shell">
