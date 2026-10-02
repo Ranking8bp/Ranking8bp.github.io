@@ -14,7 +14,7 @@ function setupGlobalDesignEditor(profile){
  const panel=document.getElementById('globalDesignEditor');if(!panel)return;
  const allowed=String(profile?.username||'').toLowerCase()==='jess8bp';panel.hidden=!allowed;if(!allowed)return;
  const box=document.getElementById('globalDesignControls'),status=document.getElementById('globalDesignStatus'),save=document.getElementById('saveGlobalDesign');
- box.querySelectorAll('input[data-k]').forEach(i=>{i.oninput=()=>{const n={...globalDesignSettings};n[i.dataset.k]=Number(i.value);applyGlobalDesign(n)}});
+ box.querySelectorAll('input[data-k]').forEach(i=>{const update=()=>{globalDesignSettings[i.dataset.k]=Number(i.value);applyGlobalDesign(globalDesignSettings)};i.addEventListener('input',update);i.addEventListener('change',update)});
  save.onclick=async()=>{save.disabled=true;status.textContent='Guardando...';try{const {error}=await supabaseClient.from('site_design_settings').update({settings:globalDesignSettings,updated_by:currentUser.id,updated_at:new Date().toISOString()}).eq('id',1);if(error)throw error;status.textContent='✓ Guardado. Este diseño se aplicará a todos.'}catch(e){status.textContent='Error al guardar: '+(e.message||e)}finally{save.disabled=false}};
 }
 loadGlobalDesign();
