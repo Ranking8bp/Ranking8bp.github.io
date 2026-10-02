@@ -3,9 +3,27 @@ const GLOBAL_DESIGN_DEFAULTS={badgeSize:170,badgeX:-8,badgeY:-35,cardHeight:180,
 let globalDesignSettings={...GLOBAL_DESIGN_DEFAULTS};
 function applyGlobalDesign(s){
  globalDesignSettings={...GLOBAL_DESIGN_DEFAULTS,...(s||{})};const d=globalDesignSettings;
- let st=document.getElementById('globalDesignRuntimeStyle');if(!st){st=document.createElement('style');st.id='globalDesignRuntimeStyle';document.head.appendChild(st)}
- st.textContent='@media(max-width:700px){#playerDashboard .rank-hero-card{width:'+d.cardWidth+'%!important;height:'+d.cardHeight+'px!important;min-height:'+d.cardHeight+'px!important;grid-template-columns:'+d.artWidth+'% '+(100-d.artWidth)+'%!important}#playerDashboard .rank-art{height:'+d.cardHeight+'px!important}#playerDashboard .rank-badge-image{width:'+d.badgeSize+'px!important;height:'+d.badgeSize+'px!important;min-width:'+d.badgeSize+'px!important;min-height:'+d.badgeSize+'px!important;transform:translate('+d.badgeX+'px,'+d.badgeY+'px)!important}#playerDashboard .elo-block{transform:translate('+d.textX+'px,'+d.textY+'px)!important}#playerDashboard .rank-competitive-title{font-size:'+d.titleSize+'px!important}#playerDashboard .dashboard-rank-name{font-size:'+d.rankSize+'px!important}#playerDashboard .elo-word{font-size:'+d.eloLabelSize+'px!important}#playerDashboard .elo-number{font-size:'+d.eloNumberSize+'px!important}#playerDashboard .rank-progress-text{font-size:'+d.progressSize+'px!important}#playerDashboard .rank-progress-track{height:'+d.barHeight+'px!important}}';
- const box=document.getElementById('globalDesignControls');if(box)box.querySelectorAll('input[data-k]').forEach(i=>{if(d[i.dataset.k]!=null)i.value=d[i.dataset.k]});
+ const card=document.querySelector('#playerDashboard .rank-hero-card');
+ const art=document.querySelector('#playerDashboard .rank-art');
+ const badge=document.querySelector('#playerDashboard .rank-badge-image');
+ const eloBlock=document.querySelector('#playerDashboard .elo-block');
+ const title=document.querySelector('#playerDashboard .rank-competitive-title');
+ const rankName=document.querySelector('#playerDashboard .dashboard-rank-name');
+ const eloWord=document.querySelector('#playerDashboard .elo-word');
+ const eloNumber=document.querySelector('#playerDashboard .elo-number');
+ const progressText=document.querySelector('#playerDashboard .rank-progress-text');
+ const track=document.querySelector('#playerDashboard .rank-progress-track');
+ if(card){card.style.setProperty('width',d.cardWidth+'%','important');card.style.setProperty('height',d.cardHeight+'px','important');card.style.setProperty('min-height',d.cardHeight+'px','important');card.style.setProperty('grid-template-columns',d.artWidth+'% '+(100-d.artWidth)+'%','important')}
+ if(art)art.style.setProperty('height',d.cardHeight+'px','important');
+ if(badge){badge.style.setProperty('width',d.badgeSize+'px','important');badge.style.setProperty('height',d.badgeSize+'px','important');badge.style.setProperty('min-width',d.badgeSize+'px','important');badge.style.setProperty('min-height',d.badgeSize+'px','important');badge.style.setProperty('transform','translate('+d.badgeX+'px,'+d.badgeY+'px)','important')}
+ if(eloBlock)eloBlock.style.setProperty('transform','translate('+d.textX+'px,'+d.textY+'px)','important');
+ if(title)title.style.setProperty('font-size',d.titleSize+'px','important');
+ if(rankName)rankName.style.setProperty('font-size',d.rankSize+'px','important');
+ if(eloWord)eloWord.style.setProperty('font-size',d.eloLabelSize+'px','important');
+ if(eloNumber)eloNumber.style.setProperty('font-size',d.eloNumberSize+'px','important');
+ if(progressText)progressText.style.setProperty('font-size',d.progressSize+'px','important');
+ if(track)track.style.setProperty('height',d.barHeight+'px','important');
+ const box=document.getElementById('globalDesignControls');if(box)box.querySelectorAll('input[data-k]').forEach(i=>{if(document.activeElement!==i&&d[i.dataset.k]!=null)i.value=d[i.dataset.k]});
 }
 async function loadGlobalDesign(){
  if(!supabaseClient)return;try{const {data}=await supabaseClient.from('site_design_settings').select('settings').eq('id',1).maybeSingle();applyGlobalDesign(data?.settings||{})}catch(e){applyGlobalDesign({})}
