@@ -203,6 +203,49 @@
  }
 }
 </style>
+<style id="rank-badge-overlay-size-fix">
+/* Insignia independiente: tamaño y posición móvil controlados */
+#playerDashboard .rank-hero-card .rank-badge-overlay{
+ width:155px!important;
+ height:155px!important;
+ max-width:155px!important;
+ max-height:155px!important;
+ min-width:155px!important;
+ min-height:155px!important;
+ position:absolute!important;
+ left:22%!important;
+ top:52%!important;
+ transform:translate(-50%,-50%)!important;
+ background-size:500% 400%!important;
+ background-repeat:no-repeat!important;
+ z-index:20!important;
+ overflow:visible!important;
+}
+@media(max-width:700px){
+ #playerDashboard .rank-hero-card .rank-badge-overlay{
+  width:145px!important;
+  height:145px!important;
+  max-width:145px!important;
+  max-height:145px!important;
+  min-width:145px!important;
+  min-height:145px!important;
+  left:22%!important;
+  top:52%!important;
+ }
+ #playerDashboard .rank-hero-card>.elo-block{
+  transform:none!important;
+  position:absolute!important;
+  left:43%!important;
+  right:2%!important;
+  top:50%!important;
+  width:auto!important;
+  height:auto!important;
+  padding:0 6px!important;
+  overflow:visible!important;
+  z-index:21!important;
+ }
+}
+</style>
 </head>
 <body>
   <main class="viewport-shell">
