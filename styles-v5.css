@@ -1543,3 +1543,23 @@ html,body{color-scheme:dark!important}
   -webkit-backdrop-filter:blur(1px)!important;
   border-color:rgba(211,166,55,.58)!important;
 }
+
+
+/* FIX: reveal artwork through lower profile cards */
+#playerDashboard .competitive-hub .season-strip,
+#playerDashboard .competitive-hub .top3-showcase,
+#playerDashboard .competitive-hub .competitive-grid>div,
+#playerDashboard .competitive-hub .achievements-box,
+#playerDashboard .competitive-hub .match-history-box{
+  background:rgba(0,0,0,.10)!important;
+  background-image:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  box-shadow:inset 0 0 18px rgba(0,0,0,.10)!important;
+}
+#playerDashboard .competitive-hub{
+  background-image:linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.12)),url('assets/fondo-perfil.png')!important;
+  background-size:cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+}
