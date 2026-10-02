@@ -162,6 +162,17 @@
 <label>Tarjeta ancho % <input data-k="cardWidth" type="range" min="60" max="100" value="94"></label>
 <label>Columna insignia % <input data-k="artWidth" type="range" min="20" max="70" value="43"></label>
 </div>
+<script>
+document.addEventListener('input',function(e){
+ var i=e.target;if(!i.matches('#globalDesignControls input[data-k]'))return;
+ var k=i.getAttribute('data-k'),v=Number(i.value),q=function(s){return document.querySelector(s)},el;
+ var map={badgeSize:['#rankBadgeImage',['width','height','min-width','min-height'],'px'],cardHeight:['#playerDashboard .rank-hero-card',['height','min-height'],'px'],titleSize:['#playerDashboard .rank-competitive-title',['font-size'],'px'],rankSize:['#dashboardRankName',['font-size'],'px'],eloLabelSize:['#playerDashboard .elo-word',['font-size'],'px'],eloNumberSize:['#dashboardElo',['font-size'],'px'],progressSize:['#rankProgressText',['font-size'],'px'],barHeight:['#playerDashboard .rank-progress-track',['height'],'px'],cardWidth:['#playerDashboard .rank-hero-card',['width'],'%']};
+ if(map[k]){el=q(map[k][0]);if(el)map[k][1].forEach(function(p){el.style.setProperty(p,v+map[k][2],'important')})}
+ if(k==='badgeX'||k==='badgeY'){var x=q('[data-k="badgeX"]'),y=q('[data-k="badgeY"]'),b=q('#rankBadgeImage');if(b)b.style.setProperty('transform','translate('+x.value+'px,'+y.value+'px)','important')}
+ if(k==='textX'||k==='textY'){var x2=q('[data-k="textX"]'),y2=q('[data-k="textY"]'),eb=q('#playerDashboard .elo-block');if(eb)eb.style.setProperty('transform','translate('+x2.value+'px,'+y2.value+'px)','important')}
+ if(k==='artWidth'){el=q('#playerDashboard .rank-hero-card');if(el)el.style.setProperty('grid-template-columns',v+'% '+(100-v)+'%','important')}
+});
+</script>
 <button id="saveGlobalDesign" type="button" style="width:100%;min-height:50px;margin-top:14px;border:0;border-radius:10px;background:#c99a2e;color:#111;font-weight:900">GUARDAR PARA TODOS</button>
 <div id="globalDesignStatus" style="margin-top:8px;font-size:12px"></div>
 </section><section class="competitive-hub" id="competitiveHub"><div class="season-strip"><strong id="seasonName">TEMPORADA 1</strong><span id="seasonCountdown">Clasificación activa</span></div><div class="top3-showcase" id="top3Showcase"></div><div class="competitive-grid"><div><small>RACHA ACTUAL</small><strong id="competitiveStreak">0</strong></div><div><small>MEJOR ELO</small><strong id="competitiveBestElo">200</strong></div></div><div class="achievements-box"><strong>LOGROS</strong><div id="competitiveAchievements"></div></div><div class="match-history-box"><strong>ÚLTIMAS PARTIDAS</strong><div id="competitiveHistory"></div></div></section><div class="dashboard-play-area"><button type="button" class="dashboard-play-btn" id="dashboardPlayBtn">JUGAR</button></div><div class="players-playing-row" id="playersOnlineNow"><span class="online-player-dot"></span><strong id="playersOnlineCount">0</strong><span>JUGADORES JUGANDO</span></div><div class="playing-vs-modal" id="playingVsModal" hidden><div class="playing-vs-card"><header><strong>VS JUGÁNDOSE AHORA</strong><button type="button" id="playingVsClose">×</button></header><div id="playingVsList" class="playing-vs-list"></div></div></div>
@@ -491,7 +502,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261002-global-editor03"></script>
+  <script src="app-v5.js?v=20261002-global-editor04"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
