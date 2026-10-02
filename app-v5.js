@@ -21,7 +21,7 @@ function forceRankBadgeMotion(){
 function applyGlobalDesign(s){
  globalDesignSettings={...GLOBAL_DESIGN_DEFAULTS,...(s||{})};let d=globalDesignSettings;
  // Embedded browsers (TikTok/Instagram/Facebook WebView) can report a narrow CSS viewport differently. Clamp the saved desktop-like design to the stable mobile proportions.
- if(window.matchMedia&&window.matchMedia('(max-width:700px)').matches){d={...d,badgeSize:Math.min(Number(d.badgeSize)||170,170),badgeX:-8,badgeY:-35,cardHeight:180,textX:0,textY:-39,titleSize:15,rankSize:16,eloLabelSize:28,eloNumberSize:48,progressSize:9,barHeight:9,cardWidth:94,artWidth:43};}
+
  const card=document.querySelector('#playerDashboard .rank-hero-card');
  const art=document.querySelector('#playerDashboard .rank-art');
  const badge=document.querySelector('#playerDashboard .rank-badge-image');
