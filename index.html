@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=390, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -312,6 +312,38 @@
    min-width:0!important;
    margin-left:0!important;
    margin-right:0!important;
+ }
+}
+</style>
+<style id="fixed-390-dashboard-layout">
+/* Base móvil idéntica entre navegadores: lienzo lógico fijo de 390px */
+@media(max-width:700px){
+ html{width:390px!important;min-width:390px!important;max-width:390px!important;margin:0 auto!important}
+ body{width:390px!important;min-width:390px!important;max-width:390px!important;margin:0 auto!important;overflow-x:hidden!important}
+ #playerDashboard{width:390px!important;min-width:390px!important;max-width:390px!important;margin:0 auto!important}
+ #playerDashboard .identity-section,
+ #playerDashboard .rank-hero-card,
+ #playerDashboard .competitive-hub,
+ #playerDashboard .dashboard-play-area,
+ #playerDashboard .players-playing-row,
+ #playerDashboard .dashboard-whatsapp-area,
+ #playerDashboard .dashboard-chat-area,
+ #playerDashboard .ranking-card,
+ #playerDashboard .latest-ranking-result{
+   width:350px!important;
+   min-width:350px!important;
+   max-width:350px!important;
+   margin-left:20px!important;
+   margin-right:20px!important;
+   box-sizing:border-box!important;
+ }
+ #playerDashboard .competitive-hub .season-strip,
+ #playerDashboard .competitive-hub .top3-showcase,
+ #playerDashboard .competitive-hub .competitive-grid,
+ #playerDashboard .competitive-hub .achievements-box,
+ #playerDashboard .competitive-hub .match-history-box{
+   width:100%!important;min-width:0!important;max-width:100%!important;
+   box-sizing:border-box!important;
  }
 }
 </style>
