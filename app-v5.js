@@ -843,6 +843,27 @@ document.addEventListener('click',e=>{if(e.target?.id==='adminVsChatSend'){e.pre
 function closeAdminVsChat(){const m=document.getElementById('adminVsChatModal');if(m){m.hidden=true;m.style.removeProperty('display')}}
 document.addEventListener('click',e=>{if(e.target&&['adminVsChatClose','adminVsChatModal'].includes(e.target.id))closeAdminVsChat()});
 
+async function loadModeratorMatches(){
+ if(!adminMatchList||!supabaseClient)return;
+ adminMatchList.innerHTML='<div class="admin-empty">Cargando VS...</div>';
+ try{
+  const {data,error}=await supabaseClient.rpc('moderator_get_ranked_matches');if(error)throw error;
+  const rows=(Array.isArray(data)?data:[]).filter(m=>m.status==='matched');adminMatchList.replaceChildren();
+  if(!rows.length){adminMatchList.innerHTML='<div class="admin-empty">No hay VS activos para moderar.</div>';return}
+  for(const m of rows){
+   const row=document.createElement('article');row.className='admin-match matched';
+   const title=document.createElement('div');title.className='admin-match-vs admin-match-vs-rich';
+   const makePlayer=(side)=>{const name=m[side+'_name'],elo=Number(m[side+'_elo']||200),gameId=m[side+'_game_id']||'--',pos=m[side+'_position']||'--',rank=getRankByElo(elo),avatar=m[side+'_avatar_path'];const card=document.createElement('div');card.className='admin-vs-player';const av=document.createElement('div');av.className='admin-vs-avatar';if(avatar){const {data:u}=supabaseClient.storage.from('profile-photos').getPublicUrl(avatar);if(u?.publicUrl)av.style.backgroundImage='url("'+u.publicUrl+'")'}if(!avatar)av.textContent=String(name||'?').charAt(0).toUpperCase();const info=document.createElement('div');info.className='admin-vs-info';const nm=document.createElement('strong');nm.textContent=name;const id=document.createElement('span');id.textContent='ID '+gameId;const rp=document.createElement('span');rp.textContent='RANKING #'+pos;const el=document.createElement('span');el.textContent=elo+' ELO';const badge=document.createElement('div');badge.className='admin-vs-rank-badge';renderRankBadgeOn(badge,rank);const rn=document.createElement('b');rn.textContent=rank.name;info.append(nm,id,rp,el,rn);card.append(av,badge,info);return card};title.append(makePlayer('player1'));const vs=document.createElement('b');vs.className='admin-vs-word';vs.textContent='VS';title.append(vs,makePlayer('player2'));row.append(title);
+   const meta=document.createElement('small');meta.textContent='#'+m.match_id+' · VS ACTIVO · '+formatCommentDate(m.created_at);row.append(meta);
+   const videoProof=document.createElement('div');videoProof.className='admin-video-proof';if(m.player1_video_path){const b=document.createElement('button');b.className='received';b.textContent='🎥 VIDEO '+m.player1_name;b.onclick=()=>openAdminRankedVideo(m.match_id,m.player1_id,m.player1_name);videoProof.append(b)}if(m.player2_video_path){const b=document.createElement('button');b.className='received';b.textContent='🎥 VIDEO '+m.player2_name;b.onclick=()=>openAdminRankedVideo(m.match_id,m.player2_id,m.player2_name);videoProof.append(b)}if(videoProof.children.length)row.append(videoProof);
+   const actions=document.createElement('div');actions.className='admin-match-actions';const chat=document.createElement('button');chat.className='admin-chat-btn';chat.textContent='VER CHAT';chat.onclick=async()=>{const modal=document.getElementById('adminVsChatModal'),box=document.getElementById('adminVsChatMessages'),t=document.getElementById('adminVsChatTitle');if(!modal||!box)return;if(t)t.textContent=m.player1_name+' VS '+m.player2_name;modal.hidden=false;modal.style.display='grid';box.textContent='Cargando conversación...';const r=await supabaseClient.rpc('moderator_get_ranked_chat',{p_match_id:Number(m.match_id)});box.replaceChildren();if(r.error){box.textContent='No se pudo cargar el chat.';return}const msgs=Array.isArray(r.data)?r.data:[];if(!msgs.length)box.textContent='Todavía no hay mensajes.';msgs.forEach(v=>{const d=document.createElement('div');d.className='admin-chat-message';d.textContent=String(v.sender_name||'Jugador')+': '+String(v.body||'');box.append(d)})};actions.append(chat);
+   const wt=document.createElement('strong');wt.className='admin-result-title';wt.textContent='DEFINIR GANADOR';actions.append(wt);
+   for(const [id,name] of [[m.player1_id,m.player1_name],[m.player2_id,m.player2_name]]){const b=document.createElement('button');b.className='admin-winner-btn';b.textContent='GANA '+name;b.onclick=async()=>{if(!confirm('¿Confirmar a '+name+' como ganador?'))return;const r=await supabaseClient.rpc('moderator_resolve_ranked_match',{p_match_id:Number(m.match_id),p_winner_id:id});if(r.error){console.error(r.error);showToast('No se pudo guardar el resultado.');return}await loadModeratorMatches();showToast('Resultado aplicado.')};actions.append(b)}
+   row.append(actions);adminMatchList.append(row);
+  }
+ }catch(e){console.error(e);adminMatchList.innerHTML='<div class="admin-empty">No se pudo cargar la sala de moderación.</div>'}
+}
+
 async function loadAdminMatches(){
  if(!adminMatchList||!supabaseClient)return;
  adminMatchList.innerHTML='<div class="admin-empty">Cargando...</div>';
@@ -1745,7 +1766,7 @@ if(closePlayerDetail)closePlayerDetail.addEventListener('click',closeRankingPlay
 if(playerHeartBtn)playerHeartBtn.addEventListener('click',togglePlayerHeart);
 if(playerFollowBtn)playerFollowBtn.addEventListener('click',toggleFollow);
 if(adminModeBtn)adminModeBtn.addEventListener('click',async()=>{adminPanel.hidden=false;settingsMenu.hidden=true;await loadAdminMatches()});
-if(ikarModeratorBtn)ikarModeratorBtn.addEventListener('click',async()=>{adminPanel.hidden=false;if(settingsMenu)settingsMenu.hidden=true;await loadAdminMatches()});
+if(ikarModeratorBtn)ikarModeratorBtn.addEventListener('click',async()=>{adminPanel.hidden=false;if(settingsMenu)settingsMenu.hidden=true;const isIkar=String(currentProfile?.username||'').trim().toLowerCase()==='ikar8bp'||currentProfile?.is_admin===true;if(adminPlayersTab)adminPlayersTab.hidden=!isIkar;if(adminModerationTab)adminModerationTab.hidden=true;if(adminPlayerSearch)adminPlayerSearch.hidden=true;if(adminPlayerList)adminPlayerList.hidden=true;if(adminModeration)adminModeration.hidden=true;if(adminMatchList)adminMatchList.hidden=false;if(isIkar)await loadAdminMatches();else await loadModeratorMatches()});
 if(adminCloseBtn)adminCloseBtn.addEventListener('click',()=>adminPanel.hidden=true);
 if(adminRefreshBtn)adminRefreshBtn.addEventListener('click',()=>adminPlayerList&&!adminPlayerList.hidden?loadAdminPlayers():loadAdminMatches());
 if(adminVsTab)adminVsTab.addEventListener('click',showAdminVs);
