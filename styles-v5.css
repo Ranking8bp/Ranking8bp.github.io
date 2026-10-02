@@ -1573,3 +1573,10 @@ html,body{color-scheme:dark!important}
  background-repeat:no-repeat!important;
  border-color:rgba(211,166,55,.72)!important;
 }
+
+
+/* AUTHORITATIVE RANK CARD ART LAYER */
+#playerDashboard .rank-hero-card{position:relative!important;isolation:isolate!important;background:transparent!important}
+#playerDashboard .rank-card-art-bg{display:block!important;position:absolute!important;inset:0!important;z-index:0!important;border-radius:inherit!important;pointer-events:none!important;background:url('assets/fondo-perfil.png') center/cover no-repeat!important;opacity:1!important}
+#playerDashboard .rank-card-art-bg:after{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(0,0,0,.08)!important}
+#playerDashboard .rank-hero-card>.rank-art,#playerDashboard .rank-hero-card>.elo-block{position:relative!important;z-index:2!important}
