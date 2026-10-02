@@ -15,7 +15,7 @@ function applyGlobalDesign(s){
  const track=document.querySelector('#playerDashboard .rank-progress-track');
  if(card){card.style.setProperty('width',d.cardWidth+'%','important');card.style.setProperty('height',d.cardHeight+'px','important');card.style.setProperty('min-height',d.cardHeight+'px','important');card.style.setProperty('grid-template-columns',d.artWidth+'% '+(100-d.artWidth)+'%','important')}
  if(art)art.style.setProperty('height',d.cardHeight+'px','important');
- if(badge){badge.style.setProperty('width',d.badgeSize+'px','important');badge.style.setProperty('height',d.badgeSize+'px','important');badge.style.setProperty('min-width',d.badgeSize+'px','important');badge.style.setProperty('min-height',d.badgeSize+'px','important');badge.style.setProperty('transform','translate('+d.badgeX+'px,'+d.badgeY+'px)','important')}
+ if(badge){badge.style.setProperty('width',d.badgeSize+'px','important');badge.style.setProperty('height',d.badgeSize+'px','important');badge.style.setProperty('min-width',d.badgeSize+'px','important');badge.style.setProperty('min-height',d.badgeSize+'px','important');badge.style.setProperty('--badge-x',d.badgeX+'px');badge.style.setProperty('--badge-y',d.badgeY+'px');badge.style.removeProperty('transform')}
  if(eloBlock)eloBlock.style.setProperty('transform','translate('+d.textX+'px,'+d.textY+'px)','important');
  if(title)title.style.setProperty('font-size',d.titleSize+'px','important');
  if(rankName)rankName.style.setProperty('font-size',d.rankSize+'px','important');
