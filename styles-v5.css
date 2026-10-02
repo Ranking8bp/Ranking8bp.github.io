@@ -1295,3 +1295,9 @@ html,body{color-scheme:dark!important}
 .admin-vs-chat-message.evidence{border:1px solid #b58a37;background:#111a24;text-align:center;padding:13px}.admin-vs-chat-message.evidence b{display:block;color:#efc35d;margin-bottom:9px}.chat-evidence-btn{border:1px solid #3b83b5;border-radius:9px;background:#123b5a;color:#fff;font-weight:900;padding:9px 16px;width:100%}
 
 .admin-video-sent-summary{margin:7px auto 3px;padding:6px 10px;width:max-content;max-width:92%;border:1px solid #2f8a55;border-radius:8px;background:#092117;color:#43e487;font-size:10px;font-weight:1000;text-align:center}
+
+/* Insignia actual al lado izquierdo del ELO en la clasificación */
+.ranking-elo{display:flex;align-items:center;justify-content:center;gap:8px}
+.ranking-elo-rank{width:48px;height:48px;flex:0 0 48px;padding:0;border:0;background:transparent;cursor:zoom-in;overflow:visible}
+.ranking-elo-number{display:inline-block;min-width:42px;text-align:center}
+@media(max-width:700px){.ranking-elo{gap:2px;justify-content:flex-start}.ranking-elo-rank{width:30px;height:30px;flex-basis:30px}.ranking-elo-number{min-width:20px;font-size:13px}}
