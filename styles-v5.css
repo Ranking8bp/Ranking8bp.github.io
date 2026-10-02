@@ -1563,3 +1563,13 @@ html,body{color-scheme:dark!important}
   background-position:center!important;
   background-repeat:no-repeat!important;
 }
+
+
+/* FIX: show artwork in LATON / ELO rank card too */
+#playerDashboard .rank-hero-card{
+ background-image:linear-gradient(90deg,rgba(0,0,0,.10),rgba(0,0,0,.16)),url('assets/fondo-perfil.png')!important;
+ background-size:cover!important;
+ background-position:center!important;
+ background-repeat:no-repeat!important;
+ border-color:rgba(211,166,55,.72)!important;
+}
