@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=390, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
@@ -343,6 +343,138 @@
  #playerDashboard .competitive-hub .achievements-box,
  #playerDashboard .competitive-hub .match-history-box{
    width:100%!important;min-width:0!important;max-width:100%!important;
+   box-sizing:border-box!important;
+ }
+}
+</style>
+<style id="responsive-no-deformation-final">
+/* Diseño proporcional: todos los elementos escalan juntos */
+html,body{
+ width:100%!important;
+ min-width:0!important;
+ max-width:none!important;
+ margin:0!important;
+ overflow-x:hidden!important;
+}
+#playerDashboard{
+ width:100%!important;
+ min-width:0!important;
+ max-width:none!important;
+ box-sizing:border-box!important;
+}
+@media(max-width:700px){
+ #playerDashboard .identity-section,
+ #playerDashboard .rank-hero-card,
+ #playerDashboard .competitive-hub,
+ #playerDashboard .dashboard-play-area,
+ #playerDashboard .players-playing-row,
+ #playerDashboard .dashboard-whatsapp-area,
+ #playerDashboard .dashboard-chat-area,
+ #playerDashboard .ranking-card,
+ #playerDashboard .latest-ranking-result{
+   width:min(92%,620px)!important;
+   min-width:0!important;
+   max-width:620px!important;
+   margin-left:auto!important;
+   margin-right:auto!important;
+   box-sizing:border-box!important;
+ }
+
+ #playerDashboard .rank-hero-card{
+   position:relative!important;
+   display:grid!important;
+   grid-template-columns:minmax(0,43fr) minmax(0,57fr)!important;
+   align-items:center!important;
+   height:auto!important;
+   min-height:clamp(170px,46vw,205px)!important;
+   padding:clamp(8px,2vw,14px)!important;
+   overflow:hidden!important;
+ }
+
+ #playerDashboard .rank-art{
+   display:none!important;
+ }
+
+ #playerDashboard .rank-hero-card .rank-badge-overlay{
+   position:relative!important;
+   left:auto!important;
+   right:auto!important;
+   top:auto!important;
+   bottom:auto!important;
+   grid-column:1!important;
+   grid-row:1!important;
+   justify-self:center!important;
+   align-self:center!important;
+   width:min(38vw,155px)!important;
+   height:min(38vw,155px)!important;
+   min-width:0!important;
+   min-height:0!important;
+   max-width:155px!important;
+   max-height:155px!important;
+   margin:0!important;
+   transform:none!important;
+   z-index:2!important;
+ }
+
+ #playerDashboard .rank-hero-card>.elo-block{
+   position:relative!important;
+   left:auto!important;
+   right:auto!important;
+   top:auto!important;
+   bottom:auto!important;
+   grid-column:2!important;
+   grid-row:1!important;
+   width:100%!important;
+   height:auto!important;
+   min-width:0!important;
+   max-width:100%!important;
+   margin:0!important;
+   padding:0 clamp(4px,1.5vw,10px)!important;
+   transform:none!important;
+   align-self:center!important;
+   box-sizing:border-box!important;
+   overflow:visible!important;
+   z-index:3!important;
+ }
+
+ #playerDashboard .rank-competitive-title{
+   font-size:clamp(10px,3vw,14px)!important;
+   line-height:1.1!important;
+ }
+ #playerDashboard .dashboard-rank-name{
+   font-size:clamp(12px,3.6vw,18px)!important;
+   line-height:1.15!important;
+ }
+ #playerDashboard .elo-main-line{
+   display:flex!important;
+   align-items:baseline!important;
+   gap:clamp(4px,1.4vw,8px)!important;
+   width:100%!important;
+   min-width:0!important;
+   margin:0!important;
+   transform:none!important;
+ }
+ #playerDashboard .elo-word{
+   font-size:clamp(18px,5.2vw,28px)!important;
+   flex:0 0 auto!important;
+ }
+ #playerDashboard .elo-number{
+   font-size:clamp(42px,13vw,68px)!important;
+   line-height:.95!important;
+   min-width:0!important;
+   transform:none!important;
+ }
+ #playerDashboard .rank-progress-row{
+   width:100%!important;
+   min-width:0!important;
+   margin-top:clamp(7px,2vw,12px)!important;
+   transform:none!important;
+ }
+
+ #playerDashboard .competitive-hub>*{
+   width:100%!important;
+   max-width:100%!important;
+   min-width:0!important;
    box-sizing:border-box!important;
  }
 }
