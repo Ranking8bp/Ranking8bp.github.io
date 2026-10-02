@@ -801,12 +801,12 @@ async function closeRankedMatchmaking(){
 async function loadAdminPlayers(){
  if(!adminPlayerList||!supabaseClient)return;adminPlayerList.innerHTML='<div class="admin-empty">Cargando jugadores...</div>';
  try{
-  const {data,error}=await supabaseClient.rpc('get_ranking');if(error)throw error;const players=Array.isArray(data)?data:[];adminPlayerList.replaceChildren();
+  const [{data,error},{data:modRows,error:modError}]=await Promise.all([supabaseClient.rpc('get_ranking'),supabaseClient.rpc('admin_get_moderator_statuses')]);if(error)throw error;if(modError)throw modError;const players=Array.isArray(data)?data:[];const modMap=new Map((Array.isArray(modRows)?modRows:[]).map(r=>[String(r.player_id),r.is_moderator===true]));adminPlayerList.replaceChildren();
   players.forEach((p,index)=>{const card=document.createElement('article');card.className='admin-player-card';
    const head=document.createElement('div');head.className='admin-player-head';const av=document.createElement('div');av.className='admin-edit-avatar';av.textContent=String(p.account_name||p.username||'?').charAt(0).toUpperCase();if(p.avatar_path){const {data:u}=supabaseClient.storage.from('profile-photos').getPublicUrl(p.avatar_path);if(u?.publicUrl){const im=document.createElement('img');im.src=u.publicUrl;av.replaceChildren(im)}}const title=document.createElement('div');title.innerHTML='<strong></strong><span></span>';title.children[0].textContent=p.account_name||p.username||'Jugador';title.children[1].textContent='Ranking #'+(index+1)+' · '+p.player_id;head.append(av,title);card.append(head);
    const fields=document.createElement('div');fields.className='admin-edit-grid';const defs=[['Nombre','account_name',p.account_name||p.username||''],['ID juego','game_id',p.game_id||''],['País','country',p.country||''],['ELO','elo_points',p.elo_points??200,'number'],['Victorias','wins',p.wins??0,'number'],['Derrotas','losses',p.losses??0,'number'],['Rango','rank_name',p.rank_name||getRankByElo(p.elo_points).name]];
-   const inputs={};defs.forEach(([label,key,val,type])=>{const l=document.createElement('label');l.textContent=label;const i=document.createElement('input');i.type=type||'text';i.value=val;l.append(i);fields.append(l);inputs[key]=i});card.append(fields);
-   const save=document.createElement('button');save.className='admin-save-player';save.textContent='GUARDAR CAMBIOS';save.onclick=async()=>{save.disabled=true;const args={p_user_id:p.player_id,p_account_name:inputs.account_name.value,p_game_id:inputs.game_id.value,p_country:inputs.country.value,p_elo:Number(inputs.elo_points.value)||0,p_wins:Number(inputs.wins.value)||0,p_losses:Number(inputs.losses.value)||0,p_rank_name:inputs.rank_name.value};const {error:e}=await supabaseClient.rpc('admin_update_profile',args);save.disabled=false;if(e){console.error(e);showToast('No se pudieron guardar los cambios.');return}showToast('Perfil actualizado.');await loadAdminPlayers()};card.append(save);
+   const inputs={};defs.forEach(([label,key,val,type])=>{const l=document.createElement('label');l.textContent=label;const i=document.createElement('input');i.type=type||'text';i.value=val;l.append(i);fields.append(l);inputs[key]=i});const modLabel=document.createElement('label');modLabel.textContent='MOD';const modSelect=document.createElement('select');modSelect.innerHTML='<option value="false">OFF</option><option value="true">ON</option>';modSelect.value=modMap.get(String(p.player_id))?'true':'false';modLabel.append(modSelect);fields.append(modLabel);inputs.is_moderator=modSelect;card.append(fields);
+   const save=document.createElement('button');save.className='admin-save-player';save.textContent='GUARDAR CAMBIOS';save.onclick=async()=>{save.disabled=true;const args={p_user_id:p.player_id,p_account_name:inputs.account_name.value,p_game_id:inputs.game_id.value,p_country:inputs.country.value,p_elo:Number(inputs.elo_points.value)||0,p_wins:Number(inputs.wins.value)||0,p_losses:Number(inputs.losses.value)||0,p_rank_name:inputs.rank_name.value};const {error:e}=await supabaseClient.rpc('admin_update_profile',args);if(e){save.disabled=false;console.error(e);showToast('No se pudieron guardar los cambios.');return}const {error:me}=await supabaseClient.rpc('ikar_set_moderator',{p_player_id:p.player_id,p_enabled:inputs.is_moderator.value==='true'});save.disabled=false;if(me){console.error(me);showToast('Perfil guardado, pero no se pudo cambiar MOD.');return}showToast('Perfil y MOD actualizados.');await loadAdminPlayers()};card.append(save);
    const pw=document.createElement('button');pw.className='admin-password-btn';pw.textContent='CAMBIAR CONTRASEÑA';pw.onclick=()=>adminResetPlayerPassword(p.player_id);card.append(pw);adminPlayerList.append(card)})
  }catch(e){console.error(e);adminPlayerList.innerHTML='<div class="admin-empty">No se pudieron cargar los jugadores.</div>'}
 }
@@ -1044,7 +1044,7 @@ async function setPlayerUI(profile,user){
   currentStreak.textContent=isAdminDashboard?'—':'0';
   bestElo.textContent=isAdminDashboard?'—':elo;
   dashboardMessage.textContent='';
-  const showIkarModerator=String(profile?.username||user?.user_metadata?.username||'').trim().toLowerCase()==='ikar8bp';
+  const showIkarModerator=String(profile?.username||user?.user_metadata?.username||'').trim().toLowerCase()==='ikar8bp'||profile?.is_moderator===true;
   if(ikarModeratorArea)ikarModeratorArea.hidden=!showIkarModerator;
 
   const rankingTask=loadRanking();
@@ -1707,7 +1707,7 @@ function renderFilteredRanking(){
 async function getProfile(userId){
   if(!supabaseClient||!userId)return null;
   const {data,error}=await supabaseClient.from('profiles')
-    .select('id, username, game_id, account_name, country, screenshot_path, avatar_path, rank_name, elo_points, wins, losses, created_at')
+    .select('id, username, game_id, account_name, country, screenshot_path, avatar_path, rank_name, elo_points, wins, losses, is_admin, is_moderator, created_at')
     .eq('id',userId).maybeSingle();
   if(error){console.error('Error cargando perfil:',error);return null}
   return data
