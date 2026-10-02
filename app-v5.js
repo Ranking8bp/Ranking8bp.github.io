@@ -687,8 +687,23 @@ async function watchCurrentRankedMatch(){
 }
 
 async function pollRankedMatch(){
- if(!currentUser||!supabaseClient)return;
- try{const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');if(error)throw error;const m=Array.isArray(data)?data[0]:data;if(m){clearInterval(matchmakingTimer);matchmakingTimer=null;showRankedMatch(m)}}catch(e){console.error(e)}
+ if(!currentUser||!supabaseClient||currentRankedMatchId)return;
+ try{
+  const {data:active,error:activeError}=await supabaseClient.rpc('get_my_active_ranked_match');
+  if(activeError)throw activeError;
+  const existing=Array.isArray(active)?active[0]:active;
+  if(existing){clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;showRankedMatch(existing);return}
+  if(!rankedSearchActive)return;
+  const {data,error}=await supabaseClient.rpc('join_ranked_matchmaking');
+  if(error)throw error;
+  const m=Array.isArray(data)?data[0]:data;
+  if(m&&m.status==='matched'){
+   const {data:full,error:fullError}=await supabaseClient.rpc('get_my_active_ranked_match');
+   if(fullError)throw fullError;
+   const match=Array.isArray(full)?full[0]:full;
+   if(match){clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;showRankedMatch(match)}
+  }
+ }catch(e){console.error('Error sondeo emparejamiento:',e)}
 }
 async function heartbeatRankedSearch(){
  if(currentRankedMatchId||!currentUser||!supabaseClient)return;
@@ -756,7 +771,7 @@ async function startRankedMatchmaking(){
     throw error;
   }
   const m=Array.isArray(data)?data[0]:data;
-  if(m?.matched){showRankedMatch(m);return}
+  if(m?.status==='matched'){const {data:full}=await supabaseClient.rpc('get_my_active_ranked_match');const match=Array.isArray(full)?full[0]:full;if(match){showRankedMatch(match);return}}
   clearInterval(matchmakingTimer);matchmakingTimer=setInterval(pollRankedMatch,1500);
   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(heartbeatRankedSearch,3000);heartbeatRankedSearch();
  }catch(e){
