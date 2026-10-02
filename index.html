@@ -183,6 +183,26 @@
  #playerDashboard .rank-hero-card > .elo-block{transform:translateY(18px)!important}
 }
 </style>
+<style id="rank-badge-outside-label-final">
+#playerDashboard .rank-hero-card{position:relative!important}
+#playerDashboard .rank-badge-overlay{
+ position:absolute!important;
+ left:21.5%!important;
+ top:50%!important;
+ transform:translate(-50%,-50%)!important;
+ z-index:10000!important;
+ margin:0!important;
+ pointer-events:auto!important;
+}
+#playerDashboard .rank-art{background:transparent!important}
+@media(max-width:700px){
+ #playerDashboard .rank-badge-overlay{
+  left:21.5%!important;
+  top:50%!important;
+  transform:translate(-50%,-50%)!important;
+ }
+}
+</style>
 </head>
 <body>
   <main class="viewport-shell">
@@ -272,9 +292,8 @@
         </section>
 
         <section class="rank-hero-card">
-          <div class="rank-art">
-            <div id="rankBadgeImage" class="rank-badge-image" role="img" aria-label="Rango Latón">Latón</div>
-          </div>
+          <div id="rankBadgeImage" class="rank-badge-image rank-badge-overlay" role="img" aria-label="Rango Latón">Latón</div>
+          <div class="rank-art"></div>
 
           <div class="elo-block">
             <div class="rank-competitive-title">RANGO COMPETITIVO</div>
