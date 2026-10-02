@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>RANKING IKAR8BP</title>
-  <link rel="stylesheet" href="styles-v5.css?v=20261002-tiktok-size29" />
+  <link rel="stylesheet" href="styles-v5.css?v=20261002-tiktok-overflow30" />
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest?v=1">
 <meta name="theme-color" content="#06121a">
@@ -147,7 +147,28 @@
  position:relative!important;z-index:2!important;
  background:transparent!important;background-color:transparent!important;background-image:none!important;
 }
-</style></head>
+</style><style id="tiktok-webview-overflow-fix">
+@media(max-width:700px){
+ html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+ #playerDashboard{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+ #playerDashboard .identity-section,#playerDashboard .rank-hero-card,#playerDashboard .competitive-hub,#playerDashboard .dashboard-play-area{width:calc(100% - 40px)!important;max-width:620px!important;margin-left:auto!important;margin-right:auto!important}
+ #playerDashboard .rank-hero-card{height:190px!important;min-height:190px!important;grid-template-columns:42% 58%!important;overflow:hidden!important}
+ #playerDashboard .rank-art{height:190px!important;min-width:0!important;overflow:hidden!important}
+ #playerDashboard .rank-badge-image{width:145px!important;height:145px!important;min-width:145px!important;min-height:145px!important;max-width:145px!important;max-height:145px!important}
+ #playerDashboard .elo-block{min-width:0!important;max-width:100%!important;padding:0 14px 0 6px!important;transform:translate(0,-18px)!important;overflow:hidden!important}
+ #playerDashboard .rank-competitive-title{font-size:13px!important;line-height:1.1!important;white-space:normal!important;max-width:100%!important}
+ #playerDashboard .dashboard-rank-name{font-size:15px!important}
+ #playerDashboard .elo-main-line{width:100%!important;max-width:100%!important;gap:6px!important;flex-wrap:nowrap!important}
+ #playerDashboard .elo-word{font-size:24px!important;flex:0 0 auto!important}
+ #playerDashboard .elo-number{font-size:44px!important;line-height:1!important;min-width:0!important;max-width:100%!important}
+ #playerDashboard .rank-progress-row{width:100%!important;max-width:100%!important;padding-right:2px!important}
+ #playerDashboard .competitive-hub{overflow:hidden!important}
+ #playerDashboard .season-strip,#playerDashboard .top3-showcase,#playerDashboard .achievements-box,#playerDashboard .match-history-box{max-width:100%!important;overflow:hidden!important}
+ #playerDashboard .top3-showcase{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ #playerDashboard .top3-card{min-width:0!important;max-width:100%!important}
+}
+</style>
+</head>
 <body>
   <main class="viewport-shell">
     <section class="site-canvas" id="siteCanvas">
