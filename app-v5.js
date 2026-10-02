@@ -26,7 +26,7 @@ function applyGlobalDesign(s){
  const box=document.getElementById('globalDesignControls');if(box)box.querySelectorAll('input[data-k]').forEach(i=>{if(document.activeElement!==i&&d[i.dataset.k]!=null)i.value=d[i.dataset.k]});
 }
 async function loadGlobalDesign(){
- if(!supabaseClient)return;try{const {data}=await supabaseClient.from('site_design_settings').select('settings').eq('id',1).maybeSingle();applyGlobalDesign(data?.settings||{})}catch(e){applyGlobalDesign({})}
+ if(!supabaseClient)return;try{const {data,error}=await supabaseClient.from('site_design_settings').select('settings').eq('id',1).maybeSingle();if(error)throw error;applyGlobalDesign(data?.settings||{});setTimeout(()=>applyGlobalDesign(data?.settings||{}),300);setTimeout(()=>applyGlobalDesign(data?.settings||{}),1200)}catch(e){console.error('Global design load:',e)}
 }
 function setupGlobalDesignEditor(profile){
  const panel=document.getElementById('globalDesignEditor');if(!panel)return;
@@ -968,6 +968,7 @@ async function setPlayerUI(profile,user){
 
   const playerName=profile?.username||user?.user_metadata?.username||profile?.account_name||'Jugador';
   setupGlobalDesignEditor(profile);
+  await loadGlobalDesign();
   const elo=Number.isFinite(Number(profile?.elo_points))?Number(profile.elo_points):200;
   const rank=getRankByElo(elo);
   const rankName=rank.name;
