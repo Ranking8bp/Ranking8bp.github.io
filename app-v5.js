@@ -25,10 +25,10 @@ function applyGlobalDesign(s){
  const eloNumber=document.querySelector('#playerDashboard .elo-number');
  const progressText=document.querySelector('#playerDashboard .rank-progress-text');
  const track=document.querySelector('#playerDashboard .rank-progress-track');
- if(card){card.style.setProperty('width',d.cardWidth+'%','important');card.style.setProperty('height',d.cardHeight+'px','important');card.style.setProperty('min-height',d.cardHeight+'px','important');card.style.setProperty('grid-template-columns',d.artWidth+'% '+(100-d.artWidth)+'%','important')}
+ if(card){card.style.removeProperty('width');card.style.removeProperty('height');card.style.removeProperty('min-height');card.style.removeProperty('grid-template-columns')}
  if(art)art.style.setProperty('height',d.cardHeight+'px','important');
- if(badge){badge.style.setProperty('width',d.badgeSize+'px','important');badge.style.setProperty('height',d.badgeSize+'px','important');badge.style.setProperty('min-width',d.badgeSize+'px','important');badge.style.setProperty('min-height',d.badgeSize+'px','important');badge.style.setProperty('--badge-x',d.badgeX+'px');badge.style.setProperty('--badge-y',d.badgeY+'px');badge.style.setProperty('transform','none','important');badge.style.setProperty('top','-38px','important')}
- if(eloBlock)eloBlock.style.setProperty('transform','translate('+d.textX+'px,'+d.textY+'px)','important');
+ if(badge){badge.removeAttribute('style')}
+ if(eloBlock)eloBlock.style.removeProperty('transform');
  if(title)title.style.setProperty('font-size',d.titleSize+'px','important');
  if(rankName)rankName.style.setProperty('font-size',d.rankSize+'px','important');
  if(eloWord)eloWord.style.setProperty('font-size',d.eloLabelSize+'px','important');
