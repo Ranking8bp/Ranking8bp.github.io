@@ -1360,3 +1360,53 @@ html,body{color-scheme:dark!important}
   .player-detail-card{margin:0 auto 28px!important}
   .profile-comments-list{max-height:none!important;overflow:visible!important}
 }
+
+/* PREMIUM PROFILE 2026-10-02 */
+#playerDashboard{background:#020609!important;color:#f5f1e8!important}
+#playerDashboard .profile-page-bg{background:radial-gradient(circle at 78% 0,rgba(13,72,116,.26),transparent 28%),radial-gradient(circle at 15% 10%,rgba(174,125,33,.14),transparent 25%),linear-gradient(180deg,#030609,#010203)!important}
+#playerDashboard .profile-header{background:transparent!important;border:0!important;min-height:74px}
+#playerDashboard .identity-section{margin:0 auto 18px!important;padding:18px 24px 20px!important;max-width:760px;gap:28px;align-items:center}
+#playerDashboard .portrait-frame{border-color:#d5a53b!important;box-shadow:0 0 0 5px rgba(213,165,59,.12),0 0 30px rgba(213,165,59,.18)!important}
+#playerDashboard .identity-copy h2{font-size:clamp(36px,8vw,58px)!important;color:#f4d878!important;text-shadow:0 2px 16px rgba(207,155,44,.18)}
+#playerDashboard .profile-quote{display:none!important}
+#playerDashboard .country-line{font-size:22px!important;margin-top:12px}
+#playerDashboard .main-follow-stats{margin-top:18px!important;gap:32px!important}
+#playerDashboard .rank-hero-card{max-width:760px;margin:0 auto 16px!important;min-height:270px!important;padding:22px!important;border:1px solid #d6aa4b!important;border-radius:18px!important;background:linear-gradient(135deg,#07121c,#03101b 55%,#02080e)!important;box-shadow:inset 0 0 0 4px rgba(211,167,70,.08),0 12px 34px rgba(0,0,0,.38)!important}
+#playerDashboard .rank-art{width:46%!important}
+#playerDashboard .rank-badge-image{transform:scale(1.12);filter:drop-shadow(0 8px 16px rgba(0,0,0,.6))}
+#playerDashboard .elo-block{width:54%!important;text-align:left!important}
+#playerDashboard .elo-label{color:#f2d98b!important;font-size:20px!important}
+#playerDashboard .elo-number{font-size:76px!important;color:#e4b634!important;line-height:1!important}
+#playerDashboard .rank-caption{display:inline-block!important;margin-top:10px;padding:7px 14px!important;border-radius:999px!important;background:#421a0d!important;color:#e5bd61!important;border:1px solid #75401d!important}
+#playerDashboard .competitive-hub{max-width:760px;margin:0 auto!important;display:grid!important;gap:12px!important}
+#playerDashboard .season-strip,#playerDashboard .top3-showcase,#playerDashboard .competitive-grid>div,#playerDashboard .achievements-box,#playerDashboard .match-history-box{border:1px solid #75613a!important;background:linear-gradient(145deg,#06111b,#02070d)!important;border-radius:14px!important;box-shadow:0 8px 22px rgba(0,0,0,.24)}
+#playerDashboard .season-strip{padding:15px 18px!important}
+#playerDashboard .season-strip strong,#playerDashboard .achievements-box>strong,#playerDashboard .match-history-box>strong{color:#e6bd58!important}
+#playerDashboard .top3-showcase{padding:12px!important}
+#playerDashboard .competitive-grid{gap:12px!important}
+#playerDashboard .competitive-grid>div{min-height:92px!important}
+#playerDashboard .achievements-box,#playerDashboard .match-history-box{padding:16px!important}
+#playerDashboard .dashboard-play-area{max-width:760px;margin:18px auto 8px!important}
+#playerDashboard .dashboard-play-btn{height:88px!important;border-radius:16px!important;border:1px solid #39dc66!important;background:linear-gradient(180deg,#079127,#006a18)!important;box-shadow:0 0 26px rgba(0,205,62,.22)!important;font-size:30px!important;letter-spacing:1px}
+#playerDashboard .players-playing-row{margin:8px auto 18px!important}
+#playerDashboard .dashboard-whatsapp-area,#playerDashboard .dashboard-chat-area{display:inline-block!important;width:calc(50% - 9px)!important;margin:0 4px 22px!important;vertical-align:top}
+#playerDashboard .dashboard-whatsapp-area{margin-left:calc((100% - min(760px,94%))/2)!important}
+#playerDashboard .dashboard-whatsapp-btn,#playerDashboard .dashboard-chat-btn{height:68px!important;border-radius:14px!important}
+#playerDashboard .dashboard-chat-btn{background:linear-gradient(180deg,#123a5b,#08233a)!important;border-color:#388bc4!important}
+#playerDashboard .win-loss-grid,#playerDashboard .latest-ranking-result,#playerDashboard .ranking-card,#playerDashboard .general-stats-card,#playerDashboard .profile-links,#playerDashboard .bottom-nav{display:none!important}
+@media(max-width:700px){
+ #playerDashboard .identity-section{padding:8px 16px 18px!important;gap:18px}
+ #playerDashboard .portrait-column{width:42%!important}
+ #playerDashboard .identity-copy{width:58%!important}
+ #playerDashboard .identity-copy h2{font-size:clamp(31px,10vw,46px)!important}
+ #playerDashboard .country-line{font-size:18px!important}
+ #playerDashboard .main-follow-stats{gap:20px!important}
+ #playerDashboard .rank-hero-card{width:94%!important;min-height:220px!important;padding:14px!important}
+ #playerDashboard .rank-art{width:48%!important}.player-profile .elo-block{width:52%!important}
+ #playerDashboard .elo-number{font-size:58px!important}
+ #playerDashboard .competitive-hub,#playerDashboard .dashboard-play-area{width:94%!important}
+ #playerDashboard .dashboard-play-btn{height:76px!important;font-size:27px!important}
+ #playerDashboard .dashboard-whatsapp-area{width:45%!important;margin-left:3%!important}
+ #playerDashboard .dashboard-chat-area{width:45%!important;margin-right:3%!important}
+ #playerDashboard .dashboard-whatsapp-btn,#playerDashboard .dashboard-chat-btn{height:60px!important;font-size:13px!important}
+}
