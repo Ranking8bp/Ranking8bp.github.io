@@ -624,5 +624,31 @@ document.addEventListener('input',function(e){
  }
  document.addEventListener("DOMContentLoaded",function(){syncRankProgress();setInterval(syncRankProgress,1000)});
 })();
-</script></body>
+</script><script id="force-rank-badge-motion-v23">
+(function(){
+ function start(){
+  var badge=document.querySelector('#playerDashboard .rank-badge-image');
+  if(!badge)return false;
+  if(badge.dataset.forceMove==='23')return true;
+  badge.dataset.forceMove='23';
+  badge.style.setProperty('animation','none','important');
+  var y=0,dir=-1;
+  function tick(){
+   if(!badge.isConnected){return;}
+   y+=dir*0.45;
+   if(y<=-18)dir=1;
+   if(y>=0)dir=-1;
+   badge.style.setProperty('transform','translate(calc(var(--badge-x, -8px)), calc(var(--badge-y, -35px) + '+y.toFixed(2)+'px))','important');
+   requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);return true;
+ }
+ if(!start()){
+  var mo=new MutationObserver(function(){if(start())mo.disconnect()});
+  mo.observe(document.documentElement,{childList:true,subtree:true});
+ }
+ setInterval(start,1000);
+})();
+</script>
+</body>
 </html>
