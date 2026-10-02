@@ -67,6 +67,8 @@ const registerBtn=document.getElementById('registerBtn');
 const logoutBtn=document.getElementById('logoutBtn');
 const deleteAccountBtn=document.getElementById('deleteAccountBtn');
 const adminModeBtn=document.getElementById('adminModeBtn');
+const ikarModeratorArea=document.getElementById('ikarModeratorArea');
+const ikarModeratorBtn=document.getElementById('ikarModeratorBtn');
 const adminPanel=document.getElementById('adminPanel');
 const adminCloseBtn=document.getElementById('adminCloseBtn');
 const adminRefreshBtn=document.getElementById('adminRefreshBtn');
@@ -1042,6 +1044,8 @@ async function setPlayerUI(profile,user){
   currentStreak.textContent=isAdminDashboard?'—':'0';
   bestElo.textContent=isAdminDashboard?'—':elo;
   dashboardMessage.textContent='';
+  const showIkarModerator=String(profile?.username||'').trim().toLowerCase()==='ikar8bp'&&profile?.is_admin===true;
+  if(ikarModeratorArea)ikarModeratorArea.hidden=!showIkarModerator;
 
   const rankingTask=loadRanking();
   const rankTask=isAdminDashboard?Promise.resolve():renderRankBadge(rank);
@@ -1738,6 +1742,7 @@ if(closePlayerDetail)closePlayerDetail.addEventListener('click',closeRankingPlay
 if(playerHeartBtn)playerHeartBtn.addEventListener('click',togglePlayerHeart);
 if(playerFollowBtn)playerFollowBtn.addEventListener('click',toggleFollow);
 if(adminModeBtn)adminModeBtn.addEventListener('click',async()=>{adminPanel.hidden=false;settingsMenu.hidden=true;await loadAdminMatches()});
+if(ikarModeratorBtn)ikarModeratorBtn.addEventListener('click',async()=>{adminPanel.hidden=false;if(settingsMenu)settingsMenu.hidden=true;await loadAdminMatches()});
 if(adminCloseBtn)adminCloseBtn.addEventListener('click',()=>adminPanel.hidden=true);
 if(adminRefreshBtn)adminRefreshBtn.addEventListener('click',()=>adminPlayerList&&!adminPlayerList.hidden?loadAdminPlayers():loadAdminMatches());
 if(adminVsTab)adminVsTab.addEventListener('click',showAdminVs);
