@@ -1513,3 +1513,6 @@ html,body{color-scheme:dark!important}
 #playerDashboard .rank-badge-image{animation:rankBadgeMoveVisible 2.8s ease-in-out infinite!important;will-change:transform!important}
 @keyframes rankBadgeMoveVisible{0%,100%{transform:translate(28px,0) scale(1.12)}50%{transform:translate(28px,-12px) scale(1.14)}}
 @media(max-width:700px){#playerDashboard .rank-badge-image{animation:rankBadgeMoveVisibleMobile 2.8s ease-in-out infinite!important}@keyframes rankBadgeMoveVisibleMobile{0%,100%{transform:translate(22px,0) scale(1.12)}50%{transform:translate(22px,-10px) scale(1.14)}}}
+
+/* RANK BADGE — movement only, no shine/glow */
+#playerDashboard .rank-badge-image::after{content:none!important;display:none!important;animation:none!important;background:none!important;filter:none!important;opacity:0!important}
