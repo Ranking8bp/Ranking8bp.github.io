@@ -144,7 +144,27 @@
           </div>
         </section>
 
-        <section class="competitive-hub" id="competitiveHub"><div class="season-strip"><strong id="seasonName">TEMPORADA 1</strong><span id="seasonCountdown">Clasificación activa</span></div><div class="top3-showcase" id="top3Showcase"></div><div class="competitive-grid"><div><small>RACHA ACTUAL</small><strong id="competitiveStreak">0</strong></div><div><small>MEJOR ELO</small><strong id="competitiveBestElo">200</strong></div></div><div class="achievements-box"><strong>LOGROS</strong><div id="competitiveAchievements"></div></div><div class="match-history-box"><strong>ÚLTIMAS PARTIDAS</strong><div id="competitiveHistory"></div></div></section><div class="dashboard-play-area"><button type="button" class="dashboard-play-btn" id="dashboardPlayBtn">JUGAR</button></div><div class="players-playing-row" id="playersOnlineNow"><span class="online-player-dot"></span><strong id="playersOnlineCount">0</strong><span>JUGADORES JUGANDO</span></div><div class="playing-vs-modal" id="playingVsModal" hidden><div class="playing-vs-card"><header><strong>VS JUGÁNDOSE AHORA</strong><button type="button" id="playingVsClose">×</button></header><div id="playingVsList" class="playing-vs-list"></div></div></div>
+        <section id="globalDesignEditor" hidden style="width:94%;max-width:760px;margin:12px auto;padding:14px;border:1px solid #b99139;border-radius:14px;background:#06111b;color:#fff">
+<strong style="display:block;color:#ffd45a;margin-bottom:12px">✏️ EDITOR GLOBAL</strong>
+<div id="globalDesignControls" style="display:grid;grid-template-columns:1fr;gap:10px">
+<label>Insignia tamaño <input data-k="badgeSize" type="range" min="50" max="300" value="170"></label>
+<label>Insignia X <input data-k="badgeX" type="range" min="-150" max="150" value="-8"></label>
+<label>Insignia Y <input data-k="badgeY" type="range" min="-150" max="150" value="-35"></label>
+<label>Tarjeta altura <input data-k="cardHeight" type="range" min="120" max="500" value="180"></label>
+<label>Bloque texto X <input data-k="textX" type="range" min="-150" max="150" value="0"></label>
+<label>Bloque texto Y <input data-k="textY" type="range" min="-150" max="150" value="-39"></label>
+<label>RANGO tamaño <input data-k="titleSize" type="range" min="8" max="60" value="15"></label>
+<label>LATÓN tamaño <input data-k="rankSize" type="range" min="8" max="80" value="16"></label>
+<label>ELO tamaño <input data-k="eloLabelSize" type="range" min="8" max="80" value="28"></label>
+<label>Número ELO tamaño <input data-k="eloNumberSize" type="range" min="12" max="120" value="48"></label>
+<label>Progreso tamaño <input data-k="progressSize" type="range" min="6" max="40" value="9"></label>
+<label>Barra altura <input data-k="barHeight" type="range" min="2" max="40" value="9"></label>
+<label>Tarjeta ancho % <input data-k="cardWidth" type="range" min="60" max="100" value="94"></label>
+<label>Columna insignia % <input data-k="artWidth" type="range" min="20" max="70" value="43"></label>
+</div>
+<button id="saveGlobalDesign" type="button" style="width:100%;min-height:50px;margin-top:14px;border:0;border-radius:10px;background:#c99a2e;color:#111;font-weight:900">GUARDAR PARA TODOS</button>
+<div id="globalDesignStatus" style="margin-top:8px;font-size:12px"></div>
+</section><section class="competitive-hub" id="competitiveHub"><div class="season-strip"><strong id="seasonName">TEMPORADA 1</strong><span id="seasonCountdown">Clasificación activa</span></div><div class="top3-showcase" id="top3Showcase"></div><div class="competitive-grid"><div><small>RACHA ACTUAL</small><strong id="competitiveStreak">0</strong></div><div><small>MEJOR ELO</small><strong id="competitiveBestElo">200</strong></div></div><div class="achievements-box"><strong>LOGROS</strong><div id="competitiveAchievements"></div></div><div class="match-history-box"><strong>ÚLTIMAS PARTIDAS</strong><div id="competitiveHistory"></div></div></section><div class="dashboard-play-area"><button type="button" class="dashboard-play-btn" id="dashboardPlayBtn">JUGAR</button></div><div class="players-playing-row" id="playersOnlineNow"><span class="online-player-dot"></span><strong id="playersOnlineCount">0</strong><span>JUGADORES JUGANDO</span></div><div class="playing-vs-modal" id="playingVsModal" hidden><div class="playing-vs-card"><header><strong>VS JUGÁNDOSE AHORA</strong><button type="button" id="playingVsClose">×</button></header><div id="playingVsList" class="playing-vs-list"></div></div></div>
         <div class="dashboard-whatsapp-area">
           <a class="dashboard-whatsapp-btn" id="dashboardWhatsappBtn" href="https://chat.whatsapp.com/E8wsyIDMq8TGaSNAbUuFew" aria-label="Grupo de WhatsApp">
             <span class="dashboard-whatsapp-icon" aria-hidden="true">☎</span><span class="dashboard-whatsapp-text">GRUPO DE WHATSAPP</span>
