@@ -296,7 +296,7 @@ document.addEventListener('input',function(e){
  var k=i.getAttribute('data-k'),v=Number(i.value),q=function(s){return document.querySelector(s)},el;
  var map={badgeSize:['#rankBadgeImage',['width','height','min-width','min-height'],'px'],cardHeight:['#playerDashboard .rank-hero-card',['height','min-height'],'px'],titleSize:['#playerDashboard .rank-competitive-title',['font-size'],'px'],rankSize:['#dashboardRankName',['font-size'],'px'],eloLabelSize:['#playerDashboard .elo-word',['font-size'],'px'],eloNumberSize:['#dashboardElo',['font-size'],'px'],progressSize:['#rankProgressText',['font-size'],'px'],barHeight:['#playerDashboard .rank-progress-track',['height'],'px'],cardWidth:['#playerDashboard .rank-hero-card',['width'],'%']};
  if(map[k]){el=q(map[k][0]);if(el)map[k][1].forEach(function(p){el.style.setProperty(p,v+map[k][2],'important')})}
- if(k==='badgeX'||k==='badgeY'){var x=q('[data-k="badgeX"]'),y=q('[data-k="badgeY"]'),b=q('#rankBadgeImage');if(b)b.style.setProperty('transform','translate('+x.value+'px,'+y.value+'px)','important')}
+ if(k==='badgeX'||k==='badgeY'){var x=q('[data-k="badgeX"]'),y=q('[data-k="badgeY"]'),b=q('#rankBadgeImage');if(b){b.style.setProperty('--badge-x',x.value+'px');b.style.setProperty('--badge-y',y.value+'px');}}
  if(k==='textX'||k==='textY'){var x2=q('[data-k="textX"]'),y2=q('[data-k="textY"]'),eb=q('#playerDashboard .elo-block');if(eb)eb.style.setProperty('transform','translate('+x2.value+'px,'+y2.value+'px)','important')}
  if(k==='artWidth'){el=q('#playerDashboard .rank-hero-card');if(el)el.style.setProperty('grid-template-columns',v+'% '+(100-v)+'%','important')}
 });
@@ -630,7 +630,7 @@ document.addEventListener('input',function(e){
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261002-tiktok-size29"></script>
+  <script src="app-v5.js?v=20261002-jess-editor31"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
