@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>RANKING IKAR8BP</title>
-  <link rel="stylesheet" href="styles-v5.css?v=20261002-rank-layer07" />
+  <link rel="stylesheet" href="styles-v5.css?v=20261002-rank-hard08" />
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest?v=1">
 <meta name="theme-color" content="#06121a">
@@ -40,6 +40,14 @@
 #playerDashboard .rank-progress-track{flex:1 1 0!important;width:auto!important;min-width:0!important;height:9px!important;transform:none!important}
 #playerDashboard .rank-progress-text{font-size:9px!important;margin:0!important;white-space:nowrap!important;flex:0 0 auto!important}
 }
+
+<style id="rank-bg-hard-fix">
+#playerDashboard .rank-hero-card{position:relative!important;background:url("./assets/fondo-perfil.png?v=7") center center/cover no-repeat!important;background-color:transparent!important;overflow:hidden!important}
+#playerDashboard .rank-hero-card::before{content:""!important;position:absolute!important;inset:0!important;z-index:0!important;background:url("./assets/fondo-perfil.png?v=7") center center/cover no-repeat!important;opacity:1!important;pointer-events:none!important}
+#playerDashboard .rank-hero-card::after{content:""!important;position:absolute!important;inset:0!important;z-index:1!important;background:rgba(0,0,0,.05)!important;pointer-events:none!important}
+#playerDashboard .rank-hero-card .rank-card-art-bg{display:none!important}
+#playerDashboard .rank-hero-card>.rank-art,#playerDashboard .rank-hero-card>.elo-block{position:relative!important;z-index:3!important}
+</style>
 </style></head>
 <body>
   <main class="viewport-shell">
