@@ -635,7 +635,7 @@ document.addEventListener('input',function(e){
   var y=0,dir=-1;
   function tick(){
    if(!badge.isConnected){return;}
-   y+=dir*0.45;
+   y+=dir*0.10;
    if(y<=-18)dir=1;
    if(y>=0)dir=-1;
    badge.style.setProperty('transform','translate(calc(var(--badge-x, -8px)), calc(var(--badge-y, -35px) + '+y.toFixed(2)+'px))','important');
