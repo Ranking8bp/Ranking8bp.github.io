@@ -1044,7 +1044,7 @@ async function setPlayerUI(profile,user){
   currentStreak.textContent=isAdminDashboard?'—':'0';
   bestElo.textContent=isAdminDashboard?'—':elo;
   dashboardMessage.textContent='';
-  const showIkarModerator=String(profile?.username||'').trim().toLowerCase()==='ikar8bp'&&profile?.is_admin===true;
+  const showIkarModerator=String(profile?.username||user?.user_metadata?.username||'').trim().toLowerCase()==='ikar8bp';
   if(ikarModeratorArea)ikarModeratorArea.hidden=!showIkarModerator;
 
   const rankingTask=loadRanking();
