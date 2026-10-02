@@ -1538,3 +1538,8 @@ html,body{color-scheme:dark!important}
 #playerDashboard .top3-rank-badge{width:38px!important;height:38px!important;display:flex!important;align-items:center!important;justify-content:center!important}
 #playerDashboard .top3-rank-badge img{width:100%!important;height:100%!important;object-fit:contain!important}
 @media(max-width:430px){#playerDashboard .top3-showcase{gap:3px!important;padding:10px 3px!important}#playerDashboard .top3-showcase .top3-card{grid-template-columns:18px minmax(0,1fr) 30px!important;padding:6px 1px!important}#playerDashboard .top3-position{font-size:21px!important}#playerDashboard .top3-avatar.ranking-avatar{width:58px!important;height:58px!important;min-width:58px!important}#playerDashboard .top3-rank-badge{width:30px!important;height:30px!important}#playerDashboard .top3-name{font-size:10px!important}}
+
+/* TOP 3 — perfectly round profile photos */
+#playerDashboard .top3-avatar.ranking-avatar{width:64px!important;height:64px!important;min-width:64px!important;min-height:64px!important;flex:0 0 64px!important;aspect-ratio:1/1!important;border-radius:9999px!important;overflow:hidden!important;padding:0!important}
+#playerDashboard .top3-avatar.ranking-avatar img{display:block!important;width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;aspect-ratio:1/1!important;object-fit:cover!important;border-radius:50%!important}
+@media(max-width:430px){#playerDashboard .top3-avatar.ranking-avatar{width:56px!important;height:56px!important;min-width:56px!important;min-height:56px!important;flex-basis:56px!important}}
