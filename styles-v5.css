@@ -1695,3 +1695,7 @@ img,svg,video,canvas{max-width:100%}
 
 /* Hidden must win over rank card layout rules */
 #playerDashboard .rank-hero-card[hidden]{display:none!important;height:0!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;}
+
+/* Direct moderator action */
+.admin-moderator-action{display:block!important;width:100%!important;margin-top:12px!important;min-height:46px!important;border:1px solid #ff5555!important;border-radius:9px!important;background:#8e1116!important;color:#fff!important;font-size:12px!important;font-weight:900!important;letter-spacing:.5px!important}
+.admin-moderator-action.is-on{border-color:#49e58a!important;background:#126337!important;color:#fff!important}
