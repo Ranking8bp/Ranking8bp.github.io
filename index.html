@@ -139,6 +139,24 @@
  }
  #playerDashboard .rank-progress-row{width:115%!important}
 }
+</style><style id="rank-progress-fit-fix">
+#playerDashboard .rank-progress-row{
+ width:100%!important;
+ max-width:100%!important;
+ box-sizing:border-box!important;
+ overflow:hidden!important;
+}
+#playerDashboard .rank-progress-track{
+ min-width:0!important;
+ width:auto!important;
+ max-width:100%!important;
+ flex:1 1 0!important;
+}
+#playerDashboard .rank-progress-text{flex:0 0 auto!important}
+@media(max-width:700px){
+ #playerDashboard .rank-progress-row{width:100%!important;max-width:100%!important}
+ #playerDashboard .rank-progress-track{min-width:0!important;width:auto!important;flex:1 1 0!important}
+}
 </style></head>
 <body>
   <main class="viewport-shell">
