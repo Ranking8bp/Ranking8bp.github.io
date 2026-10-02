@@ -1699,3 +1699,11 @@ img,svg,video,canvas{max-width:100%}
 /* Direct moderator action */
 .admin-moderator-action{display:block!important;width:100%!important;margin-top:12px!important;min-height:46px!important;border:1px solid #ff5555!important;border-radius:9px!important;background:#8e1116!important;color:#fff!important;font-size:12px!important;font-weight:900!important;letter-spacing:.5px!important}
 .admin-moderator-action.is-on{border-color:#49e58a!important;background:#126337!important;color:#fff!important}
+
+/* Admin player search */
+.admin-player-search{width:100%;display:flex;align-items:center;gap:10px;margin:14px 0 18px;padding:10px 14px;border:1px solid #8a6622;border-radius:10px;background:#07131b;box-sizing:border-box}
+.admin-player-search[hidden]{display:none!important}
+.admin-player-search span{font-size:20px;flex:0 0 auto}
+.admin-player-search input{width:100%;min-width:0;border:0!important;outline:0!important;background:transparent!important;color:#fff!important;font-size:15px!important;font-weight:700;padding:8px 2px!important}
+.admin-player-search input::placeholder{color:#82939d}
+.admin-player-card[hidden]{display:none!important}
