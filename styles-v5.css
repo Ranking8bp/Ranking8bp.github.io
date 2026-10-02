@@ -1336,3 +1336,27 @@ html,body{color-scheme:dark!important}
   }
   .player-detail-name-row{gap:8px}
 }
+
+/* LIVE: perfil largo y comentarios sin scroll interno */
+.player-detail-backdrop{
+  align-items:flex-start!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+}
+.player-detail-card{
+  flex:0 0 auto;
+  margin:auto 0;
+  overflow:visible!important;
+}
+.profile-comments-list{
+  max-height:none!important;
+  height:auto!important;
+  overflow:visible!important;
+}
+@media(max-width:700px){
+  .player-detail-backdrop{padding:14px!important}
+  .player-detail-card{margin:0 auto 28px!important}
+  .profile-comments-list{max-height:none!important;overflow:visible!important}
+}
