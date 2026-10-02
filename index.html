@@ -112,6 +112,33 @@
  color:#ffe58a!important;
  text-shadow:0 1px 8px rgba(255,220,100,.18)!important;
 }
+</style><style id="rank-yellow-longerbar">
+#playerDashboard .dashboard-rank-name,
+#playerDashboard .elo-number{
+ color:#ffd400!important;
+ background:none!important;
+ -webkit-background-clip:border-box!important;
+ background-clip:border-box!important;
+ -webkit-text-fill-color:#ffd400!important;
+ text-shadow:none!important;
+}
+#playerDashboard .rank-progress-row{width:100%!important}
+#playerDashboard .rank-progress-track{
+ flex:1 1 auto!important;
+ width:100%!important;
+ max-width:none!important;
+ min-width:320px!important;
+}
+@media(max-width:700px){
+ #playerDashboard .elo-block{width:58%!important}
+ #playerDashboard .rank-art{width:42%!important}
+ #playerDashboard .rank-progress-track{
+   min-width:0!important;
+   width:100%!important;
+   flex:1 1 auto!important;
+ }
+ #playerDashboard .rank-progress-row{width:115%!important}
+}
 </style></head>
 <body>
   <main class="viewport-shell">
