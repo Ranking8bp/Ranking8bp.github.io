@@ -1680,3 +1680,9 @@ img,svg,video,canvas{max-width:100%}
 #playerDashboard .rank-hero-card>*,
 #playerDashboard .top3-showcase>*,
 #playerDashboard .competitive-grid>*{min-width:0!important}
+
+/* Ikar moderation button */
+.ikar-moderator-area{width:100%;display:flex;justify-content:center;margin:10px 0 4px}
+.ikar-moderator-area[hidden]{display:none!important}
+.ikar-moderator-btn{width:min(92%,520px);min-height:52px;border:1px solid #ff5a5a;border-radius:12px;background:linear-gradient(180deg,#d71920,#97080d);color:#fff;font-weight:900;font-size:18px;letter-spacing:1.2px;box-shadow:0 8px 22px rgba(180,0,0,.28);cursor:pointer}
+.ikar-moderator-btn:active{transform:scale(.985)}
