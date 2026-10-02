@@ -45,14 +45,15 @@ function applyGlobalDesign(s){
  const box=document.getElementById('globalDesignControls');if(box)box.querySelectorAll('input[data-k]').forEach(i=>{if(document.activeElement!==i&&d[i.dataset.k]!=null)i.value=d[i.dataset.k]});
 }
 async function loadGlobalDesign(){
- if(!supabaseClient)return;try{const {data,error}=await supabaseClient.from('site_design_settings').select('settings').eq('id',1).maybeSingle();if(error)throw error;applyGlobalDesign(data?.settings||{});setTimeout(()=>applyGlobalDesign(data?.settings||{}),300);setTimeout(()=>applyGlobalDesign(data?.settings||{}),1200)}catch(e){console.error('Global design load:',e)}
+ // Diseño oficial fijo: no leer posiciones guardadas por editores desde la nube.
+ applyGlobalDesign(GLOBAL_DESIGN_DEFAULTS);
+ setTimeout(()=>applyGlobalDesign(GLOBAL_DESIGN_DEFAULTS),300);
+ setTimeout(()=>applyGlobalDesign(GLOBAL_DESIGN_DEFAULTS),1200);
 }
 function setupGlobalDesignEditor(profile){
- const panel=document.getElementById('globalDesignEditor');if(!panel)return;
- const allowed=String(profile?.username||'').toLowerCase()==='jess8bp';panel.hidden=!allowed;if(!allowed)return;
- const box=document.getElementById('globalDesignControls'),status=document.getElementById('globalDesignStatus'),save=document.getElementById('saveGlobalDesign');
- box.querySelectorAll('input[data-k]').forEach(i=>{const update=()=>{globalDesignSettings[i.dataset.k]=Number(i.value);applyGlobalDesign(globalDesignSettings)};i.addEventListener('input',update);i.addEventListener('change',update)});
- save.onclick=async()=>{save.disabled=true;status.textContent='Guardando...';try{const {error}=await supabaseClient.from('site_design_settings').update({settings:globalDesignSettings,updated_by:currentUser.id,updated_at:new Date().toISOString()}).eq('id',1);if(error)throw error;status.textContent='✓ Guardado. Este diseño se aplicará a todos.'}catch(e){status.textContent='Error al guardar: '+(e.message||e)}finally{save.disabled=false}};
+ // Editor global desactivado. Ningún usuario (incluido Jess8bp) puede alterar el diseño.
+ const panel=document.getElementById('globalDesignEditor');
+ if(panel)panel.hidden=true;
 }
 loadGlobalDesign();
 
