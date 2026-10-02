@@ -203,6 +203,39 @@
  }
  #playerDashboard .rank-progress-text{margin-left:68%!important}
 }
+</style><style id="rank-badge-bar-layout-repair">
+#playerDashboard .rank-hero-card{overflow:hidden!important}
+#playerDashboard .rank-art{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ position:relative!important;z-index:2!important;overflow:visible!important
+}
+#playerDashboard .rank-badge-image{
+ display:block!important;visibility:visible!important;opacity:1!important;
+ position:relative!important;z-index:3!important
+}
+#playerDashboard .rank-badge-image .rank-original-img{
+ display:block!important;visibility:visible!important;opacity:1!important;
+ width:100%!important;height:100%!important;object-fit:contain!important
+}
+#playerDashboard .elo-block{position:relative!important;z-index:1!important;overflow:hidden!important}
+#playerDashboard .rank-progress-row{
+ width:100%!important;max-width:100%!important;display:flex!important;
+ align-items:center!important;gap:8px!important;overflow:hidden!important
+}
+#playerDashboard .rank-progress-track{
+ transform:none!important;flex:1 1 0!important;width:auto!important;
+ min-width:0!important;max-width:none!important
+}
+#playerDashboard .rank-progress-text{
+ margin-left:0!important;flex:0 0 auto!important
+}
+@media(max-width:700px){
+ #playerDashboard .rank-art{width:48%!important;height:220px!important}
+ #playerDashboard .elo-block{width:52%!important}
+ #playerDashboard .rank-badge-image{width:210px!important;height:210px!important;min-width:210px!important}
+ #playerDashboard .rank-progress-track{transform:none!important;flex:1 1 0!important;width:auto!important}
+ #playerDashboard .rank-progress-text{margin-left:0!important}
+}
 </style></head>
 <body>
   <main class="viewport-shell">
