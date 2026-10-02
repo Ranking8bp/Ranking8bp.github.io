@@ -1564,3 +1564,8 @@ html{-webkit-text-size-adjust:100%!important;text-size-adjust:100%!important}
  #playerDashboard .elo-number{font-size:48px!important;white-space:nowrap!important}
  #playerDashboard .competitive-hub{padding:12px!important;overflow:hidden!important}
 }
+
+/* TOP 3 — no side rank badges */
+#playerDashboard .top3-showcase .top3-card{grid-template-columns:24px minmax(0,1fr)!important}
+#playerDashboard .top3-rank-badge{display:none!important}
+@media(max-width:430px){#playerDashboard .top3-showcase .top3-card{grid-template-columns:18px minmax(0,1fr)!important}}
