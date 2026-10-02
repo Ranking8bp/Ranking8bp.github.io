@@ -1445,3 +1445,15 @@ html,body{color-scheme:dark!important}
  #playerDashboard .main-follow-stats span{font-size:12px!important}
  #playerDashboard .avatar-edit{width:44px!important;height:44px!important;font-size:21px!important}
 }
+
+/* PROFILE NAME STATUS FIX */
+#playerDashboard #dashboardPlayerName .online-player-dot{display:none!important}
+#playerDashboard .name-line .verified-mark{
+ width:28px!important;height:28px!important;min-width:28px!important;flex:0 0 28px!important;
+ border-radius:50%!important;border:0!important;background:#1689ed!important;color:#fff!important;
+ transform:none!important;font-size:19px!important;font-family:Arial,sans-serif!important;font-weight:900!important;
+ display:grid!important;place-items:center!important;line-height:1!important;box-shadow:none!important;
+}
+@media(max-width:700px){
+ #playerDashboard .name-line .verified-mark{width:25px!important;height:25px!important;min-width:25px!important;flex-basis:25px!important;font-size:16px!important}
+}
