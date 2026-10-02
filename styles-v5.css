@@ -1639,3 +1639,44 @@ html{-webkit-text-size-adjust:100%!important;text-size-adjust:100%!important}
  #playerDashboard .rank-art{transform:translateY(14px)!important}
  #playerDashboard .elo-block{transform:translateY(14px)!important}
 }
+
+
+/* 2026-10-02: protección global contra deformación en navegadores/WebView */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+*,*::before,*::after{box-sizing:border-box}
+img,svg,video,canvas{max-width:100%}
+#playerDashboard img{object-fit:contain}
+#playerDashboard .profile-avatar,
+#playerDashboard #profileAvatar,
+#playerDashboard .avatar-placeholder,
+#playerDashboard .ranking-avatar,
+#playerDashboard .ranking-avatar img,
+#playerDashboard .top3-avatar,
+#playerDashboard .top3-avatar img{
+  aspect-ratio:1/1!important;
+  border-radius:50%!important;
+}
+#playerDashboard #profileAvatar,
+#playerDashboard .ranking-avatar img,
+#playerDashboard .top3-avatar img{object-fit:cover!important}
+#playerDashboard .rank-badge-image,
+#playerDashboard .top3-rank-badge,
+#playerDashboard .guest-ranking-rank-badge{
+  aspect-ratio:1/1!important;
+  object-fit:contain!important;
+  flex-shrink:0!important;
+}
+#playerDashboard .identity-section,
+#playerDashboard .rank-hero-card,
+#playerDashboard .competitive-hub,
+#playerDashboard .season-strip,
+#playerDashboard .top3-showcase,
+#playerDashboard .competitive-grid,
+#playerDashboard .achievements-box,
+#playerDashboard .match-history-box{
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+#playerDashboard .rank-hero-card>*,
+#playerDashboard .top3-showcase>*,
+#playerDashboard .competitive-grid>*{min-width:0!important}
