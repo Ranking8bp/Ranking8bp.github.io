@@ -1,6 +1,23 @@
 
 const GLOBAL_DESIGN_DEFAULTS={badgeSize:170,badgeX:-8,badgeY:-35,cardHeight:180,textX:0,textY:-39,titleSize:15,rankSize:16,eloLabelSize:28,eloNumberSize:48,progressSize:9,barHeight:9,cardWidth:94,artWidth:43};
 let globalDesignSettings={...GLOBAL_DESIGN_DEFAULTS};
+// Force badge motion with Web Animations API so CSS/inline transforms cannot stop it.
+let rankBadgeMotion=null;
+function forceRankBadgeMotion(){
+ const badge=document.querySelector('#playerDashboard .rank-badge-image');
+ if(!badge)return;
+ const d=globalDesignSettings||GLOBAL_DESIGN_DEFAULTS;
+ const x=Number(d.badgeX)||0,y=Number(d.badgeY)||0;
+ if(rankBadgeMotion){try{rankBadgeMotion.cancel()}catch(_){}}
+ badge.style.setProperty('animation','none','important');
+ badge.style.removeProperty('transform');
+ rankBadgeMotion=badge.animate([
+  {transform:`translate3d(${x}px,${y}px,0)`},
+  {transform:`translate3d(${x}px,${y-18}px,0)`},
+  {transform:`translate3d(${x}px,${y}px,0)`}
+ ],{duration:1800,iterations:Infinity,easing:'ease-in-out'});
+}
+
 function applyGlobalDesign(s){
  globalDesignSettings={...GLOBAL_DESIGN_DEFAULTS,...(s||{})};const d=globalDesignSettings;
  const card=document.querySelector('#playerDashboard .rank-hero-card');
@@ -15,7 +32,7 @@ function applyGlobalDesign(s){
  const track=document.querySelector('#playerDashboard .rank-progress-track');
  if(card){card.style.setProperty('width',d.cardWidth+'%','important');card.style.setProperty('height',d.cardHeight+'px','important');card.style.setProperty('min-height',d.cardHeight+'px','important');card.style.setProperty('grid-template-columns',d.artWidth+'% '+(100-d.artWidth)+'%','important')}
  if(art)art.style.setProperty('height',d.cardHeight+'px','important');
- if(badge){badge.style.setProperty('width',d.badgeSize+'px','important');badge.style.setProperty('height',d.badgeSize+'px','important');badge.style.setProperty('min-width',d.badgeSize+'px','important');badge.style.setProperty('min-height',d.badgeSize+'px','important');badge.style.setProperty('--badge-x',d.badgeX+'px');badge.style.setProperty('--badge-y',d.badgeY+'px');badge.style.removeProperty('transform')}
+ if(badge){badge.style.setProperty('width',d.badgeSize+'px','important');badge.style.setProperty('height',d.badgeSize+'px','important');badge.style.setProperty('min-width',d.badgeSize+'px','important');badge.style.setProperty('min-height',d.badgeSize+'px','important');badge.style.setProperty('--badge-x',d.badgeX+'px');badge.style.setProperty('--badge-y',d.badgeY+'px');badge.style.removeProperty('transform');setTimeout(forceRankBadgeMotion,0)}
  if(eloBlock)eloBlock.style.setProperty('transform','translate('+d.textX+'px,'+d.textY+'px)','important');
  if(title)title.style.setProperty('font-size',d.titleSize+'px','important');
  if(rankName)rankName.style.setProperty('font-size',d.rankSize+'px','important');
