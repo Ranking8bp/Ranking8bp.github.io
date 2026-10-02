@@ -1543,7 +1543,14 @@ function buildRankingRow(player,index){
 
   const elo=document.createElement('div');
   elo.className='ranking-elo';
-  elo.textContent=String(Number.isFinite(Number(player?.elo_points))?Number(player.elo_points):200);
+  const eloValue=Number.isFinite(Number(player?.elo_points))?Number(player.elo_points):200;
+  const rank=getRankByElo(eloValue);
+  const miniRank=document.createElement('button');
+  miniRank.type='button';miniRank.className='ranking-elo-rank';miniRank.title='Ver insignia '+rank.name;
+  miniRank.addEventListener('click',e=>{e.stopPropagation();openRankZoom(rank,player)});
+  applyRankImage(miniRank,rank);
+  const eloNumber=document.createElement('span');eloNumber.className='ranking-elo-number';eloNumber.textContent=String(eloValue);
+  elo.append(miniRank,eloNumber);
 
   row.append(position,playerCell,countryCell,elo);
   return row;
