@@ -28,7 +28,7 @@
 @media(max-width:700px){
 #playerDashboard .rank-hero-card{width:94%!important;height:180px!important;min-height:180px!important;margin:16px auto!important;padding:0!important;display:grid!important;grid-template-columns:43% 57%!important;align-items:center!important;overflow:hidden!important}
 #playerDashboard .rank-art{width:100%!important;height:180px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important;transform:translateY(22px)!important}
-#playerDashboard .rank-badge-image{width:170px!important;height:170px!important;min-width:170px!important;min-height:170px!important;margin:0!important;transform:translate(-8px,-35px)!important}
+#playerDashboard .rank-badge-image{margin:0!important}
 #playerDashboard .rank-badge-image .rank-original-img{width:100%!important;height:100%!important;object-fit:contain!important}
 #playerDashboard .elo-block{width:100%!important;height:auto!important;min-width:0!important;padding:0 10px 0 8px!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;transform:translateY(22px)!important;overflow:visible!important}
 #playerDashboard .rank-competitive-title{font-size:15px!important;line-height:1!important;margin:0 0 8px!important;white-space:nowrap!important;color:#ffe58a!important;letter-spacing:0!important}
@@ -320,6 +320,13 @@
  }
  #playerDashboard .rank-hero-card .elo-main-line,
  #playerDashboard .rank-hero-card .rank-progress-row{transform:none!important}
+}
+</style>
+<style id="badge-position-direct-final">
+@media(max-width:700px){
+ #playerDashboard #rankBadgeImage.rank-badge-overlay{
+   transform:translateY(28px)!important;
+ }
 }
 </style>
 </head>
@@ -767,31 +774,5 @@
  }
  document.addEventListener("DOMContentLoaded",function(){syncRankProgress();setInterval(syncRankProgress,1000)});
 })();
-</script><script id="force-rank-badge-motion-v23">
-(function(){
- function start(){
-  var badge=document.querySelector('#playerDashboard .rank-badge-image');
-  if(!badge)return false;
-  if(badge.dataset.forceMove==='23')return true;
-  badge.dataset.forceMove='23';
-  badge.style.setProperty('animation','none','important');
-  var y=0,dir=-1;
-  function tick(){
-   if(!badge.isConnected){return;}
-   y+=dir*0.10;
-   if(y<=-18)dir=1;
-   if(y>=0)dir=-1;
-   badge.style.setProperty('transform','translate(calc(var(--badge-x, -8px)), calc(var(--badge-y, -35px) + '+y.toFixed(2)+'px))','important');
-   requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);return true;
- }
- if(!start()){
-  var mo=new MutationObserver(function(){if(start())mo.disconnect()});
-  mo.observe(document.documentElement,{childList:true,subtree:true});
- }
- setInterval(start,1000);
-})();
-</script>
-</body>
+</script></body>
 </html>
