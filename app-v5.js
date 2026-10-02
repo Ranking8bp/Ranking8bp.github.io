@@ -653,18 +653,9 @@ function showEloDailyLimit(resetAt){
  eloDailyCountdownTimer=setInterval(formatEloCountdown,1000);
 }
 async function updateRankedDailyStatus(){
- if(!currentUser||!supabaseClient)return null;
- try{
-  const {data,error}=await supabaseClient.rpc('get_ranked_daily_status');if(error)throw error;
-  const st=Array.isArray(data)?data[0]:data;
-  const limited=Number(st?.games_today||0)>=5;
-  if(dashboardPlayBtn){
-    dashboardPlayBtn.classList.toggle('elo-daily-limited',limited);
-    dashboardPlayBtn.setAttribute('aria-label',limited?'Límite diario de ELO alcanzado':'Jugar por ELO');
-  }
-  if(limited){eloDailyResetAt=st.reset_at;showEloDailyLimit(st.reset_at)}
-  return st;
- }catch(e){console.error(e);return null}
+ if(dashboardPlayBtn){dashboardPlayBtn.classList.remove('elo-daily-limited');dashboardPlayBtn.setAttribute('aria-label','Jugar por ELO')}
+ closeEloDailyLimit();
+ return {games_today:0,games_remaining:null,reset_at:null};
 }
 
 function hasDirectMatchmakingRequest(){
@@ -699,14 +690,12 @@ async function renderSearchingPlayerProfile(){const n=document.getElementById('s
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient)return;
  rankedSearchActive=true;
- const status=await updateRankedDailyStatus();
+ await updateRankedDailyStatus();
  matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true;renderSearchingPlayerProfile().catch(()=>{});
  try{
   const {data,error}=await supabaseClient.rpc('join_ranked_matchmaking');
   if(error){
-    if(String(error.message||'').includes('RANKED_DAILY_LIMIT_REACHED')){
-      matchmakingModal.hidden=true;await updateRankedDailyStatus();return;
-    }
+    
     throw error;
   }
   const m=Array.isArray(data)?data[0]:data;
