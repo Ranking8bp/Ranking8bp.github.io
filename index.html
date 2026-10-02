@@ -362,9 +362,55 @@
   display:none!important;
 }
 </style>
-<style id="rank-card-remove-completely-final">
+<style id="standalone-rank-badge-final">
 #playerDashboard .rank-hero-card{
+  display:block!important;
+  width:100%!important;
+  max-width:none!important;
+  height:170px!important;
+  min-height:170px!important;
+  margin:0 auto 6px!important;
+  padding:0!important;
+  background:none!important;
+  background-image:none!important;
+  border:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+  position:relative!important;
+}
+#playerDashboard .rank-hero-card > .rank-art,
+#playerDashboard .rank-hero-card > .elo-block{
   display:none!important;
+}
+#playerDashboard .rank-hero-card > #rankBadgeImage{
+  display:flex!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:160px!important;
+  height:160px!important;
+  min-width:160px!important;
+  min-height:160px!important;
+  max-width:160px!important;
+  max-height:160px!important;
+  margin:0!important;
+  padding:0!important;
+  transform:translate(-50%,-50%)!important;
+  background:none!important;
+  border:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+#playerDashboard .rank-hero-card > #rankBadgeImage > img.rank-original-img{
+  display:block!important;
+  position:static!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  margin:0!important;
+  transform:none!important;
 }
 </style>
 </head>
