@@ -61,6 +61,7 @@ const guestRankingList=document.getElementById('guestRankingList');
 const guestRankingCount=document.getElementById('guestRankingCount');
 const guestRankingSearchInput=document.getElementById('guestRankingSearchInput');
 let guestRankingPlayers=[];
+let totalRegisteredPlayers=0;
 const guestRankShowcase=document.getElementById('guestRankShowcase');
 const loginBtn=document.getElementById('loginBtn');
 const registerBtn=document.getElementById('registerBtn');
@@ -1048,6 +1049,7 @@ async function loadGuestRanking(){
   if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
   if(Array.isArray(snapshot.streaks))rankingStreaks=new Map(snapshot.streaks.map(x=>[String(x.player_id),Number(x.streak)||0]));
+  if(Number.isFinite(Number(snapshot.total_players)))totalRegisteredPlayers=Number(snapshot.total_players);
   guestRankingPlayers=(Array.isArray(snapshot.ranking)?snapshot.ranking:[]).slice(0,100);
   if(snapshot.latest_result){writePublicCache('ranking8bp_latest_result',snapshot.latest_result);paintLatestRankingResult(snapshot.latest_result)};
   writePublicCache('ranking8bp_public_ranking',guestRankingPlayers);
@@ -1073,7 +1075,7 @@ function renderGuestRanking(){
    return !q||name.includes(q);
  });
  guestRankingList.replaceChildren();
- if(guestRankingCount)guestRankingCount.textContent=q?String(players.length)+' RESULTADOS':'TOP '+Math.min(100,players.length);
+ if(guestRankingCount)guestRankingCount.textContent=q?String(players.length)+' RESULTADOS':'LOS 100 MEJORES DEL MUNDO EN EL RANKING · TOTAL REGISTRADOS: '+(totalRegisteredPlayers||players.length);
  if(!players.length){
    const empty=document.createElement('div');empty.className='ranking-loading';empty.textContent=q?'No se encontró ningún jugador.':'Todavía no hay jugadores registrados.';guestRankingList.appendChild(empty);return;
  }
@@ -1800,6 +1802,7 @@ async function loadRanking(){
   const {data,error}=await supabaseClient.rpc('get_public_home_snapshot');if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
   if(Array.isArray(snapshot.streaks))rankingStreaks=new Map(snapshot.streaks.map(x=>[String(x.player_id),Number(x.streak)||0]));
+  if(Number.isFinite(Number(snapshot.total_players)))totalRegisteredPlayers=Number(snapshot.total_players);
   rankingPlayersCache=Array.isArray(snapshot.ranking)?snapshot.ranking:[];
   if(snapshot.latest_result){writePublicCache('ranking8bp_latest_result',snapshot.latest_result);paintLatestRankingResult(snapshot.latest_result)};
   writePublicCache('ranking8bp_full_ranking',rankingPlayersCache);
@@ -1819,7 +1822,7 @@ function renderFilteredRanking(){
     return !query||name.includes(query);
   });
   rankingList.replaceChildren();
-  rankingCount.textContent=filtered.length+' '+(filtered.length===1?'JUGADOR':'JUGADORES');
+  rankingCount.textContent=query?filtered.length+' RESULTADOS':'LOS 100 MEJORES DEL MUNDO EN EL RANKING · TOTAL REGISTRADOS: '+(totalRegisteredPlayers||rankingPlayersCache.length);
   if(!filtered.length){
     const empty=document.createElement('div');empty.className='ranking-loading';
     empty.textContent=query?'No se encontró ningún jugador.':'Todavía no hay jugadores registrados.';
