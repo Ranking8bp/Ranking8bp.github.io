@@ -1712,3 +1712,27 @@ img,svg,video,canvas{max-width:100%}
 .players-searching-row{display:flex;align-items:center;justify-content:center;gap:7px;margin:5px auto 16px;color:#f2c94c;font-weight:900;font-size:15px;text-align:center;text-transform:uppercase}
 .searching-player-dot{width:10px;height:10px;border-radius:50%;background:#f2c94c;box-shadow:0 0 10px rgba(242,201,76,.85);flex:0 0 auto}
 .players-searching-row strong{font-size:19px;color:#f2c94c}
+
+/* Unified dashboard card width */
+#playerDashboard .competitive-hub,
+#playerDashboard .dashboard-play-area,
+#playerDashboard .ikar-moderator-area,
+#playerDashboard .players-playing-row,
+#playerDashboard .players-searching-row,
+#playerDashboard .dashboard-whatsapp-area,
+#playerDashboard .dashboard-chat-area,
+#playerDashboard .push-enable-area,
+#playerDashboard .latest-ranking-result,
+#playerDashboard .ranking-card,
+#playerDashboard .general-stats-card{
+ width:94%!important;
+ max-width:760px!important;
+ margin-left:auto!important;
+ margin-right:auto!important;
+ box-sizing:border-box!important;
+}
+#playerDashboard .dashboard-play-btn,
+#playerDashboard .ikar-moderator-btn,
+#playerDashboard .dashboard-whatsapp-btn,
+#playerDashboard .dashboard-chat-btn,
+#playerDashboard .push-enable-btn{width:100%!important;max-width:none!important;box-sizing:border-box!important}
