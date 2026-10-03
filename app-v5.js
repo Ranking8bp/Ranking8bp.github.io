@@ -1040,6 +1040,7 @@ async function loadGuestRanking(){
   const {data,error}=await supabaseClient.rpc('get_public_home_snapshot');
   if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
+  if(Array.isArray(snapshot.streaks))rankingStreaks=new Map(snapshot.streaks.map(x=>[String(x.player_id),Number(x.streak)||0]));
   guestRankingPlayers=(Array.isArray(snapshot.ranking)?snapshot.ranking:[]).slice(0,100);
   if(snapshot.latest_result){writePublicCache('ranking8bp_latest_result',snapshot.latest_result);paintLatestRankingResult(snapshot.latest_result)};
   writePublicCache('ranking8bp_public_ranking',guestRankingPlayers);
@@ -1776,6 +1777,7 @@ async function loadRanking(){
  try{
   const {data,error}=await supabaseClient.rpc('get_public_home_snapshot');if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
+  if(Array.isArray(snapshot.streaks))rankingStreaks=new Map(snapshot.streaks.map(x=>[String(x.player_id),Number(x.streak)||0]));
   rankingPlayersCache=Array.isArray(snapshot.ranking)?snapshot.ranking:[];
   if(snapshot.latest_result){writePublicCache('ranking8bp_latest_result',snapshot.latest_result);paintLatestRankingResult(snapshot.latest_result)};
   writePublicCache('ranking8bp_full_ranking',rankingPlayersCache);
