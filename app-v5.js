@@ -631,7 +631,7 @@ function startRankedVsChat(match){
  rankedVsChatMatchId=id;
  loadRankedVsChat(id);
  startRankedChatResponseTimer(id);
- rankedVsChatTimer=setInterval(()=>loadRankedVsChat(id),2000);
+ rankedVsChatTimer=setInterval(()=>{if(!document.hidden)loadRankedVsChat(id)},4000);
 }
 async function sendRankedVsChat(){
  const message=String(rankedVsChatInput?.value||'').trim();
@@ -679,7 +679,7 @@ function showRankedMatch(match){
  setVsAvatar(versusOpponentAvatar,match.opponent_avatar_path,match.opponent_name);
  updateRankedPlayerConfirm(match);if(match.admin_confirmed){stopRankedMatchCountdown();startRankedPlayTimer(match)}else{stopRankedPlayTimer();startRankedMatchCountdown(match)}if(confirmedMatchWarning)confirmedMatchWarning.hidden=!match.admin_confirmed;if(rankedMatchRules)rankedMatchRules.hidden=!match.admin_confirmed;startRankedVsChat(match);updateRankedResultReport(match);updateRankedVideoProof(match);if(abandonRankedBtn){abandonRankedBtn.hidden=!!match.admin_confirmed;abandonRankedBtn.disabled=!!match.admin_confirmed}if(matchmakingClose){matchmakingClose.hidden=!!match.admin_confirmed;matchmakingClose.disabled=!!match.admin_confirmed}
  updatePendingMatchesCount();
- clearInterval(pendingMatchesTimer);pendingMatchesTimer=setInterval(()=>{updatePendingMatchesCount();watchCurrentRankedMatch()},2000);
+ clearInterval(pendingMatchesTimer);pendingMatchesTimer=setInterval(()=>{if(!document.hidden){updatePendingMatchesCount();watchCurrentRankedMatch()}},4000);
 }
 async function watchCurrentRankedMatch(){
  if(!currentRankedMatchId||!supabaseClient)return;
@@ -777,7 +777,7 @@ async function refreshPlayersSearchingCount(){
  if(!supabaseClient||!playersSearchingCount)return;
  try{const {data,error}=await supabaseClient.rpc('get_matchmaking_search_count');if(error)throw error;const n=Math.max(0,Number(data)||0);playersSearchingCount.textContent=String(n);if(playersSearchingText)playersSearchingText.textContent=n===1?'JUGADOR ESTÁ BUSCANDO RIVAL':'JUGADORES ESTÁN BUSCANDO RIVAL'}catch(e){console.error('Contador buscando rival:',e)}
 }
-setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),500);setInterval(()=>refreshPlayersSearchingCount().catch(()=>{}),5000);
+setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),500);setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},15000);
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient)return;
  rankedSearchActive=true;
@@ -990,7 +990,7 @@ async function openPlayingVs(){if(!supabaseClient||!playingVsModal||!playingVsLi
 if(playersOnlineNow)playersOnlineNow.addEventListener('click',openPlayingVs);if(playingVsClose)playingVsClose.addEventListener('click',()=>playingVsModal.hidden=true);if(playingVsModal)playingVsModal.addEventListener('click',e=>{if(e.target===playingVsModal)playingVsModal.hidden=true});
 async function refreshPlayersPlayingCount(){if(!supabaseClient||!playersOnlineCount)return;try{const {data,error}=await supabaseClient.rpc('get_ranked_players_playing_count');if(error)throw error;playersOnlineCount.textContent=String(Number(data)||0)}catch(e){console.error('Jugadores jugando:',e)}}
 async function touchOnlinePresence(){if(!currentUser||!supabaseClient)return;try{await supabaseClient.rpc('touch_online_presence');await refreshOnlinePlayers()}catch(e){console.error('Presencia:',e)}}
-function startOnlinePresence(){clearInterval(onlinePresenceTimer);if(!currentUser)return;touchOnlinePresence();onlinePresenceTimer=setInterval(touchOnlinePresence,30000)}
+function startOnlinePresence(){clearInterval(onlinePresenceTimer);if(!currentUser)return;touchOnlinePresence();onlinePresenceTimer=setInterval(()=>{if(!document.hidden)touchOnlinePresence()},60000)}
 
 function renderGuestRanking(){
  if(!guestRankingList)return;
@@ -1885,7 +1885,7 @@ function startNotificationRefresh(){
   if(notificationRefreshTimer)clearInterval(notificationRefreshTimer);
   if(currentUser){
     loadNotifications().catch(()=>{});
-    notificationRefreshTimer=setInterval(()=>{if(currentUser)loadNotifications().catch(()=>{})},15000);
+    notificationRefreshTimer=setInterval(()=>{if(currentUser&&!document.hidden)loadNotifications().catch(()=>{})},30000);
   }
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser){loadNotifications().catch(()=>{});if(rankedSearchActive){if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}pollRankedMatch().catch(()=>{})}else restoreActiveRankedVs().catch(()=>{})}});
@@ -1902,7 +1902,7 @@ async function restoreActiveRankedVs(){
    startRankedVsChat(m);
  }catch(e){console.error('Restaurar VS activo:',e)}
 }
-setTimeout(startNotificationRefresh,1000);setTimeout(()=>{startOnlinePresence();refreshOnlinePlayers();refreshPlayersPlayingCount();setInterval(refreshPlayersPlayingCount,10000)},1200);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser)touchOnlinePresence()});
+setTimeout(startNotificationRefresh,1000);setTimeout(()=>{startOnlinePresence();refreshOnlinePlayers();refreshPlayersPlayingCount();setInterval(()=>{if(!document.hidden)refreshPlayersPlayingCount()},30000)},1200);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser)touchOnlinePresence()});
 if(playerDetailModal)playerDetailModal.addEventListener('click',event=>{if(event.target===playerDetailModal)closeRankingPlayer()});
 
 profilePhotoInput.addEventListener('change',async()=>{
@@ -2042,7 +2042,7 @@ async function loadGeneralChat(){
  for(const m of rows){const item=document.createElement('div');item.className='general-chat-message'+(m.user_id===currentUser?.id?' mine':'');const av=document.createElement('div');av.className='general-chat-avatar';if(m.avatar_path){const {data:u}=supabaseClient.storage.from('profile-photos').getPublicUrl(m.avatar_path);if(u?.publicUrl)av.style.backgroundImage='url("'+u.publicUrl+'")'}if(!m.avatar_path)av.textContent=String(m.author_name||'?').charAt(0).toUpperCase();const openChatProfile=async()=>{try{const {data,error}=await supabaseClient.rpc('get_profile_by_id',{p_player_id:m.user_id});if(error)throw error;const player=Array.isArray(data)?data[0]:null;if(player){closeGeneralChat();openRankingPlayer(player)}else showToast('No se encontró ese perfil.')}catch(err){console.error(err);showToast('No se pudo abrir el perfil.')}};av.classList.add('general-chat-profile-link');av.setAttribute('role','button');av.tabIndex=0;av.addEventListener('click',openChatProfile);av.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openChatProfile()}});const box=document.createElement('div');const head=document.createElement('strong');head.textContent=m.author_name;head.classList.add('general-chat-profile-link');head.setAttribute('role','button');head.tabIndex=0;head.addEventListener('click',openChatProfile);head.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openChatProfile()}});const body=document.createElement('p');body.textContent=m.body;const time=document.createElement('small');time.textContent=formatCommentDate(m.created_at);box.append(head,body,time);item.append(av,box);generalChatMessages.append(item)}
  generalChatMessages.scrollTop=generalChatMessages.scrollHeight;
 }
-function openGeneralChat(){if(!currentUser){showToast('Inicia sesión para usar el chat.');return}generalChatModal.hidden=false;loadGeneralChat();clearInterval(generalChatTimer);generalChatTimer=setInterval(loadGeneralChat,2500);setTimeout(()=>generalChatInput?.focus(),50)}
+function openGeneralChat(){if(!currentUser){showToast('Inicia sesión para usar el chat.');return}generalChatModal.hidden=false;loadGeneralChat();clearInterval(generalChatTimer);generalChatTimer=setInterval(()=>{if(!document.hidden)loadGeneralChat()},5000);setTimeout(()=>generalChatInput?.focus(),50)}
 function closeGeneralChat(){generalChatModal.hidden=true;clearInterval(generalChatTimer);generalChatTimer=null}
 dashboardChatBtn?.addEventListener('click',openGeneralChat);generalChatClose?.addEventListener('click',closeGeneralChat);
 generalChatForm?.addEventListener('submit',async e=>{e.preventDefault();const body=generalChatInput.value.trim();if(!body||!currentUser)return;const {error}=await supabaseClient.from('general_chat_messages').insert({user_id:currentUser.id,body});if(error){showToast('No se pudo enviar el mensaje.');return}generalChatInput.value='';await loadGeneralChat()});
