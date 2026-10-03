@@ -74,6 +74,8 @@ const adminCloseBtn=document.getElementById('adminCloseBtn');
 const adminRefreshBtn=document.getElementById('adminRefreshBtn');
 const adminProofsBtn=document.getElementById('adminProofsBtn');
 const adminProofsCount=document.getElementById('adminProofsCount');
+const adminVsSearch=document.getElementById('adminVsSearch');
+const adminVsSearchInput=document.getElementById('adminVsSearchInput');
 let adminMatchView='all';
 let adminMatchesLoading=false,adminMatchesCache=[],adminVideosCache=[];
 const adminMatchList=document.getElementById('adminMatchList');
@@ -1826,6 +1828,7 @@ if(adminModeBtn)adminModeBtn.addEventListener('click',async()=>{adminPanel.hidde
 if(ikarModeratorBtn)ikarModeratorBtn.addEventListener('click',async()=>{adminPanel.hidden=false;if(settingsMenu)settingsMenu.hidden=true;const isIkar=String(currentProfile?.username||'').trim().toLowerCase()==='ikar8bp'&&currentProfile?.is_admin===true;if(adminVsTab)adminVsTab.hidden=false;if(adminPlayersTab)adminPlayersTab.hidden=!isIkar;if(adminModerationTab)adminModerationTab.hidden=!isIkar;if(adminProofsBtn)adminProofsBtn.hidden=!isIkar;if(adminPlayerSearch)adminPlayerSearch.hidden=true;if(adminPlayerList)adminPlayerList.hidden=true;if(adminModeration)adminModeration.hidden=true;if(adminMatchList)adminMatchList.hidden=false;await loadAdminMatches()});
 if(adminCloseBtn)adminCloseBtn.addEventListener('click',()=>adminPanel.hidden=true);
 if(adminRefreshBtn)adminRefreshBtn.addEventListener('click',()=>{if(adminPlayerList&&!adminPlayerList.hidden)return loadAdminPlayers();adminMatchesCache=[];adminVideosCache=[];loadAdminMatches()});
+if(adminVsSearchInput)adminVsSearchInput.addEventListener('input',()=>loadAdminMatches());
 if(adminProofsBtn)adminProofsBtn.addEventListener('click',()=>{adminMatchView='proofs';if(adminMatchList)adminMatchList.hidden=false;if(adminPlayerList)adminPlayerList.hidden=true;if(adminPlayerSearch)adminPlayerSearch.hidden=true;if(adminModeration)adminModeration.hidden=true;loadAdminMatches()});
 if(adminVsTab)adminVsTab.addEventListener('click',showAdminVs);
 if(adminPlayersTab)adminPlayersTab.addEventListener('click',showAdminPlayers);
