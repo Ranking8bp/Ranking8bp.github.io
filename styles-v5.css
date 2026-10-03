@@ -1739,3 +1739,14 @@ img,svg,video,canvas{max-width:100%}
 
 /* Negative ELO */
 .negative-elo{color:#ff3b3b!important;text-shadow:0 0 8px rgba(255,59,59,.22)!important}
+
+
+/* Ranking mobile: keep rank badge + ELO fully aligned and inside every row */
+@media(max-width:700px){
+  .ranking-header,.ranking-row{grid-template-columns:34px minmax(0,1.28fr) minmax(82px,.92fr) 72px}
+  .ranking-row{box-sizing:border-box}
+  .ranking-first{width:calc(100% - 12px);box-sizing:border-box}
+  .ranking-elo{width:72px;min-width:72px;justify-content:flex-end;gap:3px;overflow:visible}
+  .ranking-elo-rank{width:30px;height:30px;flex:0 0 30px}
+  .ranking-elo-number{width:36px;min-width:36px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+}
