@@ -1772,3 +1772,14 @@ img,svg,video,canvas{max-width:100%}
   .ranking-row:nth-child(3) .ranking-elo-rank{z-index:1}
   .ranking-row:nth-child(-n+3) .ranking-elo-number{position:relative;z-index:2}
 }
+
+
+/* TOP 3: el ELO siempre debe quedar visualmente por encima de la insignia */
+.ranking-row:nth-child(-n+3) .ranking-elo{isolation:isolate}
+.ranking-row:nth-child(-n+3) .ranking-elo-rank{position:relative;z-index:1}
+.ranking-row:nth-child(-n+3) .ranking-elo-number{
+  position:relative!important;
+  z-index:10!important;
+  background:inherit;
+  text-shadow:0 1px 3px #000,0 0 5px #000;
+}
