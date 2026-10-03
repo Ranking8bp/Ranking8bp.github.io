@@ -818,8 +818,9 @@ async function startRankedMatchmaking(){
   }
   const m=Array.isArray(data)?data[0]:data;
   if(m?.status==='matched'){const {data:full}=await supabaseClient.rpc('get_my_active_ranked_match');const match=Array.isArray(full)?full[0]:full;if(match){showRankedMatch(match);return}}
-  clearInterval(matchmakingTimer);matchmakingTimer=setInterval(pollRankedMatch,2500);
-  clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(heartbeatRankedSearch,5000);heartbeatRankedSearch();
+  // High-concurrency mode: far fewer requests while a player waits for a rival.
+  clearInterval(matchmakingTimer);matchmakingTimer=setInterval(()=>{if(!document.hidden)pollRankedMatch()},10000);
+  clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},20000);
  }catch(e){
    console.error('Error búsqueda ELO:',e);
    const msg=String(e?.message||e?.error_description||'');
@@ -827,8 +828,8 @@ async function startRankedMatchmaking(){
    if(msg.includes('PLAYER_ALREADY_HAS_ACTIVE_VS')){await restoreActiveRankedVs();showToast('Ya tienes un VS activo.');return}
    /* A temporary matchmaking/heartbeat error must never close BUSCANDO RIVAL. */
    if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}
-   clearInterval(matchmakingTimer);matchmakingTimer=setInterval(pollRankedMatch,2500);
-   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(heartbeatRankedSearch,3000);
+   clearInterval(matchmakingTimer);matchmakingTimer=setInterval(()=>{if(!document.hidden)pollRankedMatch()},10000);
+   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},20000);
    showToast('Buscando rival…');
  }
 }
