@@ -769,7 +769,7 @@ async function refreshPlayersSearchingCount(){
  if(!supabaseClient||!playersSearchingCount)return;
  try{const {data,error}=await supabaseClient.rpc('get_matchmaking_search_count');if(error)throw error;const n=Math.max(0,Number(data)||0);playersSearchingCount.textContent=String(n);if(playersSearchingText)playersSearchingText.textContent=n===1?'JUGADOR ESTÁ BUSCANDO RIVAL':'JUGADORES ESTÁN BUSCANDO RIVAL'}catch(e){console.error('Contador buscando rival:',e)}
 }
-setInterval(refreshPlayersSearchingCount,5000);
+setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),500);setInterval(()=>refreshPlayersSearchingCount().catch(()=>{}),5000);
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient)return;
  rankedSearchActive=true;
@@ -961,8 +961,8 @@ async function loadGuestRanking(){
   const {data,error}=await supabaseClient.rpc('get_public_ranking');
   if(error)throw error;
   guestRankingPlayers=(Array.isArray(data)?data:[]).slice(0,100);
-  await refreshRankingStreaks();
   renderGuestRanking();
+  refreshRankingStreaks().catch(e=>console.error('Rachas públicas:',e));
  }catch(e){
   console.error('Ranking público:',e);
   guestRankingList.innerHTML='<div class="ranking-loading ranking-error">No se pudo cargar la clasificación.</div>';
@@ -1700,8 +1700,8 @@ async function loadRanking(attempt=0){
 
     const players=Array.isArray(data)?data:[];
     rankingPlayersCache=players;
-    await refreshRankingStreaks();
     renderFilteredRanking();
+    refreshRankingStreaks().catch(e=>console.error('Rachas ranking:',e));
 
 
     // renderFilteredRanking() ya se encarga de pintar la lista y el estado vacío.
