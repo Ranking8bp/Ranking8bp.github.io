@@ -1736,3 +1736,6 @@ img,svg,video,canvas{max-width:100%}
 #playerDashboard .dashboard-whatsapp-btn,
 #playerDashboard .dashboard-chat-btn,
 #playerDashboard .push-enable-btn{width:100%!important;max-width:none!important;box-sizing:border-box!important}
+
+/* Negative ELO */
+.negative-elo{color:#ff3b3b!important;text-shadow:0 0 8px rgba(255,59,59,.22)!important}
