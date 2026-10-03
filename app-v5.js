@@ -1042,8 +1042,10 @@ async function renderGuestRankShowcase(){
   const avatar=document.createElement('span');avatar.className='guest-world-avatar';avatar.textContent=String(p.username||p.account_name||'J').charAt(0).toUpperCase();
   if(p.avatar_path&&supabaseClient){const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(p.avatar_path);if(data?.publicUrl){avatar.textContent='';const img=document.createElement('img');img.src=data.publicUrl;img.alt='';img.loading='lazy';img.onerror=()=>{img.remove();avatar.textContent=String(p.username||p.account_name||'J').charAt(0).toUpperCase()};avatar.appendChild(img)}}
   const name=document.createElement('b');name.textContent=String(p.username||p.account_name||'Jugador').toUpperCase();
-  const meta=document.createElement('span');meta.textContent=getFlag(p.country)+'  ELO: '+String(Number.isFinite(Number(p.elo_points))?Number(p.elo_points):200);
-  card.append(medal,avatar,name,meta);top.appendChild(card);
+  const badge=document.createElement('span');badge.className='guest-world-rank-badge';renderRankBadgeOn(badge,getRankByElo(Number.isFinite(Number(p.elo_points))?Number(p.elo_points):200));
+  const meta=document.createElement('span');meta.className='guest-world-meta';meta.textContent=getFlag(p.country)+'  ELO: '+String(Number.isFinite(Number(p.elo_points))?Number(p.elo_points):200);
+  const identity=document.createElement('div');identity.className='guest-world-identity';identity.append(avatar,badge);
+  card.append(medal,identity,name,meta);top.appendChild(card);
  });
 }
 
