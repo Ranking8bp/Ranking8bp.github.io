@@ -75,6 +75,7 @@ const adminRefreshBtn=document.getElementById('adminRefreshBtn');
 const adminProofsBtn=document.getElementById('adminProofsBtn');
 const adminProofsCount=document.getElementById('adminProofsCount');
 let adminMatchView='all';
+let adminMatchesLoading=false,adminMatchesCache=[],adminVideosCache=[];
 const adminMatchList=document.getElementById('adminMatchList');
 const adminPlayerList=document.getElementById('adminPlayerList');
 const adminPlayerSearch=document.getElementById('adminPlayerSearch');
@@ -903,15 +904,25 @@ async function loadModeratorMatches(){
 }
 
 async function loadAdminMatches(){
- if(!adminMatchList||!supabaseClient)return;
+ if(!adminMatchList||!supabaseClient||adminMatchesLoading)return;
+ adminMatchesLoading=true;
  adminMatchList.innerHTML='<div class="admin-empty">Cargando...</div>';
  try{
-  const [{data,error},{data:videoRows,error:videoErr}]=await Promise.all([supabaseClient.rpc('admin_get_ranked_matches'),supabaseClient.rpc('admin_get_ranked_videos')]);if(error)throw error;if(videoErr)console.error('Videos admin:',videoErr);const videos=Array.isArray(videoRows)?videoRows:[];
-  const allRows=(Array.isArray(data)?data:[]).filter(m=>m.status==='matched');
+  let data=adminMatchesCache, videos=adminVideosCache;
+  if(!data.length){
+    const mr=await supabaseClient.rpc('admin_get_ranked_matches');if(mr.error)throw mr.error;
+    data=Array.isArray(mr.data)?mr.data:[];adminMatchesCache=data;
+  }
+  if(!videos.length){
+    const vr=await supabaseClient.rpc('admin_get_ranked_videos');if(vr.error)console.error('Videos admin:',vr.error);
+    videos=Array.isArray(vr.data)?vr.data:[];adminVideosCache=videos;
+  }
+  const allRows=data.filter(m=>m.status==='matched');
   const proofMatchIds=new Set(videos.map(v=>Number(v.match_id)));
   for(const m of allRows){if(m.player1_video_path||m.player2_video_path)proofMatchIds.add(Number(m.match_id))}
   if(adminProofsCount)adminProofsCount.textContent=String(proofMatchIds.size);
-  const rows=adminMatchView==='proofs'?allRows.filter(m=>proofMatchIds.has(Number(m.match_id))):allRows;
+  const proofRows=allRows.filter(m=>proofMatchIds.has(Number(m.match_id)));
+  const rows=adminMatchView==='proofs'?proofRows.slice(0,8):allRows;
   adminMatchList.replaceChildren();
   if(!rows.length){adminMatchList.innerHTML='<div class="admin-empty">'+(adminMatchView==='proofs'?'No hay VS con pruebas pendientes.':'No hay partidos en espera.')+'</div>';return}
   for(const m of rows){
@@ -930,24 +941,30 @@ async function loadAdminMatches(){
     const actions=document.createElement('div');actions.className='admin-match-actions';const chatBtn=document.createElement('button');chatBtn.className='admin-chat-btn';chatBtn.textContent='VER CHAT';chatBtn.onclick=e=>{e.preventDefault();e.stopPropagation();window.__adminChatP1Id=m.player1_id;window.__adminChatP2Id=m.player2_id;openAdminVsChat(m.match_id,m.player1_name,m.player2_name)};chatBtn.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();window.__adminChatP1Id=m.player1_id;window.__adminChatP2Id=m.player2_id;openAdminVsChat(m.match_id,m.player1_name,m.player2_name)},{passive:false});actions.appendChild(chatBtn);
     if(!m.admin_confirmed){
      const confirmBtn=document.createElement('button');confirmBtn.className='confirm-vs';confirmBtn.textContent='CONFIRMAR VS';
-     confirmBtn.onclick=async()=>{if(!confirm('¿Confirmar este VS? Después de confirmarlo los jugadores ya no podrán abandonar.'))return;const {error}=await supabaseClient.rpc('admin_confirm_ranked_match',{p_match_id:m.match_id});if(error){showToast('No se pudo confirmar el VS.');return}await loadAdminMatches();showToast('VS confirmado. Ahora selecciona quién ganó.')};
+     confirmBtn.onclick=async()=>{if(!confirm('¿Confirmar este VS? Después de confirmarlo los jugadores ya no podrán abandonar.'))return;const {error}=await supabaseClient.rpc('admin_confirm_ranked_match',{p_match_id:m.match_id});if(error){showToast('No se pudo confirmar el VS.');return}adminMatchesCache=[];adminVideosCache=[];await loadAdminMatches();showToast('VS confirmado. Ahora selecciona quién ganó.')};
      actions.appendChild(confirmBtn);
     }else{
      const winnerTitle=document.createElement('strong');winnerTitle.className='admin-result-title';winnerTitle.textContent='DEFINIR GANADOR';
      actions.appendChild(winnerTitle);
      for(const [id,name] of [[m.player1_id,m.player1_name],[m.player2_id,m.player2_name]]){
       const winBtn=document.createElement('button');winBtn.className='admin-winner-btn';winBtn.textContent='GANA '+name;
-      winBtn.onclick=async()=>{if(!confirm('¿Confirmar a '+name+' como ganador? Se aplicará +15 ELO al ganador y -15 ELO al perdedor.'))return;const {error}=await supabaseClient.rpc('admin_resolve_ranked_match',{p_match_id:m.match_id,p_winner_id:id});if(error){showToast('No se pudo guardar el resultado.');return}await cleanupRankedMatchVideos(m.match_id);await loadAdminMatches();showToast('Resultado aplicado. Evidencias eliminadas.')};
+      winBtn.onclick=async()=>{if(!confirm('¿Confirmar a '+name+' como ganador? Se aplicará +15 ELO al ganador y -15 ELO al perdedor.'))return;const {error}=await supabaseClient.rpc('admin_resolve_ranked_match',{p_match_id:m.match_id,p_winner_id:id});if(error){showToast('No se pudo guardar el resultado.');return}await cleanupRankedMatchVideos(m.match_id);adminMatchesCache=[];adminVideosCache=[];await loadAdminMatches();showToast('Resultado aplicado. Evidencias eliminadas.')};
       actions.appendChild(winBtn);
      }
     }
     const cancel=document.createElement('button');cancel.className='cancel';cancel.textContent='ANULAR VS';
-    cancel.onclick=async()=>{if(!confirm('¿Anular este VS sin cambiar ELO?'))return;const {error}=await supabaseClient.rpc('admin_cancel_ranked_match',{p_match_id:m.match_id});if(error){showToast('No se pudo anular.');return}await cleanupRankedMatchVideos(m.match_id);await loadAdminMatches();showToast('VS anulado. Evidencias eliminadas.')};
+    cancel.onclick=async()=>{if(!confirm('¿Anular este VS sin cambiar ELO?'))return;const {error}=await supabaseClient.rpc('admin_cancel_ranked_match',{p_match_id:m.match_id});if(error){showToast('No se pudo anular.');return}await cleanupRankedMatchVideos(m.match_id);adminMatchesCache=[];adminVideosCache=[];await loadAdminMatches();showToast('VS anulado. Evidencias eliminadas.')};
     actions.appendChild(cancel);row.appendChild(actions);
    }
    adminMatchList.appendChild(row);
   }
+  if(adminMatchView==='proofs'&&proofRows.length>rows.length){
+    const more=document.createElement('button');more.type='button';more.className='admin-refresh';more.textContent='VER MÁS PRUEBAS ('+(proofRows.length-rows.length)+')';
+    more.onclick=()=>{adminMatchView='all';adminMatchesCache=[];adminVideosCache=[];loadAdminMatches()};
+    adminMatchList.appendChild(more);
+  }
  }catch(e){console.error(e);adminMatchList.innerHTML='<div class="admin-empty">No se pudo cargar el modo administrador.</div>'}
+ finally{adminMatchesLoading=false}
 }
 
 function normalizeUsername(value){return value.trim().toLowerCase()}
@@ -1810,7 +1827,7 @@ if(playerFollowBtn)playerFollowBtn.addEventListener('click',toggleFollow);
 if(adminModeBtn)adminModeBtn.addEventListener('click',async()=>{adminPanel.hidden=false;settingsMenu.hidden=true;await loadAdminMatches()});
 if(ikarModeratorBtn)ikarModeratorBtn.addEventListener('click',async()=>{adminPanel.hidden=false;if(settingsMenu)settingsMenu.hidden=true;const isIkar=String(currentProfile?.username||'').trim().toLowerCase()==='ikar8bp'&&currentProfile?.is_admin===true;if(adminVsTab)adminVsTab.hidden=false;if(adminPlayersTab)adminPlayersTab.hidden=!isIkar;if(adminModerationTab)adminModerationTab.hidden=!isIkar;if(adminProofsBtn)adminProofsBtn.hidden=!isIkar;if(adminPlayerSearch)adminPlayerSearch.hidden=true;if(adminPlayerList)adminPlayerList.hidden=true;if(adminModeration)adminModeration.hidden=true;if(adminMatchList)adminMatchList.hidden=false;await loadAdminMatches()});
 if(adminCloseBtn)adminCloseBtn.addEventListener('click',()=>adminPanel.hidden=true);
-if(adminRefreshBtn)adminRefreshBtn.addEventListener('click',()=>adminPlayerList&&!adminPlayerList.hidden?loadAdminPlayers():loadAdminMatches());
+if(adminRefreshBtn)adminRefreshBtn.addEventListener('click',()=>{if(adminPlayerList&&!adminPlayerList.hidden)return loadAdminPlayers();adminMatchesCache=[];adminVideosCache=[];loadAdminMatches()});
 if(adminProofsBtn)adminProofsBtn.addEventListener('click',()=>{adminMatchView='proofs';if(adminMatchList)adminMatchList.hidden=false;if(adminPlayerList)adminPlayerList.hidden=true;if(adminPlayerSearch)adminPlayerSearch.hidden=true;if(adminModeration)adminModeration.hidden=true;loadAdminMatches()});
 if(adminVsTab)adminVsTab.addEventListener('click',showAdminVs);
 if(adminPlayersTab)adminPlayersTab.addEventListener('click',showAdminPlayers);
