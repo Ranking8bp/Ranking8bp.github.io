@@ -1783,3 +1783,27 @@ img,svg,video,canvas{max-width:100%}
   background:inherit;
   text-shadow:0 1px 3px #000,0 0 5px #000;
 }
+
+
+/* Ranking heading: blue summary below the white title */
+.ranking-title{
+  grid-template-columns:46px minmax(0,1fr)!important;
+  grid-template-rows:auto auto;
+  align-content:center;
+  column-gap:12px;
+  row-gap:5px;
+  padding-top:12px;
+  padding-bottom:12px;
+}
+.ranking-title>.ranking-crown{grid-column:1;grid-row:1 / span 2}
+.ranking-title>.ranking-count{
+  grid-column:2;
+  grid-row:2;
+  justify-self:start;
+  white-space:normal;
+  line-height:1.25;
+}
+@media(max-width:700px){
+ .ranking-title{grid-template-columns:28px minmax(0,1fr)!important;min-height:70px;padding:9px 12px;row-gap:3px}
+ .ranking-title>.ranking-count{font-size:8px}
+}
