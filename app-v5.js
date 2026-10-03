@@ -72,6 +72,9 @@ const ikarModeratorBtn=document.getElementById('ikarModeratorBtn');
 const adminPanel=document.getElementById('adminPanel');
 const adminCloseBtn=document.getElementById('adminCloseBtn');
 const adminRefreshBtn=document.getElementById('adminRefreshBtn');
+const adminProofsBtn=document.getElementById('adminProofsBtn');
+const adminProofsCount=document.getElementById('adminProofsCount');
+let adminMatchView='all';
 const adminMatchList=document.getElementById('adminMatchList');
 const adminPlayerList=document.getElementById('adminPlayerList');
 const adminPlayerSearch=document.getElementById('adminPlayerSearch');
@@ -834,7 +837,7 @@ function showAdminModeration(){
  if(adminGeneralMessages)adminGeneralMessages.innerHTML='<div class="admin-empty">Moderación disponible para el administrador.</div>';
  if(adminPrivateMessages)adminPrivateMessages.innerHTML='<div class="admin-empty">Moderación disponible para el administrador.</div>';
 }
-function showAdminVs(){if(adminMatchList)adminMatchList.hidden=false;if(adminPlayerList)adminPlayerList.hidden=true;if(adminPlayerSearch)adminPlayerSearch.hidden=true;if(adminModeration)adminModeration.hidden=true;loadAdminMatches()}
+function showAdminVs(){adminMatchView='all';if(adminMatchList)adminMatchList.hidden=false;if(adminPlayerList)adminPlayerList.hidden=true;if(adminPlayerSearch)adminPlayerSearch.hidden=true;if(adminModeration)adminModeration.hidden=true;loadAdminMatches()}
 function showAdminPlayers(){if(adminMatchList)adminMatchList.hidden=true;if(adminPlayerList)adminPlayerList.hidden=false;if(adminPlayerSearch)adminPlayerSearch.hidden=false;if(adminModeration)adminModeration.hidden=true;loadAdminPlayers()}
 if(adminPlayerSearchInput)adminPlayerSearchInput.addEventListener('input',()=>{const q=adminPlayerSearchInput.value.trim().toLowerCase();if(!adminPlayerList)return;adminPlayerList.querySelectorAll('.admin-player-card').forEach(card=>{const name=String(card.dataset.searchName||'');card.hidden=!!q&&!name.includes(q)})});
 
@@ -884,8 +887,13 @@ async function loadAdminMatches(){
  adminMatchList.innerHTML='<div class="admin-empty">Cargando...</div>';
  try{
   const [{data,error},{data:videoRows,error:videoErr}]=await Promise.all([supabaseClient.rpc('admin_get_ranked_matches'),supabaseClient.rpc('admin_get_ranked_videos')]);if(error)throw error;if(videoErr)console.error('Videos admin:',videoErr);const videos=Array.isArray(videoRows)?videoRows:[];
-  const rows=(Array.isArray(data)?data:[]).filter(m=>m.status==='matched');adminMatchList.replaceChildren();
-  if(!rows.length){adminMatchList.innerHTML='<div class="admin-empty">No hay partidos en espera.</div>';return}
+  const allRows=(Array.isArray(data)?data:[]).filter(m=>m.status==='matched');
+  const proofMatchIds=new Set(videos.map(v=>Number(v.match_id)));
+  for(const m of allRows){if(m.player1_video_path||m.player2_video_path)proofMatchIds.add(Number(m.match_id))}
+  if(adminProofsCount)adminProofsCount.textContent=String(proofMatchIds.size);
+  const rows=adminMatchView==='proofs'?allRows.filter(m=>proofMatchIds.has(Number(m.match_id))):allRows;
+  adminMatchList.replaceChildren();
+  if(!rows.length){adminMatchList.innerHTML='<div class="admin-empty">'+(adminMatchView==='proofs'?'No hay VS con pruebas pendientes.':'No hay partidos en espera.')+'</div>';return}
   for(const m of rows){
    const row=document.createElement('article');row.className='admin-match '+m.status;
    const title=document.createElement('div');title.className='admin-match-vs admin-match-vs-rich';
@@ -1789,9 +1797,10 @@ if(closePlayerDetail)closePlayerDetail.addEventListener('click',closeRankingPlay
 if(playerHeartBtn)playerHeartBtn.addEventListener('click',togglePlayerHeart);
 if(playerFollowBtn)playerFollowBtn.addEventListener('click',toggleFollow);
 if(adminModeBtn)adminModeBtn.addEventListener('click',async()=>{adminPanel.hidden=false;settingsMenu.hidden=true;await loadAdminMatches()});
-if(ikarModeratorBtn)ikarModeratorBtn.addEventListener('click',async()=>{adminPanel.hidden=false;if(settingsMenu)settingsMenu.hidden=true;const isIkar=String(currentProfile?.username||'').trim().toLowerCase()==='ikar8bp'&&currentProfile?.is_admin===true;if(adminVsTab)adminVsTab.hidden=false;if(adminPlayersTab)adminPlayersTab.hidden=!isIkar;if(adminModerationTab)adminModerationTab.hidden=!isIkar;if(adminPlayerSearch)adminPlayerSearch.hidden=true;if(adminPlayerList)adminPlayerList.hidden=true;if(adminModeration)adminModeration.hidden=true;if(adminMatchList)adminMatchList.hidden=false;await loadAdminMatches()});
+if(ikarModeratorBtn)ikarModeratorBtn.addEventListener('click',async()=>{adminPanel.hidden=false;if(settingsMenu)settingsMenu.hidden=true;const isIkar=String(currentProfile?.username||'').trim().toLowerCase()==='ikar8bp'&&currentProfile?.is_admin===true;if(adminVsTab)adminVsTab.hidden=false;if(adminPlayersTab)adminPlayersTab.hidden=!isIkar;if(adminModerationTab)adminModerationTab.hidden=!isIkar;if(adminProofsBtn)adminProofsBtn.hidden=!isIkar;if(adminPlayerSearch)adminPlayerSearch.hidden=true;if(adminPlayerList)adminPlayerList.hidden=true;if(adminModeration)adminModeration.hidden=true;if(adminMatchList)adminMatchList.hidden=false;await loadAdminMatches()});
 if(adminCloseBtn)adminCloseBtn.addEventListener('click',()=>adminPanel.hidden=true);
 if(adminRefreshBtn)adminRefreshBtn.addEventListener('click',()=>adminPlayerList&&!adminPlayerList.hidden?loadAdminPlayers():loadAdminMatches());
+if(adminProofsBtn)adminProofsBtn.addEventListener('click',()=>{adminMatchView='proofs';if(adminMatchList)adminMatchList.hidden=false;if(adminPlayerList)adminPlayerList.hidden=true;if(adminPlayerSearch)adminPlayerSearch.hidden=true;if(adminModeration)adminModeration.hidden=true;loadAdminMatches()});
 if(adminVsTab)adminVsTab.addEventListener('click',showAdminVs);
 if(adminPlayersTab)adminPlayersTab.addEventListener('click',showAdminPlayers);
 if(adminModerationTab)adminModerationTab.addEventListener('click',showAdminModeration);
