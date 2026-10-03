@@ -723,6 +723,26 @@ async function watchCurrentRankedMatch(){
  }catch(e){console.error(e)}finally{activeRankedMatchLoading=false}
 }
 
+let matchmakingRealtimeChannel=null;
+async function stopMatchmakingRealtime(){
+ if(matchmakingRealtimeChannel&&supabaseClient){
+  try{await supabaseClient.removeChannel(matchmakingRealtimeChannel)}catch(e){console.error('Realtime matchmaking stop:',e)}
+ }
+ matchmakingRealtimeChannel=null;
+}
+function startMatchmakingRealtime(){
+ if(!currentUser||!supabaseClient)return;
+ stopMatchmakingRealtime().catch(()=>{});
+ const uid=String(currentUser.id);
+ matchmakingRealtimeChannel=supabaseClient
+  .channel('ranked-match-'+uid)
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'ranked_matches',filter:'player1_id=eq.'+uid},()=>pollRankedMatch())
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'ranked_matches',filter:'player2_id=eq.'+uid},()=>pollRankedMatch())
+  .subscribe((status)=>{
+   if(status==='SUBSCRIBED')pollRankedMatch().catch(()=>{});
+  });
+}
+
 async function pollRankedMatch(){
  if(!currentUser||!supabaseClient||currentRankedMatchId||matchmakingPollLoading)return;
  matchmakingPollLoading=true;
@@ -818,9 +838,10 @@ async function startRankedMatchmaking(){
   }
   const m=Array.isArray(data)?data[0]:data;
   if(m?.status==='matched'){const {data:full}=await supabaseClient.rpc('get_my_active_ranked_match');const match=Array.isArray(full)?full[0]:full;if(match){showRankedMatch(match);return}}
-  // High-concurrency mode: far fewer requests while a player waits for a rival.
-  clearInterval(matchmakingTimer);matchmakingTimer=setInterval(()=>{if(!document.hidden)pollRankedMatch()},10000);
-  clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},20000);
+  // Realtime is the primary matchmaking signal. Slow timers are fallback/queue liveness only.
+  startMatchmakingRealtime();
+  clearInterval(matchmakingTimer);matchmakingTimer=setInterval(()=>{if(!document.hidden)pollRankedMatch()},60000);
+  clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},45000);
  }catch(e){
    console.error('Error búsqueda ELO:',e);
    const msg=String(e?.message||e?.error_description||'');
@@ -828,15 +849,16 @@ async function startRankedMatchmaking(){
    if(msg.includes('PLAYER_ALREADY_HAS_ACTIVE_VS')){await restoreActiveRankedVs();showToast('Ya tienes un VS activo.');return}
    /* A temporary matchmaking/heartbeat error must never close BUSCANDO RIVAL. */
    if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}
-   clearInterval(matchmakingTimer);matchmakingTimer=setInterval(()=>{if(!document.hidden)pollRankedMatch()},10000);
-   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},20000);
+   startMatchmakingRealtime();
+   clearInterval(matchmakingTimer);matchmakingTimer=setInterval(()=>{if(!document.hidden)pollRankedMatch()},60000);
+   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},45000);
    showToast('Buscando rival…');
  }
 }
 async function closeRankedMatchmaking(){
  rankedSearchActive=false;
  if(currentRankedMatchId&&supabaseClient){try{const {data}=await supabaseClient.rpc('get_my_active_ranked_match');const m=Array.isArray(data)?data[0]:data;if(m?.admin_confirmed){showToast('Este VS está confirmado. Debes esperar el resultado.');return}}catch(e){console.error(e)}}
- clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
+ clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;await stopMatchmakingRealtime();
  if(matchmakingModal)matchmakingModal.hidden=true;
  if(!currentRankedMatchId&&currentUser&&supabaseClient)await supabaseClient.rpc('cancel_ranked_matchmaking');
 }
