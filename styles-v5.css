@@ -1707,3 +1707,8 @@ img,svg,video,canvas{max-width:100%}
 .admin-player-search input{width:100%;min-width:0;border:0!important;outline:0!important;background:transparent!important;color:#fff!important;font-size:15px!important;font-weight:700;padding:8px 2px!important}
 .admin-player-search input::placeholder{color:#82939d}
 .admin-player-card[hidden]{display:none!important}
+
+/* Players currently searching for a rival */
+.players-searching-row{display:flex;align-items:center;justify-content:center;gap:7px;margin:5px auto 16px;color:#f2c94c;font-weight:900;font-size:15px;text-align:center;text-transform:uppercase}
+.searching-player-dot{width:10px;height:10px;border-radius:50%;background:#f2c94c;box-shadow:0 0 10px rgba(242,201,76,.85);flex:0 0 auto}
+.players-searching-row strong{font-size:19px;color:#f2c94c}
