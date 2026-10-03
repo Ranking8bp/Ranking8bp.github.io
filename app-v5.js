@@ -1106,7 +1106,7 @@ function renderGuestRanking(){
 }
 
 function setGuestUI(){
-  currentUser=null;currentProfile=null;if(rankingSearchWrap)rankingSearchWrap.hidden=true;if(guestRankingSearchWrap)guestRankingSearchWrap.hidden=true;guestTopbar.hidden=false;guestEmpty.hidden=false;playerDashboard.hidden=true;settingsMenu.hidden=true;clearAvatar();
+  currentUser=null;currentProfile=null;if(rankingSearchWrap)rankingSearchWrap.hidden=true;if(guestRankingSearchWrap)guestRankingSearchWrap.hidden=true;if(activityBtn)activityBtn.hidden=true;if(activityPanel)activityPanel.hidden=true;guestTopbar.hidden=false;guestEmpty.hidden=false;playerDashboard.hidden=true;settingsMenu.hidden=true;clearAvatar();
   renderGuestRankShowcase().catch(()=>{});
   loadGuestRanking().catch(()=>{});
 }
@@ -1141,6 +1141,8 @@ async function setPlayerUI(profile,user){
   countryFlag.textContent=getFlag(profile?.country);
   const isAdminDashboard=profile?.is_admin===true||String(profile?.username||'').toLowerCase()==='ikar8bp';
   if(rankingSearchWrap)rankingSearchWrap.hidden=!isAdminDashboard;
+  if(activityBtn)activityBtn.hidden=!isAdminDashboard;
+  if(activityPanel&&!isAdminDashboard)activityPanel.hidden=true;
   if(guestRankingSearchWrap)guestRankingSearchWrap.hidden=true;
   const rankHero=document.querySelector('#playerDashboard .rank-hero-card');
   const winLossGrid=document.querySelector('#playerDashboard .win-loss-grid');
@@ -1316,8 +1318,8 @@ function renderGlobalActivity(items){
   activityList.appendChild(item);
  });
 }
-async function loadGlobalActivity(){if(!currentUser||!supabaseClient||!activityList)return;try{const {data,error}=await supabaseClient.rpc('get_global_activity');if(error)throw error;renderGlobalActivity(Array.isArray(data)?data:[])}catch(e){console.error(e);activityList.innerHTML='<div class="notification-empty">No se pudo cargar la actividad.</div>'}}
-async function toggleGlobalActivity(){if(!activityPanel)return;const opening=activityPanel.hidden;activityPanel.hidden=!opening;if(notificationPanel)notificationPanel.hidden=true;if(settingsMenu)settingsMenu.hidden=true;if(opening)await loadGlobalActivity()}
+async function loadGlobalActivity(){if(!currentUser||!supabaseClient||!activityList||String(currentProfile?.username||'').toLowerCase()!=='ikar8bp'||currentProfile?.is_admin!==true)return;try{const {data,error}=await supabaseClient.rpc('get_global_activity');if(error)throw error;renderGlobalActivity(Array.isArray(data)?data:[])}catch(e){console.error(e);activityList.innerHTML='<div class="notification-empty">No se pudo cargar la actividad.</div>'}}
+async function toggleGlobalActivity(){if(!activityPanel||String(currentProfile?.username||'').toLowerCase()!=='ikar8bp'||currentProfile?.is_admin!==true)return;const opening=activityPanel.hidden;activityPanel.hidden=!opening;if(notificationPanel)notificationPanel.hidden=true;if(settingsMenu)settingsMenu.hidden=true;if(opening)await loadGlobalActivity()}
 function updateNotificationBadge(count){
   if(!notificationBadge)return;
   const n=Number(count)||0;
