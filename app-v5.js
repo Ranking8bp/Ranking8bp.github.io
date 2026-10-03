@@ -1014,9 +1014,11 @@ async function loadGuestRanking(){
  if(!supabaseClient)return;
  guestRankingLoading=true;
  try{
-  const {data,error}=await supabaseClient.rpc('get_public_ranking');
+  const {data,error}=await supabaseClient.rpc('get_public_home_snapshot');
   if(error)throw error;
-  guestRankingPlayers=(Array.isArray(data)?data:[]).slice(0,100);
+  const snapshot=data&&typeof data==='object'?data:{};
+  guestRankingPlayers=(Array.isArray(snapshot.ranking)?snapshot.ranking:[]).slice(0,100);
+  if(snapshot.latest_result){writePublicCache('ranking8bp_latest_result',snapshot.latest_result);paintLatestRankingResult(snapshot.latest_result)};
   writePublicCache('ranking8bp_public_ranking',guestRankingPlayers);
   renderGuestRanking();
  }catch(e){
@@ -1734,33 +1736,11 @@ function buildRankingRow(player,index){
 async function refreshRankingStreaks(){if(!supabaseClient||rankingStreaksLoading)return;rankingStreaksLoading=true;try{const {data,error}=await supabaseClient.rpc('get_ranked_current_streaks');if(error)throw error;rankingStreaks=new Map((data||[]).map(x=>[String(x.player_id),Number(x.streak)||0]));renderFilteredRanking();renderGuestRanking()}catch(e){console.error('Rachas:',e)}finally{rankingStreaksLoading=false}}
 
 async function loadLatestRankingResult(){
- if(latestResultLoading)return;
  const cached=readPublicCache('ranking8bp_latest_result');
  if(cached)paintLatestRankingResult(cached);
  else{
   const boxes=[document.getElementById('latestRankingResult'),document.getElementById('guestLatestRankingResult')].filter(Boolean);
-  boxes.forEach(x=>x.textContent='Consultando último resultado…');
- }
- if(!supabaseClient)return;
- latestResultLoading=true;
- let timeoutId=null;
- try{
-  const request=supabaseClient.rpc('get_latest_ranked_result');
-  const timeout=new Promise((_,reject)=>{timeoutId=setTimeout(()=>reject(new Error('LATEST_RESULT_TIMEOUT')),6000)});
-  const {data,error}=await Promise.race([request,timeout]);
-  if(error)throw error;
-  const r=Array.isArray(data)?data[0]:data;
-  if(r)writePublicCache('ranking8bp_latest_result',r);
-  paintLatestRankingResult(r);
- }catch(e){
-  console.error('Último resultado:',e);
-  if(!cached){
-   const boxes=[document.getElementById('latestRankingResult'),document.getElementById('guestLatestRankingResult')].filter(Boolean);
-   boxes.forEach(x=>{x.textContent='Último resultado temporalmente no disponible';x.title='Toca para reintentar';x.style.cursor='pointer';x.onclick=()=>{x.onclick=null;x.style.cursor='';loadLatestRankingResult()}})
-  }
- }finally{
-  if(timeoutId)clearTimeout(timeoutId);
-  latestResultLoading=false;
+  boxes.forEach(x=>x.textContent='Último resultado disponible al cargar la clasificación');
  }
 }
 
@@ -1771,8 +1751,10 @@ async function loadRanking(){
  else{rankingList.innerHTML='<div class="ranking-loading">Cargando clasificación...</div>';rankingCount.textContent=''}
  rankingLoading=true;
  try{
-  const {data,error}=await supabaseClient.rpc('get_ranking');if(error)throw error;
-  rankingPlayersCache=Array.isArray(data)?data:[];
+  const {data,error}=await supabaseClient.rpc('get_public_home_snapshot');if(error)throw error;
+  const snapshot=data&&typeof data==='object'?data:{};
+  rankingPlayersCache=Array.isArray(snapshot.ranking)?snapshot.ranking:[];
+  if(snapshot.latest_result){writePublicCache('ranking8bp_latest_result',snapshot.latest_result);paintLatestRankingResult(snapshot.latest_result)};
   writePublicCache('ranking8bp_full_ranking',rankingPlayersCache);
   renderFilteredRanking();
  }catch(error){
