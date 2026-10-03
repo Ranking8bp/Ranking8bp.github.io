@@ -428,9 +428,9 @@ async function uploadRankedWinnerVideo(){
     rankedWinnerVideoBtn.disabled=true;
     rankedWinnerVideoStatus.textContent='Comprobando video...';
     if(!/^video\/(mp4|webm|quicktime|x-m4v)$/.test(String(file.type||'')))throw new Error('Formato no permitido. Usa MP4, WEBM o MOV.');
-    if(file.size>500*1024*1024)throw new Error('El video no puede superar 500 MB.');
+    if(file.size>80*1024*1024)throw new Error('El video no puede superar 80 MB.');
     const duration=await getVideoDuration(file);
-    if(!Number.isFinite(duration)||duration>1200.05)throw new Error('El video debe durar máximo 20 minutos.');
+    if(!Number.isFinite(duration)||duration>30.05)throw new Error('El video debe durar máximo 30 segundos.');
     if(duration<0.1)throw new Error('El video no es válido.');
     const ext=getVideoExtension(file);
     const path=String(currentRankedMatchId)+'/'+currentUser.id+'/winner-'+Date.now()+'.'+ext;
