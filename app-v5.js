@@ -1007,7 +1007,7 @@ function renderGuestRanking(){
    miniBadge.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openBadgeProfile(event)}});
    info.append(n,rankLine);name.append(avatar,miniBadge,info);
    const country=document.createElement('div');country.className='guest-ranking-country';country.textContent=getFlag(player.country)+' '+String(player.country||'País');
-   const elo=document.createElement('strong');elo.className='guest-ranking-elo';elo.textContent=String(Number(player.elo_points)||200);
+   const elo=document.createElement('strong');elo.className='guest-ranking-elo';const guestElo=Number.isFinite(Number(player.elo_points))?Number(player.elo_points):200;elo.textContent=String(guestElo);elo.classList.toggle('negative-elo',guestElo<0);
    row.append(pos,name,country,elo);guestRankingList.appendChild(row);
  });
 }
@@ -1055,7 +1055,7 @@ async function setPlayerUI(profile,user){
   }else{
     if(rankHero){rankHero.hidden=false;rankHero.classList.remove('admin-only-card');}
     if(winLossGrid)winLossGrid.hidden=false;
-    dashboardElo.textContent=elo;
+    dashboardElo.textContent=elo;dashboardElo.classList.toggle('negative-elo',elo<0);
     const dashboardRankName=document.getElementById('dashboardRankName');
     const rankProgressFill=document.getElementById('rankProgressFill');
     const rankProgressText=document.getElementById('rankProgressText');
@@ -1668,7 +1668,7 @@ function buildRankingRow(player,index){
   miniRank.type='button';miniRank.className='ranking-elo-rank';miniRank.title='Ver insignia '+rank.name;
   miniRank.addEventListener('click',e=>{e.stopPropagation();openRankZoom(rank,player)});
   applyRankImage(miniRank,rank);
-  const eloNumber=document.createElement('span');eloNumber.className='ranking-elo-number';eloNumber.textContent=String(eloValue);
+  const eloNumber=document.createElement('span');eloNumber.className='ranking-elo-number';eloNumber.textContent=String(eloValue);eloNumber.classList.toggle('negative-elo',eloValue<0);
   elo.append(miniRank,eloNumber);
 
   row.append(position,playerCell,countryCell,elo);
