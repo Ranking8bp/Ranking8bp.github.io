@@ -182,6 +182,8 @@ const playerDetailFlag=document.getElementById('playerDetailFlag');
 const playerDetailCountry=document.getElementById('playerDetailCountry');
 const playerDetailGameId=document.getElementById('playerDetailGameId');
 const playerDetailElo=document.getElementById('playerDetailElo');
+const playerDetailPosition=document.getElementById('playerDetailPosition');
+const playerDetailPositionStat=document.getElementById('playerDetailPositionStat');
 const playerDetailWins=document.getElementById('playerDetailWins');
 const playerDetailLosses=document.getElementById('playerDetailLosses');
 const playerDetailRank=document.getElementById('playerDetailRank');
@@ -1647,12 +1649,25 @@ async function openRankingPlayer(player){
   const losses=Number.isFinite(Number(player?.losses))?Number(player.losses):0;
   const gameId=String(player?.game_id||'—');
   const rank=getRankByElo(elo);
+  const isAdminProfile=String(player?.username||'').toLowerCase()==='ikar8bp'||player?.is_admin===true;
+
+  if(playerDetailPositionStat)playerDetailPositionStat.hidden=isAdminProfile;
+  if(playerDetailPosition&&!isAdminProfile){
+    const supplied=Number(player?.global_position||0);
+    playerDetailPosition.textContent=supplied>0?'#'+supplied:'…';
+    if(!supplied&&supabaseClient&&player?.player_id){
+      supabaseClient.rpc('get_player_global_position',{p_profile_id:player.player_id}).then(({data,error})=>{
+        if(!error&&playerDetailModal?.classList.contains('open')&&currentDetailPlayer?.player_id===player.player_id){
+          const pos=Number(data||0);playerDetailPosition.textContent=pos>0?'#'+pos:'—';
+        }
+      }).catch(()=>{playerDetailPosition.textContent='—'});
+    }
+  }
 
   playerDetailName.textContent=displayName;
   playerDetailFlag.textContent=getFlag(country);
   playerDetailCountry.textContent=country;
   playerDetailGameId.textContent=gameId;
-  const isAdminProfile=String(player?.username||'').toLowerCase()==='ikar8bp'||player?.is_admin===true;
   const eloStat=playerDetailElo?.closest('.player-detail-stat');
   const winStat=playerDetailWins?.closest('.player-detail-stat');
   const lossStat=playerDetailLosses?.closest('.player-detail-stat');
