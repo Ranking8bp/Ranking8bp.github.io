@@ -1816,3 +1816,21 @@ img,svg,video,canvas{max-width:100%}
   border-bottom:2px solid rgba(255,193,7,.8)!important;
   background:rgba(255,193,7,.08)!important;
 }
+
+
+/* Public world-ranking hero */
+.guest-world-hero{margin:12px auto 18px;width:min(100%,1040px);box-sizing:border-box;padding:20px 22px;border:1px solid rgba(220,170,55,.65);border-radius:24px;text-align:center;background:radial-gradient(circle at 50% 0%,rgba(0,112,255,.32),transparent 42%),linear-gradient(180deg,#061629,#02070d 68%,#0d0902);box-shadow:0 16px 45px rgba(0,0,0,.45),inset 0 0 45px rgba(0,132,255,.08)}
+.guest-world-kicker{font-size:13px;font-weight:900;letter-spacing:2px;color:#f4c54e}
+.guest-world-hero h1{margin:4px 0 10px;font-size:clamp(30px,6vw,66px);line-height:.95;color:#ffc936;text-shadow:0 3px 0 #704000,0 0 18px rgba(255,190,0,.35)}
+.guest-world-hero h1 span{display:block;color:#eaf4ff}
+.guest-world-register{border:2px solid #b8ff48;border-radius:18px;padding:10px 42px;background:linear-gradient(#56e900,#159800);color:#fff;font-size:clamp(20px,4vw,34px);font-weight:1000;box-shadow:0 0 18px rgba(81,255,0,.35);cursor:pointer}
+.guest-world-hero>p{margin:10px 0 14px;font-weight:800;color:#f3f6fb}.guest-world-hero>p b{color:#66ef20}.guest-world-hero>p strong{color:#ffc928}
+.guest-world-top-title{display:inline-block;padding:6px 18px;border:1px solid #a66f13;border-radius:12px;color:#ffc928;font-weight:1000;background:#080b0e}
+.guest-world-top3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end;margin:14px 0}
+.guest-world-player{position:relative;display:flex;min-width:0;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border:1px solid #9d6815;border-radius:18px;background:linear-gradient(180deg,rgba(16,31,50,.95),rgba(8,8,8,.98));color:#fff;cursor:pointer}
+.guest-world-player-1{transform:translateY(-8px);border-color:#f1b929;box-shadow:0 0 24px rgba(255,187,24,.22)}
+.guest-world-medal{position:absolute;top:-10px;right:8px;width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:#e3a500;color:#111;font-weight:1000;border:2px solid #fff}
+.guest-world-avatar{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;overflow:hidden;border:3px solid #d8a82d;background:#071526;font-size:25px;font-weight:900}.guest-world-avatar img{width:100%;height:100%;object-fit:cover}
+.guest-world-player b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px}.guest-world-player>span:last-child{font-size:11px;color:#ffc928;font-weight:900}
+.guest-world-total{margin:4px auto 0;width:max-content;max-width:100%;padding:8px 18px;border:1px solid #2b668d;border-radius:14px;color:#fff;font-weight:900;background:#071523}.guest-world-total strong{color:#ffc928;font-size:1.25em}
+@media(max-width:700px){.guest-world-hero{padding:14px 10px;border-radius:16px}.guest-world-top3{gap:5px}.guest-world-player{padding:10px 3px}.guest-world-avatar{width:48px;height:48px}.guest-world-player b{font-size:10px}.guest-world-player>span:last-child{font-size:8px}.guest-world-total{font-size:10px}.guest-world-kicker{font-size:9px}}
