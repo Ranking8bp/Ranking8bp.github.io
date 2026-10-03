@@ -546,7 +546,15 @@ function startRankedPlayTimer(match){
          closeRankedMatchmaking();
          await updateRankedDailyStatus();
        }
-     }catch(e){console.error('Auto anular VS:',e);expiring=false}
+     }catch(e){
+       console.error('Auto anular VS:',e);
+       const msg=String(e?.message||'');
+       if(msg.includes('NOT_ALLOWED')){
+         stopRankedPlayTimer();
+         return;
+       }
+       expiring=false;
+     }
    }
  };
  tick();
