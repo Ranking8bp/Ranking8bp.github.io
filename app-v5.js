@@ -1732,7 +1732,7 @@ async function openRankingPlayer(player){
   }
 }
 
-function buildRankingRow(player,index){
+function buildRankingRow(player,index,displayPosition=null){
   const row=document.createElement('button');
   row.type='button';
   row.className='ranking-row'+(index===0?' ranking-first':index===1?' ranking-second':index===2?' ranking-third':'');
@@ -1747,7 +1747,7 @@ function buildRankingRow(player,index){
     medal.textContent=String(index+1);
     position.appendChild(medal);
   }else{
-    position.textContent=String(index+1);
+    position.textContent=String(displayPosition??(index+1));
   }
 
   const playerCell=document.createElement('div');
@@ -1838,6 +1838,20 @@ function renderFilteredRanking(){
     const originalIndex=rankingPlayersCache.indexOf(player);
     rankingList.appendChild(buildRankingRow(player,originalIndex));
   });
+  if(!query&&currentUser&&currentProfile&&currentProfile.is_admin!==true){
+    const myId=String(currentUser.id||'');
+    const inTop100=rankingPlayersCache.some(p=>String(p?.player_id||p?.id||'')===myId);
+    if(!inTop100){
+      const mine={...currentProfile,player_id:currentProfile.id||currentUser.id};
+      supabaseClient.rpc('get_player_global_position',{p_profile_id:currentUser.id}).then(({data,error})=>{
+        if(error||!rankingList||!currentUser||String(currentUser.id)!==myId)return;
+        const pos=Number(data||0);if(pos<=100)return;
+        const existing=rankingList.querySelector('.ranking-current-player-row');if(existing)existing.remove();
+        const row=buildRankingRow(mine,pos-1,pos);row.classList.add('ranking-current-player-row');
+        rankingList.appendChild(row);
+      }).catch(()=>{});
+    }
+  }
 }
 
 async function getProfile(userId){
