@@ -104,6 +104,7 @@ const dashboardLosses=document.getElementById('dashboardLosses');
 const competitiveWins=document.getElementById('competitiveWins'),competitiveLosses=document.getElementById('competitiveLosses');
 const dashboardPlayBtn=document.getElementById('dashboardPlayBtn');
 const playersOnlineCount=document.getElementById('playersOnlineCount');
+const playersSearchingCount=document.getElementById('playersSearchingCount'),playersSearchingText=document.getElementById('playersSearchingText');
 const playersOnlineNow=document.getElementById('playersOnlineNow'),playingVsModal=document.getElementById('playingVsModal'),playingVsClose=document.getElementById('playingVsClose'),playingVsList=document.getElementById('playingVsList');
 const eloDailyLimitModal=document.getElementById('eloDailyLimitModal'),eloDailyLimitClose=document.getElementById('eloDailyLimitClose'),eloDailyCountdown=document.getElementById('eloDailyCountdown');
 let eloDailyResetAt=null,eloDailyCountdownTimer=null;
@@ -763,6 +764,12 @@ function maybeOpenDirectMatchmaking(){
 
 async function renderSearchingPlayerProfile(){const n=document.getElementById('searchingPlayerName'),e=document.getElementById('searchingPlayerElo'),r=document.getElementById('searchingPlayerRank'),av=document.getElementById('searchingPlayerAvatar');if(!n||!currentProfile)return;const name=String(currentProfile.account_name||currentProfile.username||'JUGADOR').toUpperCase();const elo=Number(currentProfile.elo_points)||200;n.textContent=name;if(e)e.textContent='ELO '+elo;if(r)r.textContent=getRankByElo(elo).name.toUpperCase();if(av){av.replaceChildren();const f=document.createElement('span');f.textContent=name.charAt(0)||'J';av.appendChild(f);if(currentProfile.avatar_path&&supabaseClient){try{const {data}=await supabaseClient.storage.from('profile-photos').createSignedUrl(currentProfile.avatar_path,3600);if(data?.signedUrl){const img=document.createElement('img');img.src=data.signedUrl;img.alt='Foto de '+name;img.onload=()=>av.replaceChildren(img)}}catch(x){}}}}
 
+
+async function refreshPlayersSearchingCount(){
+ if(!supabaseClient||!playersSearchingCount)return;
+ try{const {data,error}=await supabaseClient.rpc('get_matchmaking_search_count');if(error)throw error;const n=Math.max(0,Number(data)||0);playersSearchingCount.textContent=String(n);if(playersSearchingText)playersSearchingText.textContent=n===1?'JUGADOR ESTÁ BUSCANDO RIVAL':'JUGADORES ESTÁN BUSCANDO RIVAL'}catch(e){console.error('Contador buscando rival:',e)}
+}
+setInterval(refreshPlayersSearchingCount,5000);
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient)return;
  rankedSearchActive=true;
@@ -1783,7 +1790,7 @@ if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{
       return;
     }
   }catch(e){console.error('Comprobación admin:',e)}
-  await startRankedMatchmaking();
+  await startRankedMatchmaking();refreshPlayersSearchingCount();
 });
 if(matchmakingClose)matchmakingClose.addEventListener('click',closeRankedMatchmaking);
 if(rankedWinnerVideoBtn)rankedWinnerVideoBtn.addEventListener('click',()=>rankedWinnerVideoInput?.click());
