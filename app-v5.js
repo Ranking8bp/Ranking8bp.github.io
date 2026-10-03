@@ -378,7 +378,7 @@ async function submitRankedResultClaim(claim){
  try{
   const {data,error}=await supabaseClient.rpc('submit_ranked_result_claim',{p_match_id:Number(currentRankedMatchId),p_claim:claim});if(error)throw error;
   const row=Array.isArray(data)?data[0]:data;
-  if(row?.resolved){showToast('✅ Resultado confirmado por ambos. ELO aplicado automáticamente.');closeRankedMatchmaking();await updateRankedDailyStatus();return}
+  if(row?.resolved){showToast(claim==='LOST'?'✅ Derrota confirmada. Tu rival ganó automáticamente.':'✅ Resultado confirmado. ELO aplicado automáticamente.');await closeRankedMatchmaking();await updateRankedDailyStatus();loadRanking().catch(()=>{});return}
   if(row?.disputed){showToast('⚠️ Ambos marcaron GANÉ. Suban evidencia para que el administrador decida.')}
   await watchCurrentRankedMatch();
  }catch(e){console.error(e);showToast('No se pudo registrar tu resultado.');if(rankedClaimWon)rankedClaimWon.disabled=false;if(rankedClaimLost)rankedClaimLost.disabled=false}
