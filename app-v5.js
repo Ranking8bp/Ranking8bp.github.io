@@ -962,11 +962,19 @@ async function renderGuestRankShowcase(){
 }
 
 async function loadGuestRanking(){
- loadLatestRankingResult().catch(()=>{});
  if(!guestRankingList)return;
  guestRankingList.innerHTML='<div class="ranking-loading">Cargando clasificación...</div>';
+ if(!supabaseClient){
+   guestRankingList.innerHTML='<div class="ranking-loading ranking-error">Conectando con el servidor…</div>';
+   setTimeout(loadGuestRanking,1500);
+   return;
+ }
+ loadLatestRankingResult().catch(()=>{});
  try{
-  const {data,error}=await supabaseClient.rpc('get_public_ranking');
+  const {data,error}=await Promise.race([
+    supabaseClient.rpc('get_public_ranking'),
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error('RANKING_TIMEOUT')),8000))
+  ]);
   if(error)throw error;
   guestRankingPlayers=(Array.isArray(data)?data:[]).slice(0,100);
   renderGuestRanking();
@@ -1685,7 +1693,7 @@ function buildRankingRow(player,index){
 
 async function refreshRankingStreaks(){if(!supabaseClient)return;try{const {data,error}=await supabaseClient.rpc('get_ranked_current_streaks');if(error)throw error;rankingStreaks=new Map((data||[]).map(x=>[String(x.player_id),Number(x.streak)||0]));renderFilteredRanking();renderGuestRanking()}catch(e){console.error('Rachas:',e)}}
 
-async function loadLatestRankingResult(){if(!supabaseClient)return;const boxes=[document.getElementById('latestRankingResult'),document.getElementById('guestLatestRankingResult')].filter(Boolean);try{const {data,error}=await supabaseClient.rpc('get_latest_ranked_result');if(error)throw error;const r=Array.isArray(data)?data[0]:data;if(!r){boxes.forEach(x=>x.textContent='Aún no hay resultados en el Ranking.');return}const d=new Date(r.finished_at);const time=new Intl.DateTimeFormat('es-MX',{timeZone:'America/Mexico_City',hour:'numeric',minute:'2-digit',hour12:true}).format(d);const date=new Intl.DateTimeFormat('es-MX',{timeZone:'America/Mexico_City',day:'numeric',month:'long'}).format(d);boxes.forEach(x=>{x.replaceChildren();const tag=document.createElement('small');tag.textContent='ÚLTIMO RESULTADO';const line=document.createElement('strong');const winner=document.createElement('span');winner.className='latest-result-winner';winner.textContent=String(r.winner_name);const loser=document.createElement('span');loser.className='latest-result-loser';loser.textContent=String(r.loser_name);line.append(winner,document.createTextNode(' ganó a '),loser,document.createTextNode(' a las '+time+' el '+date));x.append(tag,line)})}catch(e){console.error('Último resultado:',e);boxes.forEach(x=>x.textContent='No se pudo cargar el último resultado.')}}
+async function loadLatestRankingResult(){const boxes=[document.getElementById('latestRankingResult'),document.getElementById('guestLatestRankingResult')].filter(Boolean);if(!supabaseClient){boxes.forEach(x=>x.textContent='Conectando con el servidor…');return}try{const {data,error}=await Promise.race([supabaseClient.rpc('get_latest_ranked_result'),new Promise((_,reject)=>setTimeout(()=>reject(new Error('RESULT_TIMEOUT')),8000))]);if(error)throw error;const r=Array.isArray(data)?data[0]:data;if(!r){boxes.forEach(x=>x.textContent='Aún no hay resultados en el Ranking.');return}const d=new Date(r.finished_at);const time=new Intl.DateTimeFormat('es-MX',{timeZone:'America/Mexico_City',hour:'numeric',minute:'2-digit',hour12:true}).format(d);const date=new Intl.DateTimeFormat('es-MX',{timeZone:'America/Mexico_City',day:'numeric',month:'long'}).format(d);boxes.forEach(x=>{x.replaceChildren();const tag=document.createElement('small');tag.textContent='ÚLTIMO RESULTADO';const line=document.createElement('strong');const winner=document.createElement('span');winner.className='latest-result-winner';winner.textContent=String(r.winner_name);const loser=document.createElement('span');loser.className='latest-result-loser';loser.textContent=String(r.loser_name);line.append(winner,document.createTextNode(' ganó a '),loser,document.createTextNode(' a las '+time+' el '+date));x.append(tag,line)})}catch(e){console.error('Último resultado:',e);boxes.forEach(x=>x.textContent='No se pudo cargar el último resultado.')}}
 
 async function loadRanking(attempt=0){
   loadLatestRankingResult().catch(()=>{});
