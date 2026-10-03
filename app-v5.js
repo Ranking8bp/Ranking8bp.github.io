@@ -2016,8 +2016,19 @@ if(deleteAccountBtn)deleteAccountBtn.addEventListener('click',async()=>{
 
 if(cloudReady){
   supabaseClient.auth.onAuthStateChange(async(event,session)=>{
-    if(!session||event==='SIGNED_OUT'){setGuestUI();return}
-    if(event==='SIGNED_IN'||event==='INITIAL_SESSION'||event==='TOKEN_REFRESHED'){const profile=await getProfile(session.user.id);await setPlayerUI(profile,session.user)}
+    // Never throw a player back to guest mode because Supabase temporarily
+    // failed to restore/refresh a session. Only an explicit SIGNED_OUT event
+    // is allowed to close the UI session.
+    if(event==='SIGNED_OUT'){setGuestUI();return}
+    if(!session)return;
+    if(event==='SIGNED_IN'||event==='INITIAL_SESSION'||event==='TOKEN_REFRESHED'){
+      try{
+        const profile=await getProfile(session.user.id);
+        await setPlayerUI(profile,session.user);
+      }catch(error){
+        console.error('Recuperar sesión/perfil:',error);
+      }
+    }
   })
 }
 setTimeout(()=>{if(guestEmpty&&!guestEmpty.hidden)renderGuestRankShowcase().catch(()=>{})},300);
