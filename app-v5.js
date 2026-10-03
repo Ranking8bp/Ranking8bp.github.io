@@ -908,21 +908,18 @@ async function loadAdminMatches(){
  adminMatchesLoading=true;
  adminMatchList.innerHTML='<div class="admin-empty">Cargando...</div>';
  try{
-  let data=adminMatchesCache, videos=adminVideosCache;
-  if(!data.length){
-    const mr=await supabaseClient.rpc('admin_get_ranked_matches');if(mr.error)throw mr.error;
-    data=Array.isArray(mr.data)?mr.data:[];adminMatchesCache=data;
-  }
-  if(!videos.length){
-    const vr=await supabaseClient.rpc('admin_get_ranked_videos');if(vr.error)console.error('Videos admin:',vr.error);
-    videos=Array.isArray(vr.data)?vr.data:[];adminVideosCache=videos;
+  let data=[],videos=[];
+  if(adminMatchView==='proofs'){
+    const mr=await supabaseClient.rpc('admin_get_ranked_matches_with_evidence');if(mr.error)throw mr.error;
+    data=Array.isArray(mr.data)?mr.data:[];
+  }else{
+    data=adminMatchesCache;
+    if(!data.length){const mr=await supabaseClient.rpc('admin_get_ranked_matches');if(mr.error)throw mr.error;data=Array.isArray(mr.data)?mr.data:[];adminMatchesCache=data}
   }
   const allRows=data.filter(m=>m.status==='matched');
-  const proofMatchIds=new Set(videos.map(v=>Number(v.match_id)));
-  for(const m of allRows){if(m.player1_video_path||m.player2_video_path)proofMatchIds.add(Number(m.match_id))}
-  if(adminProofsCount)adminProofsCount.textContent=String(proofMatchIds.size);
-  const proofRows=allRows.filter(m=>proofMatchIds.has(Number(m.match_id)));
-  const rows=adminMatchView==='proofs'?proofRows.slice(0,8):allRows;
+  const proofRows=adminMatchView==='proofs'?allRows:allRows.filter(m=>m.player1_video_path||m.player2_video_path);
+  if(adminMatchView==='proofs'&&adminProofsCount)adminProofsCount.textContent=String(proofRows.length);
+  const rows=adminMatchView==='proofs'?proofRows.slice(0,6):allRows;
   adminMatchList.replaceChildren();
   if(!rows.length){adminMatchList.innerHTML='<div class="admin-empty">'+(adminMatchView==='proofs'?'No hay VS con pruebas pendientes.':'No hay partidos en espera.')+'</div>';return}
   for(const m of rows){
@@ -933,7 +930,7 @@ async function loadAdminMatches(){
    row.append(title,meta);
    const timer=document.createElement('div');timer.className='admin-vs-time-left';row.appendChild(timer);
    const updateTime=()=>{const start=new Date(m.confirmed_at||m.created_at).getTime();const end=start+30*60*1000;const left=Math.max(0,Math.ceil((end-Date.now())/1000));const mm=Math.floor(left/60),ss=left%60;timer.textContent=left>0?'⏱️ TIEMPO RESTANTE '+String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0'):'⏱️ TIEMPO FINALIZADO';timer.classList.toggle('expired',left<=0)};updateTime();const timerId=setInterval(()=>{if(!row.isConnected){clearInterval(timerId);return}updateTime()},1000);
-   const videoProof=document.createElement('div');videoProof.className='admin-video-proof';const mv=videos.filter(v=>Number(v.match_id)===Number(m.match_id));const p1v=m.player1_video_path||mv.find(v=>v.uploader_id===m.player1_id)?.video_path;const p2v=m.player2_video_path||mv.find(v=>v.uploader_id===m.player2_id)?.video_path;
+   const videoProof=document.createElement('div');videoProof.className='admin-video-proof';const p1v=m.player1_video_path;const p2v=m.player2_video_path;
    if(p1v){const b=document.createElement('button');b.className='received';b.textContent='🎥 VIDEO '+m.player1_name;b.onclick=()=>openAdminRankedVideo(m.match_id,m.player1_id,m.player1_name);videoProof.appendChild(b)}
    if(p2v){const b=document.createElement('button');b.className='received';b.textContent='🎥 VIDEO '+m.player2_name;b.onclick=()=>openAdminRankedVideo(m.match_id,m.player2_id,m.player2_name);videoProof.appendChild(b)}
    if(p1v||p2v){row.appendChild(videoProof);const sent=document.createElement('div');sent.className='admin-video-sent-summary';const parts=[];if(p1v)parts.push('🎥 '+m.player1_name+' ENVIÓ EVIDENCIA');if(p2v)parts.push('🎥 '+m.player2_name+' ENVIÓ EVIDENCIA');sent.textContent=parts.join('  ·  ');row.appendChild(sent)}
@@ -960,7 +957,7 @@ async function loadAdminMatches(){
   }
   if(adminMatchView==='proofs'&&proofRows.length>rows.length){
     const more=document.createElement('button');more.type='button';more.className='admin-refresh';more.textContent='VER MÁS PRUEBAS ('+(proofRows.length-rows.length)+')';
-    more.onclick=()=>{adminMatchView='all';adminMatchesCache=[];adminVideosCache=[];loadAdminMatches()};
+    more.onclick=()=>{showToast('Mostrando primero las 6 pruebas más recientes para evitar sobrecargar el sitio.')};
     adminMatchList.appendChild(more);
   }
  }catch(e){console.error(e);adminMatchList.innerHTML='<div class="admin-empty">No se pudo cargar el modo administrador.</div>'}
