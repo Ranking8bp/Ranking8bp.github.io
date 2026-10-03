@@ -60,6 +60,7 @@ const playerDashboard=document.getElementById('playerDashboard');
 const guestRankingList=document.getElementById('guestRankingList');
 const guestRankingCount=document.getElementById('guestRankingCount');
 const guestRankingSearchInput=document.getElementById('guestRankingSearchInput');
+const guestRankingSearchWrap=document.getElementById('guestRankingSearchWrap');
 let guestRankingPlayers=[];
 let totalRegisteredPlayers=0;
 const guestRankShowcase=document.getElementById('guestRankShowcase');
@@ -158,6 +159,7 @@ const rankBadgeImage=document.getElementById('rankBadgeImage');
 const rankingList=document.getElementById('rankingList');
 const rankingCount=document.getElementById('rankingCount');
 const rankingSearchInput=document.getElementById('rankingSearchInput');
+const rankingSearchWrap=document.getElementById('rankingSearchWrap');
 let rankingPlayersCache=[];
 let guestRankingLoading=false,rankingLoading=false,latestResultLoading=false,rankingStreaksLoading=false;
 const PUBLIC_CACHE_TTL=6*60*60*1000;
@@ -1104,7 +1106,7 @@ function renderGuestRanking(){
 }
 
 function setGuestUI(){
-  currentUser=null;currentProfile=null;guestTopbar.hidden=false;guestEmpty.hidden=false;playerDashboard.hidden=true;settingsMenu.hidden=true;clearAvatar();
+  currentUser=null;currentProfile=null;if(rankingSearchWrap)rankingSearchWrap.hidden=true;if(guestRankingSearchWrap)guestRankingSearchWrap.hidden=true;guestTopbar.hidden=false;guestEmpty.hidden=false;playerDashboard.hidden=true;settingsMenu.hidden=true;clearAvatar();
   renderGuestRankShowcase().catch(()=>{});
   loadGuestRanking().catch(()=>{});
 }
@@ -1138,6 +1140,8 @@ async function setPlayerUI(profile,user){
   countryName.textContent=profile?.country||'País';
   countryFlag.textContent=getFlag(profile?.country);
   const isAdminDashboard=profile?.is_admin===true||String(profile?.username||'').toLowerCase()==='ikar8bp';
+  if(rankingSearchWrap)rankingSearchWrap.hidden=!isAdminDashboard;
+  if(guestRankingSearchWrap)guestRankingSearchWrap.hidden=true;
   const rankHero=document.querySelector('#playerDashboard .rank-hero-card');
   const winLossGrid=document.querySelector('#playerDashboard .win-loss-grid');
   if(isAdminDashboard){
