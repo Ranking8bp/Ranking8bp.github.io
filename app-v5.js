@@ -66,6 +66,7 @@ let totalRegisteredPlayers=0;
 const guestRankShowcase=document.getElementById('guestRankShowcase');
 const loginBtn=document.getElementById('loginBtn');
 const registerBtn=document.getElementById('registerBtn');
+const guestHeroRegisterBtn=document.getElementById('guestHeroRegisterBtn');
 const logoutBtn=document.getElementById('logoutBtn');
 const deleteAccountBtn=document.getElementById('deleteAccountBtn');
 const adminModeBtn=document.getElementById('adminModeBtn');
@@ -1026,21 +1027,30 @@ function getFlag(value){
 
 
 async function renderGuestRankShowcase(){
- if(!guestRankShowcase||guestRankShowcase.dataset.ready)return;
- guestRankShowcase.dataset.ready='1';
- const order=[10,11,12,13,14,15,16,17,18,19,0,1,2,3,4,5,6,7,8,9];
- order.forEach(rankIndex=>{
-   const badge=document.createElement('span');
-   badge.className='guest-showcase-badge';
-   renderRankBadgeOn(badge,RANKS[rankIndex]);
-   guestRankShowcase.appendChild(badge);
+ const top=document.getElementById('guestWorldTop3'),total=document.getElementById('guestWorldTotal');
+ if(total)total.textContent=String(totalRegisteredPlayers||guestRankingPlayers.length||'—');
+ if(!top)return;
+ const players=guestRankingPlayers.slice(0,3);
+ top.replaceChildren();
+ if(!players.length){top.innerHTML='<div class="ranking-loading">Cargando TOP 3...</div>';return}
+ const order=[1,0,2];
+ order.forEach(i=>{
+  const p=players[i];if(!p)return;
+  const card=document.createElement('button');card.type='button';card.className='guest-world-player guest-world-player-'+(i+1);
+  card.addEventListener('click',()=>openRankingPlayer(p));
+  const medal=document.createElement('span');medal.className='guest-world-medal';medal.textContent=String(i+1);
+  const avatar=document.createElement('span');avatar.className='guest-world-avatar';avatar.textContent=String(p.username||p.account_name||'J').charAt(0).toUpperCase();
+  if(p.avatar_path&&supabaseClient){const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(p.avatar_path);if(data?.publicUrl){const img=document.createElement('img');img.src=data.publicUrl;img.alt='';img.loading='lazy';avatar.appendChild(img)}}
+  const name=document.createElement('b');name.textContent=String(p.username||p.account_name||'Jugador').toUpperCase();
+  const meta=document.createElement('span');meta.textContent=getFlag(p.country)+'  ELO: '+String(Number.isFinite(Number(p.elo_points))?Number(p.elo_points):200);
+  card.append(medal,avatar,name,meta);top.appendChild(card);
  });
 }
 
 async function loadGuestRanking(){
  if(!guestRankingList||guestRankingLoading)return;
  const cached=readPublicCache('ranking8bp_public_ranking');
- if(cached?.length){guestRankingPlayers=cached.slice(0,100);renderGuestRanking()}
+ if(cached?.length){guestRankingPlayers=cached.slice(0,100);renderGuestRanking();renderGuestRankShowcase()}
  else guestRankingList.innerHTML='<div class="ranking-loading">Cargando clasificación...</div>';
  if(!supabaseClient)return;
  if(cached?.length&&publicCacheFresh('ranking8bp_public_ranking'))return;
@@ -1056,6 +1066,7 @@ async function loadGuestRanking(){
   if(snapshot.latest_result){writePublicCache('ranking8bp_latest_result',snapshot.latest_result);paintLatestRankingResult(snapshot.latest_result)};
   writePublicCache('ranking8bp_public_ranking',guestRankingPlayers);
   renderGuestRanking();
+  renderGuestRankShowcase();
  }catch(e){
   console.error('Ranking público:',e);
   if(!guestRankingPlayers.length)guestRankingList.innerHTML='<div class="ranking-loading ranking-error">Servidor ocupado. Reintentando…</div>';
@@ -1882,6 +1893,7 @@ restoreSession().catch(error=>console.error('Error restaurando sesión:',error))
 
 loginBtn.addEventListener('click',()=>{loginError.textContent='';openModal(loginModal,loginUsername)});
 registerBtn.addEventListener('click',()=>{registerError.textContent='';openModal(registerModal,username)});
+if(guestHeroRegisterBtn)guestHeroRegisterBtn.addEventListener('click',()=>registerBtn.click());
 closeRegisterModalBtn.addEventListener('click',()=>closeModal(registerModal));
 closeLoginModalBtn.addEventListener('click',()=>closeModal(loginModal));
 [registerModal,loginModal].forEach(modal=>modal.addEventListener('click',e=>{if(e.target===modal)closeModal(modal)}));
