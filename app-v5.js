@@ -1040,7 +1040,7 @@ async function renderGuestRankShowcase(){
   card.addEventListener('click',()=>openRankingPlayer(p));
   const medal=document.createElement('span');medal.className='guest-world-medal';medal.textContent=String(i+1);
   const avatar=document.createElement('span');avatar.className='guest-world-avatar';avatar.textContent=String(p.username||p.account_name||'J').charAt(0).toUpperCase();
-  if(p.avatar_path&&supabaseClient){const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(p.avatar_path);if(data?.publicUrl){const img=document.createElement('img');img.src=data.publicUrl;img.alt='';img.loading='lazy';avatar.appendChild(img)}}
+  if(p.avatar_path&&supabaseClient){const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(p.avatar_path);if(data?.publicUrl){avatar.textContent='';const img=document.createElement('img');img.src=data.publicUrl;img.alt='';img.loading='lazy';img.onerror=()=>{img.remove();avatar.textContent=String(p.username||p.account_name||'J').charAt(0).toUpperCase()};avatar.appendChild(img)}}
   const name=document.createElement('b');name.textContent=String(p.username||p.account_name||'Jugador').toUpperCase();
   const meta=document.createElement('span');meta.textContent=getFlag(p.country)+'  ELO: '+String(Number.isFinite(Number(p.elo_points))?Number(p.elo_points):200);
   card.append(medal,avatar,name,meta);top.appendChild(card);
