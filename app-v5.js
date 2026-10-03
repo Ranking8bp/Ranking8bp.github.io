@@ -1735,18 +1735,33 @@ async function refreshRankingStreaks(){if(!supabaseClient||rankingStreaksLoading
 
 async function loadLatestRankingResult(){
  if(latestResultLoading)return;
- const cached=readPublicCache('ranking8bp_latest_result');if(cached)paintLatestRankingResult(cached);
+ const cached=readPublicCache('ranking8bp_latest_result');
+ if(cached)paintLatestRankingResult(cached);
+ else{
+  const boxes=[document.getElementById('latestRankingResult'),document.getElementById('guestLatestRankingResult')].filter(Boolean);
+  boxes.forEach(x=>x.textContent='Consultando último resultado…');
+ }
  if(!supabaseClient)return;
  latestResultLoading=true;
+ let timeoutId=null;
  try{
-  const {data,error}=await supabaseClient.rpc('get_latest_ranked_result');if(error)throw error;
+  const request=supabaseClient.rpc('get_latest_ranked_result');
+  const timeout=new Promise((_,reject)=>{timeoutId=setTimeout(()=>reject(new Error('LATEST_RESULT_TIMEOUT')),6000)});
+  const {data,error}=await Promise.race([request,timeout]);
+  if(error)throw error;
   const r=Array.isArray(data)?data[0]:data;
   if(r)writePublicCache('ranking8bp_latest_result',r);
   paintLatestRankingResult(r);
  }catch(e){
   console.error('Último resultado:',e);
-  if(!cached){const boxes=[document.getElementById('latestRankingResult'),document.getElementById('guestLatestRankingResult')].filter(Boolean);boxes.forEach(x=>x.textContent='Servidor ocupado. Reintentando…')}
- }finally{latestResultLoading=false}
+  if(!cached){
+   const boxes=[document.getElementById('latestRankingResult'),document.getElementById('guestLatestRankingResult')].filter(Boolean);
+   boxes.forEach(x=>{x.textContent='Último resultado temporalmente no disponible';x.title='Toca para reintentar';x.style.cursor='pointer';x.onclick=()=>{x.onclick=null;x.style.cursor='';loadLatestRankingResult()}})
+  }
+ }finally{
+  if(timeoutId)clearTimeout(timeoutId);
+  latestResultLoading=false;
+ }
 }
 
 async function loadRanking(){
