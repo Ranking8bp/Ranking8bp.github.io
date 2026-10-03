@@ -160,10 +160,13 @@ const rankingSearchInput=document.getElementById('rankingSearchInput');
 let rankingPlayersCache=[];
 let guestRankingLoading=false,rankingLoading=false,latestResultLoading=false,rankingStreaksLoading=false;
 const PUBLIC_CACHE_TTL=6*60*60*1000;
-function readPublicCache(key){
- try{const x=JSON.parse(localStorage.getItem(key)||'null');return x&&Date.now()-Number(x.savedAt||0)<PUBLIC_CACHE_TTL?x.data:null}catch(_){return null}
+function readPublicCacheEntry(key){
+ try{const x=JSON.parse(localStorage.getItem(key)||'null');return x&&Date.now()-Number(x.savedAt||0)<PUBLIC_CACHE_TTL?x:null}catch(_){return null}
 }
+function readPublicCache(key){return readPublicCacheEntry(key)?.data??null}
+function publicCacheFresh(key,maxAge=120000){const x=readPublicCacheEntry(key);return Boolean(x&&Date.now()-Number(x.savedAt||0)<maxAge)}
 function writePublicCache(key,data){try{localStorage.setItem(key,JSON.stringify({savedAt:Date.now(),data}))}catch(_){}}
+function burstJitter(max=2500){return new Promise(resolve=>setTimeout(resolve,Math.floor(Math.random()*max)))}
 function paintLatestRankingResult(r){
  const boxes=[document.getElementById('latestRankingResult'),document.getElementById('guestLatestRankingResult')].filter(Boolean);
  if(!r){boxes.forEach(x=>x.textContent='Aún no hay resultados en el Ranking.');return}
@@ -824,7 +827,7 @@ async function refreshPlayersSearchingCount(){
  playersSearchingLoading=true;
  try{const {data,error}=await supabaseClient.rpc('get_matchmaking_search_count');if(error)throw error;const n=Math.max(0,Number(data)||0);playersSearchingCount.textContent=String(n);if(playersSearchingText)playersSearchingText.textContent=n===1?'JUGADOR ESTÁ BUSCANDO RIVAL':'JUGADORES ESTÁN BUSCANDO RIVAL'}catch(e){console.error('Contador buscando rival:',e)}finally{playersSearchingLoading=false}
 }
-setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),500);setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},15000);
+setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),500);setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},60000);
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient)return;
  rankedSearchActive=true;
@@ -841,7 +844,7 @@ async function startRankedMatchmaking(){
   // Realtime is the primary matchmaking signal. Slow timers are fallback/queue liveness only.
   startMatchmakingRealtime();
   clearInterval(matchmakingTimer);matchmakingTimer=setInterval(()=>{if(!document.hidden)pollRankedMatch()},60000);
-  clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},45000);
+  clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},180000);
  }catch(e){
    console.error('Error búsqueda ELO:',e);
    const msg=String(e?.message||e?.error_description||'');
@@ -851,7 +854,7 @@ async function startRankedMatchmaking(){
    if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}
    startMatchmakingRealtime();
    clearInterval(matchmakingTimer);matchmakingTimer=setInterval(()=>{if(!document.hidden)pollRankedMatch()},60000);
-   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},45000);
+   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},180000);
    showToast('Buscando rival…');
  }
 }
@@ -1035,8 +1038,10 @@ async function loadGuestRanking(){
  if(cached?.length){guestRankingPlayers=cached.slice(0,100);renderGuestRanking()}
  else guestRankingList.innerHTML='<div class="ranking-loading">Cargando clasificación...</div>';
  if(!supabaseClient)return;
+ if(cached?.length&&publicCacheFresh('ranking8bp_public_ranking'))return;
  guestRankingLoading=true;
  try{
+  if(cached?.length)await burstJitter();
   const {data,error}=await supabaseClient.rpc('get_public_home_snapshot');
   if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
@@ -1773,8 +1778,10 @@ async function loadRanking(){
  const cached=readPublicCache('ranking8bp_full_ranking');
  if(cached?.length){rankingPlayersCache=cached;renderFilteredRanking()}
  else{rankingList.innerHTML='<div class="ranking-loading">Cargando clasificación...</div>';rankingCount.textContent=''}
+ if(cached?.length&&publicCacheFresh('ranking8bp_full_ranking'))return;
  rankingLoading=true;
  try{
+  if(cached?.length)await burstJitter();
   const {data,error}=await supabaseClient.rpc('get_public_home_snapshot');if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
   if(Array.isArray(snapshot.streaks))rankingStreaks=new Map(snapshot.streaks.map(x=>[String(x.player_id),Number(x.streak)||0]));
@@ -1945,7 +1952,7 @@ function startNotificationRefresh(){
   if(notificationRefreshTimer)clearInterval(notificationRefreshTimer);
   if(currentUser){
     loadNotifications().catch(()=>{});
-    notificationRefreshTimer=setInterval(()=>{if(currentUser&&!document.hidden)loadNotifications().catch(()=>{})},30000);
+    notificationRefreshTimer=setInterval(()=>{if(currentUser&&!document.hidden)loadNotifications().catch(()=>{})},60000);
   }
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser){loadNotifications().catch(()=>{});if(rankedSearchActive){if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}pollRankedMatch().catch(()=>{})}else restoreActiveRankedVs().catch(()=>{})}});
@@ -1962,7 +1969,7 @@ async function restoreActiveRankedVs(){
    startRankedVsChat(m);
  }catch(e){console.error('Restaurar VS activo:',e)}
 }
-setTimeout(startNotificationRefresh,1000);setTimeout(()=>{startOnlinePresence();refreshOnlinePlayers();refreshPlayersPlayingCount();setInterval(()=>{if(!document.hidden)refreshPlayersPlayingCount()},30000)},1200);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser)touchOnlinePresence()});
+setTimeout(startNotificationRefresh,1000);setTimeout(()=>{startOnlinePresence();refreshOnlinePlayers();refreshPlayersPlayingCount();setInterval(()=>{if(!document.hidden)refreshPlayersPlayingCount()},60000)},1200);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser)touchOnlinePresence()});
 if(playerDetailModal)playerDetailModal.addEventListener('click',event=>{if(event.target===playerDetailModal)closeRankingPlayer()});
 
 profilePhotoInput.addEventListener('change',async()=>{
@@ -2102,7 +2109,7 @@ async function loadGeneralChat(){
  for(const m of rows){const item=document.createElement('div');item.className='general-chat-message'+(m.user_id===currentUser?.id?' mine':'');const av=document.createElement('div');av.className='general-chat-avatar';if(m.avatar_path){const {data:u}=supabaseClient.storage.from('profile-photos').getPublicUrl(m.avatar_path);if(u?.publicUrl)av.style.backgroundImage='url("'+u.publicUrl+'")'}if(!m.avatar_path)av.textContent=String(m.author_name||'?').charAt(0).toUpperCase();const openChatProfile=async()=>{try{const {data,error}=await supabaseClient.rpc('get_profile_by_id',{p_player_id:m.user_id});if(error)throw error;const player=Array.isArray(data)?data[0]:null;if(player){closeGeneralChat();openRankingPlayer(player)}else showToast('No se encontró ese perfil.')}catch(err){console.error(err);showToast('No se pudo abrir el perfil.')}};av.classList.add('general-chat-profile-link');av.setAttribute('role','button');av.tabIndex=0;av.addEventListener('click',openChatProfile);av.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openChatProfile()}});const box=document.createElement('div');const head=document.createElement('strong');head.textContent=m.author_name;head.classList.add('general-chat-profile-link');head.setAttribute('role','button');head.tabIndex=0;head.addEventListener('click',openChatProfile);head.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openChatProfile()}});const body=document.createElement('p');body.textContent=m.body;const time=document.createElement('small');time.textContent=formatCommentDate(m.created_at);box.append(head,body,time);item.append(av,box);generalChatMessages.append(item)}
  generalChatMessages.scrollTop=generalChatMessages.scrollHeight;
 }
-function openGeneralChat(){if(!currentUser){showToast('Inicia sesión para usar el chat.');return}generalChatModal.hidden=false;loadGeneralChat();clearInterval(generalChatTimer);generalChatTimer=setInterval(()=>{if(!document.hidden)loadGeneralChat()},5000);setTimeout(()=>generalChatInput?.focus(),50)}
+function openGeneralChat(){if(!currentUser){showToast('Inicia sesión para usar el chat.');return}generalChatModal.hidden=false;loadGeneralChat();clearInterval(generalChatTimer);generalChatTimer=setInterval(()=>{if(!document.hidden)loadGeneralChat()},10000);setTimeout(()=>generalChatInput?.focus(),50)}
 function closeGeneralChat(){generalChatModal.hidden=true;clearInterval(generalChatTimer);generalChatTimer=null}
 dashboardChatBtn?.addEventListener('click',openGeneralChat);generalChatClose?.addEventListener('click',closeGeneralChat);
 generalChatForm?.addEventListener('submit',async e=>{e.preventDefault();const body=generalChatInput.value.trim();if(!body||!currentUser)return;const {error}=await supabaseClient.from('general_chat_messages').insert({user_id:currentUser.id,body});if(error){showToast('No se pudo enviar el mensaje.');return}generalChatInput.value='';await loadGeneralChat()});
