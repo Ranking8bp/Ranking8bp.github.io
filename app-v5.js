@@ -130,6 +130,8 @@ const confirmedMatchWarning=document.getElementById('confirmedMatchWarning');
 const rankedMatchRules=document.getElementById('rankedMatchRules');
 const rankedVsChat=document.getElementById('rankedVsChat'),rankedVsChatMessages=document.getElementById('rankedVsChatMessages'),rankedVsChatInput=document.getElementById('rankedVsChatInput'),rankedVsChatSend=document.getElementById('rankedVsChatSend');
 let rankedVsChatMatchId=null,rankedVsChatTimer=null,rankedChatResponseTimer=null,rankedChatResponseExpiring=false;
+// Prevent slow Supabase responses from stacking duplicate polling requests.
+let rankedVsChatLoading=false,rankedChatStatusLoading=false,activeRankedMatchLoading=false,matchmakingPollLoading=false,matchmakingHeartbeatLoading=false,playersPlayingLoading=false,playersSearchingLoading=false;
 const rankedMatchCountdown=document.getElementById('rankedMatchCountdown'),rankedMatchCountdownValue=document.getElementById('rankedMatchCountdownValue');
 const rankedPlayerConfirmBtn=document.getElementById('rankedPlayerConfirmBtn'),rankedPlayerConfirmStatus=document.getElementById('rankedPlayerConfirmStatus');
 let rankedMatchCountdownTimer=null;
@@ -579,7 +581,8 @@ function stopRankedChatResponseTimer(){
  rankedChatResponseExpiring=false;
 }
 async function updateRankedChatResponseCountdown(matchId){
- if(!supabaseClient||!matchId)return;
+ if(!supabaseClient||!matchId||rankedChatStatusLoading)return;
+ rankedChatStatusLoading=true;
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_chat_response_status',{p_match_id:Number(matchId)});if(error)throw error;
   const st=Array.isArray(data)?data[0]:data,box=ensureRankedChatResponseWarning(),value=document.getElementById('rankedChatResponseValue');
@@ -595,15 +598,16 @@ async function updateRankedChatResponseCountdown(matchId){
    if(result==='cancelled'){stopRankedChatResponseTimer();showToast('⏱️ El rival no respondió. El VS fue anulado sin afectar el ELO.');await watchCurrentRankedMatch()}
    else rankedChatResponseExpiring=false;
   }
- }catch(e){console.error('Contador respuesta chat VS:',e);rankedChatResponseExpiring=false}
+ }catch(e){console.error('Contador respuesta chat VS:',e);rankedChatResponseExpiring=false}finally{rankedChatStatusLoading=false}
 }
 function startRankedChatResponseTimer(matchId){
  if(rankedChatResponseTimer)clearInterval(rankedChatResponseTimer);
  updateRankedChatResponseCountdown(matchId);
- rankedChatResponseTimer=setInterval(()=>updateRankedChatResponseCountdown(matchId),1000);
+ rankedChatResponseTimer=setInterval(()=>{if(!document.hidden)updateRankedChatResponseCountdown(matchId)},3000);
 }
 async function loadRankedVsChat(matchId){
- if(!supabaseClient||!matchId||!rankedVsChatMessages)return;
+ if(!supabaseClient||!matchId||!rankedVsChatMessages||rankedVsChatLoading)return;
+ rankedVsChatLoading=true;
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:Number(matchId)});
   if(error)throw error;
@@ -618,7 +622,7 @@ async function loadRankedVsChat(matchId){
    const seen=document.createElement('small');seen.className='chat-seen';seen.textContent=m.read_by_other?'✓✓ LEÍDO':'✓ ENVIADO';d.append(n,body,tm);if(m.sender_id===currentUser?.id||m.is_admin)d.append(seen);rankedVsChatMessages.appendChild(d);
   }
   rankedVsChatMessages.scrollTop=rankedVsChatMessages.scrollHeight;
- }catch(e){console.error('Chat VS:',e)}
+ }catch(e){console.error('Chat VS:',e)}finally{rankedVsChatLoading=false}
 }
 function startRankedVsChat(match){
  const id=Number(match?.match_id||currentRankedMatchId||0);
@@ -634,7 +638,7 @@ function startRankedVsChat(match){
  rankedVsChatMatchId=id;
  loadRankedVsChat(id);
  startRankedChatResponseTimer(id);
- rankedVsChatTimer=setInterval(()=>{if(!document.hidden)loadRankedVsChat(id)},4000);
+ rankedVsChatTimer=setInterval(()=>{if(!document.hidden)loadRankedVsChat(id)},7000);
 }
 async function sendRankedVsChat(){
  const message=String(rankedVsChatInput?.value||'').trim();
@@ -682,10 +686,11 @@ function showRankedMatch(match){
  setVsAvatar(versusOpponentAvatar,match.opponent_avatar_path,match.opponent_name);
  updateRankedPlayerConfirm(match);if(match.admin_confirmed){stopRankedMatchCountdown();startRankedPlayTimer(match)}else{stopRankedPlayTimer();startRankedMatchCountdown(match)}if(confirmedMatchWarning)confirmedMatchWarning.hidden=!match.admin_confirmed;if(rankedMatchRules)rankedMatchRules.hidden=!match.admin_confirmed;startRankedVsChat(match);updateRankedResultReport(match);updateRankedVideoProof(match);if(abandonRankedBtn){abandonRankedBtn.hidden=!!match.admin_confirmed;abandonRankedBtn.disabled=!!match.admin_confirmed}if(matchmakingClose){matchmakingClose.hidden=!!match.admin_confirmed;matchmakingClose.disabled=!!match.admin_confirmed}
  updatePendingMatchesCount();
- clearInterval(pendingMatchesTimer);pendingMatchesTimer=setInterval(()=>{if(!document.hidden){updatePendingMatchesCount();watchCurrentRankedMatch()}},4000);
+ clearInterval(pendingMatchesTimer);pendingMatchesTimer=setInterval(()=>{if(!document.hidden){updatePendingMatchesCount();watchCurrentRankedMatch()}},7000);
 }
 async function watchCurrentRankedMatch(){
- if(!currentRankedMatchId||!supabaseClient)return;
+ if(!currentRankedMatchId||!supabaseClient||activeRankedMatchLoading)return;
+ activeRankedMatchLoading=true;
  try{
   const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');if(error)throw error;
   if(data&&data.length&&Number(data[0].match_id)===Number(currentRankedMatchId)){const confirmed=!!data[0].admin_confirmed;updateRankedPlayerConfirm(data[0]);if(confirmed){stopRankedMatchCountdown();startRankedPlayTimer(data[0])}else{stopRankedPlayTimer();startRankedMatchCountdown(data[0])}updateRankedResultReport(data[0]);updateRankedVideoProof(data[0]);if(confirmedMatchWarning)confirmedMatchWarning.hidden=!confirmed;if(rankedMatchRules)rankedMatchRules.hidden=!confirmed;startRankedVsChat(data[0]);if(abandonRankedBtn){abandonRankedBtn.hidden=confirmed;abandonRankedBtn.disabled=confirmed}if(matchmakingClose){matchmakingClose.hidden=confirmed;matchmakingClose.disabled=confirmed}}
@@ -699,11 +704,12 @@ async function watchCurrentRankedMatch(){
    showToast('VS finalizado o anulado. Toca JUGAR cuando quieras buscar otro rival.');
    await updateRankedDailyStatus();return;
   }
- }catch(e){console.error(e)}
+ }catch(e){console.error(e)}finally{activeRankedMatchLoading=false}
 }
 
 async function pollRankedMatch(){
- if(!currentUser||!supabaseClient||currentRankedMatchId)return;
+ if(!currentUser||!supabaseClient||currentRankedMatchId||matchmakingPollLoading)return;
+ matchmakingPollLoading=true;
  try{
   const {data:active,error:activeError}=await supabaseClient.rpc('get_my_active_ranked_match');
   if(activeError)throw activeError;
@@ -719,11 +725,12 @@ async function pollRankedMatch(){
    const match=Array.isArray(full)?full[0]:full;
    if(match){clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;showRankedMatch(match)}
   }
- }catch(e){console.error('Error sondeo emparejamiento:',e)}
+ }catch(e){console.error('Error sondeo emparejamiento:',e)}finally{matchmakingPollLoading=false}
 }
 async function heartbeatRankedSearch(){
- if(currentRankedMatchId||!currentUser||!supabaseClient)return;
- try{await supabaseClient.rpc('heartbeat_ranked_matchmaking')}catch(e){console.error(e)}
+ if(currentRankedMatchId||!currentUser||!supabaseClient||matchmakingHeartbeatLoading)return;
+ matchmakingHeartbeatLoading=true;
+ try{await supabaseClient.rpc('heartbeat_ranked_matchmaking')}catch(e){console.error(e)}finally{matchmakingHeartbeatLoading=false}
 }
 function closeEloDailyLimit(){if(eloDailyCountdownTimer){clearInterval(eloDailyCountdownTimer);eloDailyCountdownTimer=null}if(eloDailyLimitModal)eloDailyLimitModal.hidden=true}
 function formatEloCountdown(){
@@ -777,8 +784,9 @@ async function renderSearchingPlayerProfile(){const n=document.getElementById('s
 
 
 async function refreshPlayersSearchingCount(){
- if(!supabaseClient||!playersSearchingCount)return;
- try{const {data,error}=await supabaseClient.rpc('get_matchmaking_search_count');if(error)throw error;const n=Math.max(0,Number(data)||0);playersSearchingCount.textContent=String(n);if(playersSearchingText)playersSearchingText.textContent=n===1?'JUGADOR ESTÁ BUSCANDO RIVAL':'JUGADORES ESTÁN BUSCANDO RIVAL'}catch(e){console.error('Contador buscando rival:',e)}
+ if(!supabaseClient||!playersSearchingCount||playersSearchingLoading)return;
+ playersSearchingLoading=true;
+ try{const {data,error}=await supabaseClient.rpc('get_matchmaking_search_count');if(error)throw error;const n=Math.max(0,Number(data)||0);playersSearchingCount.textContent=String(n);if(playersSearchingText)playersSearchingText.textContent=n===1?'JUGADOR ESTÁ BUSCANDO RIVAL':'JUGADORES ESTÁN BUSCANDO RIVAL'}catch(e){console.error('Contador buscando rival:',e)}finally{playersSearchingLoading=false}
 }
 setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),500);setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},15000);
 async function startRankedMatchmaking(){
@@ -794,8 +802,8 @@ async function startRankedMatchmaking(){
   }
   const m=Array.isArray(data)?data[0]:data;
   if(m?.status==='matched'){const {data:full}=await supabaseClient.rpc('get_my_active_ranked_match');const match=Array.isArray(full)?full[0]:full;if(match){showRankedMatch(match);return}}
-  clearInterval(matchmakingTimer);matchmakingTimer=setInterval(pollRankedMatch,1500);
-  clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(heartbeatRankedSearch,3000);heartbeatRankedSearch();
+  clearInterval(matchmakingTimer);matchmakingTimer=setInterval(pollRankedMatch,2500);
+  clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(heartbeatRankedSearch,5000);heartbeatRankedSearch();
  }catch(e){
    console.error('Error búsqueda ELO:',e);
    const msg=String(e?.message||e?.error_description||'');
@@ -803,7 +811,7 @@ async function startRankedMatchmaking(){
    if(msg.includes('PLAYER_ALREADY_HAS_ACTIVE_VS')){await restoreActiveRankedVs();showToast('Ya tienes un VS activo.');return}
    /* A temporary matchmaking/heartbeat error must never close BUSCANDO RIVAL. */
    if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}
-   clearInterval(matchmakingTimer);matchmakingTimer=setInterval(pollRankedMatch,1500);
+   clearInterval(matchmakingTimer);matchmakingTimer=setInterval(pollRankedMatch,2500);
    clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(heartbeatRankedSearch,3000);
    showToast('Buscando rival…');
  }
@@ -996,7 +1004,7 @@ function onlineDotFor(player){const id=String(player?.id||player?.user_id||'');i
 async function refreshOnlinePlayers(){if(!supabaseClient)return;try{const {data,error}=await supabaseClient.rpc('get_online_players');if(error)throw error;onlinePlayerIds=new Set((data||[]).map(x=>String(x.user_id)));renderFilteredRanking();renderGuestRanking()}catch(e){console.error('Presencia:',e)}}
 async function openPlayingVs(){if(!supabaseClient||!playingVsModal||!playingVsList)return;playingVsModal.hidden=false;playingVsList.innerHTML='<div class="ranking-loading">Cargando VS...</div>';try{const {data,error}=await supabaseClient.rpc('get_public_active_ranked_matches');if(error)throw error;const rows=Array.isArray(data)?data:[];playingVsList.replaceChildren();if(!rows.length){const e=document.createElement('div');e.className='playing-vs-empty';e.textContent='No hay VS jugándose ahora.';playingVsList.appendChild(e);return}rows.forEach(m=>{const row=document.createElement('div');row.className='playing-vs-item';const p1=document.createElement('strong');p1.textContent=String(m.player1_name||'Jugador');const vs=document.createElement('span');vs.textContent='VS';const p2=document.createElement('strong');p2.textContent=String(m.player2_name||'Jugador');row.append(p1,vs,p2);playingVsList.appendChild(row)})}catch(e){playingVsList.textContent='No se pudieron cargar los VS.'}}
 if(playersOnlineNow)playersOnlineNow.addEventListener('click',openPlayingVs);if(playingVsClose)playingVsClose.addEventListener('click',()=>playingVsModal.hidden=true);if(playingVsModal)playingVsModal.addEventListener('click',e=>{if(e.target===playingVsModal)playingVsModal.hidden=true});
-async function refreshPlayersPlayingCount(){if(!supabaseClient||!playersOnlineCount)return;try{const {data,error}=await supabaseClient.rpc('get_ranked_players_playing_count');if(error)throw error;playersOnlineCount.textContent=String(Number(data)||0)}catch(e){console.error('Jugadores jugando:',e)}}
+async function refreshPlayersPlayingCount(){if(!supabaseClient||!playersOnlineCount||playersPlayingLoading)return;playersPlayingLoading=true;try{const {data,error}=await supabaseClient.rpc('get_ranked_players_playing_count');if(error)throw error;playersOnlineCount.textContent=String(Number(data)||0)}catch(e){console.error('Jugadores jugando:',e)}finally{playersPlayingLoading=false}}
 async function touchOnlinePresence(){if(!currentUser||!supabaseClient)return;try{await supabaseClient.rpc('touch_online_presence');await refreshOnlinePlayers()}catch(e){console.error('Presencia:',e)}}
 function startOnlinePresence(){clearInterval(onlinePresenceTimer);if(!currentUser)return;touchOnlinePresence();onlinePresenceTimer=setInterval(()=>{if(!document.hidden)touchOnlinePresence()},60000)}
 
