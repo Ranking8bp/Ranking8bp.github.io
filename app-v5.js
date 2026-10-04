@@ -2277,17 +2277,16 @@ if(rankingSearchInput) rankingSearchInput.addEventListener('input',()=>{
  clearTimeout(mainRankingSearchTimer);
  mainRankingSearchTimer=setTimeout(async()=>{
   const q=String(rankingSearchInput.value||'').trim();
-  const isIkar=currentProfile?.is_admin===true&&String(currentProfile?.username||'').trim().toLowerCase()==='ikar8bp';
-  if(!q||!isIkar){renderFilteredRanking();return}
+  if(!q){renderFilteredRanking();return}
   if(!supabaseClient||!rankingList)return;
   rankingList.innerHTML='<div class="ranking-loading">Buscando en todos los jugadores...</div>';
-  const {data,error}=await supabaseClient.rpc('ikar_search_all_ranking_players',{p_query:q});
-  if(error){console.error(error);renderFilteredRanking();return}
+  const {data,error}=await supabaseClient.rpc('search_all_ranking_players',{p_query:q});
+  if(error){console.error('Búsqueda global:',error);renderFilteredRanking();return}
   const rows=Array.isArray(data)?data:[];
   rankingList.replaceChildren();rankingCount.textContent=rows.length+' RESULTADOS EN TODOS LOS REGISTRADOS';
   if(!rows.length){rankingList.innerHTML='<div class="ranking-loading">No se encontró ningún jugador.</div>';return}
   rows.forEach(p=>rankingList.appendChild(buildRankingRow(p,Math.max(0,Number(p.global_position||1)-1),Number(p.global_position||1))));
- },250);
+ },180);
 });
 
 if(guestRankingSearchInput)guestRankingSearchInput.addEventListener('input',renderGuestRanking);
