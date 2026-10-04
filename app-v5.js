@@ -1000,7 +1000,10 @@ async function loadAdminMatches(){
   const allRows=adminMatchView==='proofs'?data:data.filter(m=>m.status==='matched'&&!m.player1_video_path&&!m.player2_video_path);
   const proofRows=adminMatchView==='proofs'?allRows:allRows.filter(m=>m.player1_video_path||m.player2_video_path);
   if(adminMatchView==='proofs'&&adminProofsCount)adminProofsCount.textContent=String(proofRows.length);
-  const rows=adminMatchView==='proofs'?proofRows.slice(0,6):allRows;
+  const q=String(adminVsSearchInput?.value||'').trim().toLowerCase();
+  const sourceRows=adminMatchView==='proofs'?proofRows:allRows;
+  const filteredRows=!q?sourceRows:sourceRows.filter(m=>[m.player1_name,m.player2_name,m.player1_game_id,m.player2_game_id,m.match_id].some(v=>String(v??'').toLowerCase().includes(q)));
+  const rows=adminMatchView==='proofs'?filteredRows.slice(0,6):filteredRows;
   adminMatchList.replaceChildren();
   if(!rows.length){adminMatchList.innerHTML='<div class="admin-empty">'+(adminMatchView==='proofs'?'No hay VS con pruebas pendientes.':'No hay partidos en espera.')+'</div>';return}
   for(const m of rows){
@@ -1036,8 +1039,8 @@ async function loadAdminMatches(){
    }
    adminMatchList.appendChild(row);
   }
-  if(adminMatchView==='proofs'&&proofRows.length>rows.length){
-    const more=document.createElement('button');more.type='button';more.className='admin-refresh';more.textContent='VER MÁS PRUEBAS ('+(proofRows.length-rows.length)+')';
+  if(adminMatchView==='proofs'&&filteredRows.length>rows.length){
+    const more=document.createElement('button');more.type='button';more.className='admin-refresh';more.textContent='VER MÁS PRUEBAS ('+(filteredRows.length-rows.length)+')';
     more.onclick=()=>{showToast('Mostrando primero las 6 pruebas más recientes para evitar sobrecargar el sitio.')};
     adminMatchList.appendChild(more);
   }
