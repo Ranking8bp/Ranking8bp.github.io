@@ -2167,7 +2167,7 @@ loginForm.addEventListener('submit',async event=>{
     if(error||!data.session)throw new Error('Usuario o contraseña incorrectos.');
     const profile=await getProfile(data.user.id);
     try{let deviceId=localStorage.getItem('ranking8bp_device_id');if(!deviceId){deviceId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2));localStorage.setItem('ranking8bp_device_id',deviceId)}const bytes=new TextEncoder().encode(deviceId);const digest=await crypto.subtle.digest('SHA-256',bytes);const deviceHash=Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');await supabaseClient.rpc('claim_my_registration_device',{p_device_hash:deviceHash})}catch(e){console.warn('No se pudo vincular el dispositivo',e)}
-    loginForm.reset();closeModal(loginModal);await setPlayerUI(profile,data.user);showToast('Sesión iniciada correctamente.')
+    loginForm.reset();closeModal(loginModal);setLoginBusy(false);showToast('Sesión iniciada correctamente.');setPlayerUI(profile,data.user).catch(e=>console.error('Carga posterior al login:',e))
   }catch(error){console.error(error);loginError.textContent=error?.message||'No se pudo iniciar sesión.'}
   finally{setLoginBusy(false)}
 });
@@ -2221,7 +2221,9 @@ if(cloudReady){
     // is allowed to close the UI session.
     if(event==='SIGNED_OUT'){setGuestUI();return}
     if(!session)return;
-    if(event==='SIGNED_IN'||event==='INITIAL_SESSION'||event==='TOKEN_REFRESHED'){
+    if(event==='TOKEN_REFRESHED'){currentUser=session.user;return}
+    if(event==='SIGNED_IN'||event==='INITIAL_SESSION'){
+      if(currentUser?.id===session.user.id&&currentProfile)return;
       try{
         const profile=await getProfile(session.user.id);
         await setPlayerUI(profile,session.user);
