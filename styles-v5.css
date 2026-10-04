@@ -1938,3 +1938,6 @@ img,svg,video,canvas{max-width:100%}
 
 /* Negative ELO must override gold profile typography */
 #playerDashboard #dashboardElo.negative-elo{color:#ff3b3b!important;-webkit-text-fill-color:#ff3b3b!important;background:none!important;background-image:none!important;text-shadow:0 0 10px rgba(255,59,59,.35)!important;}
+
+/* Negative ELO in all ranking tables */
+#playerDashboard .ranking-elo-number.negative-elo,.guest-ranking-elo.negative-elo,.ranking-elo-number.negative-elo{color:#ff3b3b!important;-webkit-text-fill-color:#ff3b3b!important;text-shadow:0 0 7px rgba(255,59,59,.28)!important;}
