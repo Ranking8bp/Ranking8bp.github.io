@@ -1948,3 +1948,8 @@ img,svg,video,canvas{max-width:100%}
 #settingsMenu #editProfileBtn{display:block!important;grid-column:1/-1!important;width:100%!important;background:#173149!important;color:#fff!important}
 #settingsMenu #logoutBtn,#settingsMenu #deleteAccountBtn{display:block!important;width:100%!important}
 @media(max-width:520px){#settingsMenu{min-width:300px!important;max-width:calc(100vw - 24px)!important}}
+
+/* Rank insignias inside an armed VS */
+.versus-rank-badge{width:76px;height:76px;display:flex;align-items:center;justify-content:center;margin:4px auto 2px;overflow:visible}
+.versus-rank-badge img,.versus-rank-badge .rank-original-img{width:100%!important;height:100%!important;object-fit:contain!important;display:block!important}
+@media(max-width:520px){.versus-rank-badge{width:68px;height:68px}}
