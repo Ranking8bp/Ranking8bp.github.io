@@ -903,7 +903,7 @@
       </div>
       <div id="matchmakingVersus" hidden>
         <div class="matchmaking-mode">RANKING ARMADO</div>
-        <div class="versus-grid"><div class="versus-player"><div class="versus-avatar" id="versusMyAvatar"><span>?</span></div><strong id="versusMe">TÚ</strong><span id="versusMyRank">LATÓN</span><span id="versusMyPosition">RANKING #--</span><span id="versusMyElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusMyGameId">--</strong><button type="button" id="copyMyGameId" title="Copiar ID">📋 COPIAR</button></div></div><b>VS</b><div class="versus-player"><div class="versus-avatar" id="versusOpponentAvatar"><span>?</span></div><strong id="versusOpponent">RIVAL</strong><span id="versusOpponentRank">LATÓN</span><span id="versusOpponentPosition">RANKING #--</span><span id="versusOpponentElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusOpponentGameId">--</strong><button type="button" id="copyOpponentGameId" title="Copiar ID">📋 COPIAR</button></div></div></div>
+        <div class="versus-grid"><div class="versus-player"><div class="versus-avatar" id="versusMyAvatar"><span>?</span></div><strong id="versusMe">TÚ</strong><div class="versus-rank-badge" id="versusMyRankBadge"></div><span id="versusMyRank">LATÓN</span><span id="versusMyPosition">RANKING #--</span><span id="versusMyElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusMyGameId">--</strong><button type="button" id="copyMyGameId" title="Copiar ID">📋 COPIAR</button></div></div><b>VS</b><div class="versus-player"><div class="versus-avatar" id="versusOpponentAvatar"><span>?</span></div><strong id="versusOpponent">RIVAL</strong><div class="versus-rank-badge" id="versusOpponentRankBadge"></div><span id="versusOpponentRank">LATÓN</span><span id="versusOpponentPosition">RANKING #--</span><span id="versusOpponentElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusOpponentGameId">--</strong><button type="button" id="copyOpponentGameId" title="Copiar ID">📋 COPIAR</button></div></div></div>
         <section class="ranked-vs-chat" id="rankedVsChat" hidden>
           <div class="ranked-vs-chat-head"><strong>💬 CHAT DEL VS</strong><span>Solo jugadores de este VS y administrador</span></div>
           <div class="ranked-vs-chat-messages" id="rankedVsChatMessages"><div class="ranked-vs-chat-empty">Todavía no hay mensajes.</div></div>
@@ -991,7 +991,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261004-modproofs01"></script>
+  <script src="app-v5.js?v=20261004-vsbadge01"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
