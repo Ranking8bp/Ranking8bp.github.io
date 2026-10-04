@@ -2139,7 +2139,19 @@ registerForm.addEventListener('submit',async event=>{
   setRegisterBusy(true);
   try{
     let deviceId=localStorage.getItem('ranking8bp_device_id');if(!deviceId){deviceId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2));localStorage.setItem('ranking8bp_device_id',deviceId)}const deviceBytes=new TextEncoder().encode(deviceId);const deviceDigest=await crypto.subtle.digest('SHA-256',deviceBytes);const deviceHash=Array.from(new Uint8Array(deviceDigest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    let registrationTicket=null;
+    try{
+      const {data:t,error:tErr}=await supabaseClient.rpc('join_registration_queue',{p_device_hash:deviceHash});if(tErr)throw tErr;registrationTicket=t;
+      let pos=99,waits=0;
+      while(pos>1&&waits<120){
+        const {data:p,error:pErr}=await supabaseClient.rpc('registration_queue_position',{p_ticket:registrationTicket});if(pErr)throw pErr;
+        pos=Number(p||0);if(pos===0){const {data:nt}=await supabaseClient.rpc('join_registration_queue',{p_device_hash:deviceHash});registrationTicket=nt;pos=99}
+        if(pos>1){registerSubmit.textContent='En cola · turno '+pos;await new Promise(r=>setTimeout(r,1500));waits++}
+      }
+      registerSubmit.textContent='Creando cuenta...';
+    }catch(qe){console.warn('Cola de registro:',qe);await new Promise(r=>setTimeout(r,2000))}
     const {data:registerData,error:registerFunctionError}=await supabaseClient.functions.invoke('register-user',{body:{username:usernameValue,password:passwordValue,device_hash:deviceHash}});
+    if(registrationTicket)supabaseClient.rpc('leave_registration_queue',{p_ticket:registrationTicket}).catch(()=>{});
     if(registerFunctionError||!registerData?.ok){let serverMsg=registerData?.error||'';if(!serverMsg&&registerFunctionError?.context){try{const response=registerFunctionError.context;const payload=typeof response?.json==='function'?await response.clone().json():null;serverMsg=payload?.error||''}catch(_){}}if(!serverMsg)serverMsg=registerFunctionError?.message||'';const normalized=String(serverMsg).toLowerCase();if(registerFunctionError?.context?.status===409||normalized.includes('dispositivo')||normalized.includes('1 cuenta'))throw new Error('Solo puedes tener 1 cuenta. Inicia sesión con tu cuenta existente.');throw new Error(serverMsg||'No se pudo crear la cuenta.')}
 
     const {data:loginData,error:loginAfterRegisterError}=await supabaseClient.auth.signInWithPassword({email:usernameToInternalEmail(usernameValue),password:passwordValue});
