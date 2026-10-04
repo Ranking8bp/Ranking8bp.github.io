@@ -326,7 +326,7 @@ function openRankZoom(rank,player){
   img.src=rank.image+'?v=20260930-hq1';
   img.alt='Insignia '+rank.name;
   if(name)name.textContent=rank.name.toUpperCase();
-  if(stats&&player)stats.textContent='ELO '+(Number(player.elo_points)||200)+' · '+(Number(player.wins)||0)+' victorias · '+(Number(player.losses)||0)+' derrotas';
+  if(stats&&player)stats.textContent='ELO '+(Number(player.elo_points)||0)+' · '+(Number(player.wins)||0)+' victorias · '+(Number(player.losses)||0)+' derrotas';
   modal.classList.add('open');modal.setAttribute('aria-hidden','false');
 }
 function closeRankZoom(){const modal=document.getElementById('rankZoomModal');if(modal){modal.classList.remove('open');modal.setAttribute('aria-hidden','true')}}
@@ -831,7 +831,7 @@ function maybeOpenDirectMatchmaking(){
   setTimeout(()=>startRankedMatchmaking().catch(e=>console.error('Acceso directo a rival:',e)),120);
 }
 
-async function renderSearchingPlayerProfile(){const n=document.getElementById('searchingPlayerName'),e=document.getElementById('searchingPlayerElo'),r=document.getElementById('searchingPlayerRank'),av=document.getElementById('searchingPlayerAvatar');if(!n||!currentProfile)return;const name=String(currentProfile.account_name||currentProfile.username||'JUGADOR').toUpperCase();const elo=Number(currentProfile.elo_points)||200;n.textContent=name;if(e)e.textContent='ELO '+elo;if(r)r.textContent=getRankByElo(elo).name.toUpperCase();if(av){av.replaceChildren();const f=document.createElement('span');f.textContent=name.charAt(0)||'J';av.appendChild(f);if(currentProfile.avatar_path&&supabaseClient){try{const {data}=await supabaseClient.storage.from('profile-photos').createSignedUrl(currentProfile.avatar_path,3600);if(data?.signedUrl){const img=document.createElement('img');img.src=data.signedUrl;img.alt='Foto de '+name;img.onload=()=>av.replaceChildren(img)}}catch(x){}}}}
+async function renderSearchingPlayerProfile(){const n=document.getElementById('searchingPlayerName'),e=document.getElementById('searchingPlayerElo'),r=document.getElementById('searchingPlayerRank'),av=document.getElementById('searchingPlayerAvatar');if(!n||!currentProfile)return;const name=String(currentProfile.account_name||currentProfile.username||'JUGADOR').toUpperCase();const elo=Number(currentProfile.elo_points)||0;n.textContent=name;if(e)e.textContent='ELO '+elo;if(r)r.textContent=getRankByElo(elo).name.toUpperCase();if(av){av.replaceChildren();const f=document.createElement('span');f.textContent=name.charAt(0)||'J';av.appendChild(f);if(currentProfile.avatar_path&&supabaseClient){try{const {data}=await supabaseClient.storage.from('profile-photos').createSignedUrl(currentProfile.avatar_path,3600);if(data?.signedUrl){const img=document.createElement('img');img.src=data.signedUrl;img.alt='Foto de '+name;img.onload=()=>av.replaceChildren(img)}}catch(x){}}}}
 
 
 async function refreshPlayersSearchingCount(){
@@ -1631,10 +1631,10 @@ function openAdminPlayerEditor(player){
   q('adminEditAccountName').value=player.account_name||player.username||'';
   q('adminEditGameId').value=player.game_id||'';
   q('adminEditCountry').value=player.country||'';
-  q('adminEditElo').value=Number(player.elo_points)||200;
+  q('adminEditElo').value=Number(player.elo_points)||0;
   q('adminEditWins').value=Number(player.wins)||0;
   q('adminEditLosses').value=Number(player.losses)||0;
-  q('adminEditRank').value=getRankByElo(Number(player.elo_points)||200).name;
+  q('adminEditRank').value=getRankByElo(Number(player.elo_points)||0).name;
   const preview=q('adminEditAvatarPreview');
   if(player.avatar_path&&supabaseClient){
     const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
@@ -2141,7 +2141,7 @@ registerForm.addEventListener('submit',async event=>{
     }).select('id, username, game_id, account_name, country, screenshot_path, avatar_path, rank_name, elo_points, wins, losses, created_at').single();
     if(profileError)throw new Error('No se pudo guardar el perfil: '+profileError.message);
 
-    registerForm.reset();closeModal(registerModal);await setPlayerUI(newProfile,loginData.user);showToast('Cuenta creada. Rango inicial: Latón · ELO 200.')
+    registerForm.reset();closeModal(registerModal);await setPlayerUI(newProfile,loginData.user);showToast('Cuenta creada. Rango inicial: Latón · ELO 0.')
   }catch(error){console.error(error);registerError.textContent=error?.message||'No se pudo crear la cuenta.'}
   finally{setRegisterBusy(false)}
 });
