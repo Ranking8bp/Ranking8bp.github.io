@@ -1872,3 +1872,61 @@ img,svg,video,canvas{max-width:100%}
  .guest-world-player-3 b{font-size:9px}
  .guest-world-meta{font-size:7px!important}
 }
+
+
+/* VS player safety actions */
+.player-vs-safety{
+  margin:18px 0 12px;
+  padding:16px;
+  border:2px solid rgba(255,255,255,.24);
+  border-radius:16px;
+  background:rgba(4,10,20,.96);
+  box-shadow:0 10px 28px rgba(0,0,0,.42);
+  text-align:center;
+}
+.player-vs-safety p{
+  margin:0 0 14px;
+  color:#fff;
+  font-size:13px;
+  font-weight:800;
+  line-height:1.45;
+}
+.player-vs-safety-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+#playerCancelVsBtn,#playerPlayingBtn{
+  min-height:54px;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:1000;
+  letter-spacing:.35px;
+  color:#fff;
+  cursor:pointer;
+  box-shadow:0 6px 16px rgba(0,0,0,.35);
+}
+#playerCancelVsBtn{
+  background:linear-gradient(180deg,#e53935,#a80707);
+  border:2px solid #ff7777;
+}
+#playerPlayingBtn{
+  background:linear-gradient(180deg,#21c96b,#087c3b);
+  border:2px solid #69f0a3;
+}
+#playerCancelVsBtn:active,#playerPlayingBtn:active{transform:scale(.97)}
+#playerPlayingLocked{
+  display:block;
+  padding:13px;
+  border:2px solid #69f0a3;
+  border-radius:12px;
+  background:rgba(8,124,59,.2);
+  color:#8dffb9;
+  font-size:13px;
+  line-height:1.4;
+}
+@media(max-width:430px){
+  .player-vs-safety{padding:14px 11px}
+  .player-vs-safety-actions{gap:8px}
+  #playerCancelVsBtn,#playerPlayingBtn{min-height:58px;font-size:13px;padding:8px}
+}
