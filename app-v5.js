@@ -180,6 +180,7 @@ function paintLatestRankingResult(r){
  boxes.forEach(x=>{x.replaceChildren();const tag=document.createElement('small');tag.textContent='ÚLTIMO RESULTADO';const line=document.createElement('strong');const winner=document.createElement('span');winner.className='latest-result-winner';winner.textContent=String(r.winner_name);const loser=document.createElement('span');loser.className='latest-result-loser';loser.textContent=String(r.loser_name);line.append(winner,document.createTextNode(' ganó a '),loser,document.createTextNode(' a las '+time+' el '+date));x.append(tag,line)})
 }
 let onlinePlayerIds=new Set(),onlinePresenceTimer=null,rankingStreaks=new Map();
+let explicitLogoutRequested=false;
 const playerDetailModal=document.getElementById('playerDetailModal');
 const closePlayerDetail=document.getElementById('closePlayerDetail');
 const playerDetailAvatar=document.getElementById('playerDetailAvatar');
@@ -2172,7 +2173,7 @@ loginForm.addEventListener('submit',async event=>{
   finally{setLoginBusy(false)}
 });
 
-logoutBtn.addEventListener('click',async()=>{settingsMenu.hidden=true;clearInterval(onlinePresenceTimer);onlinePresenceTimer=null;if(supabaseClient)await supabaseClient.auth.signOut();setGuestUI();showToast('Sesión cerrada.')});
+logoutBtn.addEventListener('click',async()=>{explicitLogoutRequested=true;settingsMenu.hidden=true;clearInterval(onlinePresenceTimer);onlinePresenceTimer=null;if(supabaseClient)await supabaseClient.auth.signOut();setGuestUI();explicitLogoutRequested=false;showToast('Sesión cerrada.')});
 
 if(deleteAccountBtn)deleteAccountBtn.addEventListener('click',async()=>{
   settingsMenu.hidden=true;
@@ -2219,7 +2220,7 @@ if(cloudReady){
     // Never throw a player back to guest mode because Supabase temporarily
     // failed to restore/refresh a session. Only an explicit SIGNED_OUT event
     // is allowed to close the UI session.
-    if(event==='SIGNED_OUT'){setGuestUI();return}
+    if(event==='SIGNED_OUT'){if(explicitLogoutRequested){setGuestUI()}return}
     if(!session)return;
     if(event==='TOKEN_REFRESHED'){currentUser=session.user;return}
     if(event==='SIGNED_IN'||event==='INITIAL_SESSION'){
