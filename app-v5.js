@@ -1104,7 +1104,7 @@ async function loadGuestRanking(){
  if(cached?.length){guestRankingPlayers=cached.slice(0,100);renderGuestRanking();renderGuestRankShowcase()}
  else guestRankingList.innerHTML='<div class="ranking-loading">Cargando clasificación...</div>';
  if(!supabaseClient)return;
- if(cached?.length&&publicCacheFresh('ranking8bp_public_ranking'))return;
+ if(cached?.length&&publicCacheFresh('ranking8bp_public_ranking')&&totalRegisteredPlayers>100)return;
  guestRankingLoading=true;
  try{
   if(cached?.length)await burstJitter();
@@ -1863,7 +1863,7 @@ async function loadRanking(){
  const cached=readPublicCache('ranking8bp_full_ranking');
  if(cached?.length){rankingPlayersCache=cached;renderFilteredRanking()}
  else{rankingList.innerHTML='<div class="ranking-loading">Cargando clasificación...</div>';rankingCount.textContent=''}
- if(cached?.length&&publicCacheFresh('ranking8bp_full_ranking'))return;
+ if(cached?.length&&publicCacheFresh('ranking8bp_full_ranking')&&totalRegisteredPlayers>100)return;
  rankingLoading=true;
  try{
   if(cached?.length)await burstJitter();
