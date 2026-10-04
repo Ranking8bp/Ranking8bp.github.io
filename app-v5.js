@@ -151,7 +151,7 @@ const rankedWinnerVideoInput=document.getElementById('rankedWinnerVideoInput');
 const rankedWinnerVideoBtn=document.getElementById('rankedWinnerVideoBtn');
 const rankedWinnerVideoStatus=document.getElementById('rankedWinnerVideoStatus');
 let pendingMatchesTimer=null;
-let matchmakingTimer=null,currentRankedMatchId=null,matchmakingHeartbeatTimer=null,rankedSearchActive=false;
+let matchmakingTimer=null,currentRankedMatchId=null,matchmakingHeartbeatTimer=null,rankedSearchActive=false,currentRankedMatchData=null;
 const gamesPlayed=document.getElementById('gamesPlayed');
 const winRate=document.getElementById('winRate');
 const currentStreak=document.getElementById('currentStreak');
@@ -372,6 +372,16 @@ async function refreshPlayerVsSafety(){
   if(playerPlayingBtn){playerPlayingBtn.hidden=locked;playerPlayingBtn.disabled=locked}
   if(playerVsSafetyNotice)playerVsSafetyNotice.hidden=locked;
   if(playerPlayingLocked)playerPlayingLocked.hidden=!locked;
+  if(rankedResultReport){
+    rankedResultReport.hidden=!locked;
+    if(locked){
+      const mine=String(currentRankedMatchData?.my_result_claim||'').toUpperCase();
+      const other=String(currentRankedMatchData?.opponent_result_claim||'').toUpperCase();
+      if(rankedClaimWon){rankedClaimWon.disabled=!!mine;rankedClaimWon.textContent=mine==='WON'?'✓ MARCASTE GANÉ':'🏆 GANÉ'}
+      if(rankedClaimLost){rankedClaimLost.disabled=!!mine;rankedClaimLost.textContent=mine==='LOST'?'✓ MARCASTE PERDÍ':'PERDÍ'}
+      if(rankedResultStatus)rankedResultStatus.textContent=mine?(other?'Resultado registrado.':'Resultado enviado. Esperando a tu rival.'):'El partido está en juego. Al terminar marca GANÉ o PERDÍ.';
+    }
+  }
  }catch(e){console.error('Seguridad VS:',e)}
 }
 async function cancelVsByPlayers(){
@@ -715,7 +725,7 @@ async function sendRankedVsChat(){
 rankedVsChatSend?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();sendRankedVsChat()});
 rankedVsChatSend?.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();sendRankedVsChat()},{passive:false});
 rankedVsChatInput?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendRankedVsChat()}});
-function showRankedMatch(match){
+function showRankedMatch(match){currentRankedMatchData=match;
  if(!matchmakingModal)return;
  rankedSearchActive=false;
  currentRankedMatchId=match.match_id;
