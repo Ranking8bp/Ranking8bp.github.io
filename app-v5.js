@@ -365,23 +365,18 @@ async function refreshPlayerVsSafety(){
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_player_action_status',{p_match_id:Number(currentRankedMatchId)});
   if(error)throw error;
-  const st=Array.isArray(data)?data[0]:data,ready=!!st?.both_messaged,locked=!!st?.players_playing;
+  const st=Array.isArray(data)?data[0]:data,ready=!!st?.both_messaged,locked=!!st?.players_playing,mine=!!st?.my_playing_confirmed,other=!!st?.opponent_playing_confirmed;
   playerVsSafety.hidden=!ready;playerVsSafety.style.display=ready?'block':'none';
   if(!ready)return;
   if(playerCancelVsBtn){playerCancelVsBtn.hidden=locked;playerCancelVsBtn.disabled=locked}
-  if(playerPlayingBtn){playerPlayingBtn.hidden=locked;playerPlayingBtn.disabled=locked}
-  if(playerVsSafetyNotice)playerVsSafetyNotice.hidden=locked;
-  if(playerPlayingLocked)playerPlayingLocked.hidden=!locked;
-  if(rankedResultReport){
-    rankedResultReport.hidden=!locked;rankedResultReport.style.display=locked?'block':'none';
-    if(locked){
-      const mine=String(currentRankedMatchData?.my_result_claim||'').toUpperCase();
-      const other=String(currentRankedMatchData?.opponent_result_claim||'').toUpperCase();
-      if(rankedClaimWon){rankedClaimWon.disabled=!!mine;rankedClaimWon.textContent=mine==='WON'?'✓ MARCASTE GANÉ':'🏆 GANÉ'}
-      if(rankedClaimLost){rankedClaimLost.disabled=!!mine;rankedClaimLost.textContent=mine==='LOST'?'✓ MARCASTE PERDÍ':'PERDÍ'}
-      if(rankedResultStatus)rankedResultStatus.textContent=mine?(other?'Resultado registrado.':'Resultado enviado. Esperando a tu rival.'):'El partido está en juego. Al terminar marca GANÉ o PERDÍ.';
-    }
+  if(playerPlayingBtn){playerPlayingBtn.hidden=locked;playerPlayingBtn.disabled=locked||mine;playerPlayingBtn.textContent=mine&&!locked?'✓ ESPERANDO AL RIVAL':'YA ESTAMOS JUGANDO'}
+  if(playerVsSafetyNotice){
+   playerVsSafetyNotice.hidden=locked;
+   if(!locked&&mine)playerVsSafetyNotice.innerHTML='⏳ <b>YA CONFIRMASTE QUE ESTÁN JUGANDO.</b> Tu rival debe tocar <b>YA ESTAMOS JUGANDO</b>. Hasta que ambos confirmen, el VS todavía puede ser anulado.';
+   else if(!locked&&other)playerVsSafetyNotice.innerHTML='⚠️ <b>TU RIVAL YA CONFIRMÓ QUE ESTÁN JUGANDO.</b> Toca <b>YA ESTAMOS JUGANDO</b> si la partida ya comenzó. Cuando ambos confirmen, ninguno podrá anular el VS.';
   }
+  if(playerPlayingLocked)playerPlayingLocked.hidden=!locked;
+  if(rankedResultReport){rankedResultReport.hidden=!locked;rankedResultReport.style.display=locked?'block':'none'}
  }catch(e){console.error('Seguridad VS:',e)}
 }
 async function cancelVsByPlayers(){
