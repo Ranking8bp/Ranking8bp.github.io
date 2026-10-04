@@ -434,10 +434,10 @@ rankedNoTrickBtn?.addEventListener('click',async()=>{
  if(!confirm('¿Confirmas que NADIE HIZO TRICK CON LA 8? El VS se cerrará sin ganador.'))return;
  rankedNoTrickBtn.disabled=true;
  try{
-  const {error}=await supabaseClient.rpc('cancel_ranked_no_trick',{p_match_id:Number(currentRankedMatchId)});
+  const {data,error}=await supabaseClient.rpc('cancel_ranked_no_trick',{p_match_id:Number(currentRankedMatchId)});
   if(error)throw error;
-  showToast('VS cerrado: nadie hizo trick con la 8.');
-  await closeRankedMatchmaking();await updateRankedDailyStatus();
+  if(data===true){showToast('VS anulado: ambos confirmaron que nadie hizo trickshot con la 8.');await closeRankedMatchmaking();await updateRankedDailyStatus();}
+  else{showToast('Confirmación enviada. Falta que tu rival toque NADIE HIZO TRICK CON LA 8.');rankedNoTrickBtn.textContent='✓ ESPERANDO AL RIVAL';}
  }catch(e){console.error(e);rankedNoTrickBtn.disabled=false;showToast('No se pudo cerrar el VS.')}
 });
 
