@@ -2163,7 +2163,9 @@ loginForm.addEventListener('submit',async event=>{
   try{
     const {data,error}=await supabaseClient.auth.signInWithPassword({email:usernameToInternalEmail(usernameValue),password:passwordValue});
     if(error||!data.session)throw new Error('Usuario o contraseña incorrectos.');
-    const profile=await getProfile(data.user.id);loginForm.reset();closeModal(loginModal);await setPlayerUI(profile,data.user);showToast('Sesión iniciada correctamente.')
+    const profile=await getProfile(data.user.id);
+    try{let deviceId=localStorage.getItem('ranking8bp_device_id');if(!deviceId){deviceId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2));localStorage.setItem('ranking8bp_device_id',deviceId)}const bytes=new TextEncoder().encode(deviceId);const digest=await crypto.subtle.digest('SHA-256',bytes);const deviceHash=Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');await supabaseClient.rpc('claim_my_registration_device',{p_device_hash:deviceHash})}catch(e){console.warn('No se pudo vincular el dispositivo',e)}
+    loginForm.reset();closeModal(loginModal);await setPlayerUI(profile,data.user);showToast('Sesión iniciada correctamente.')
   }catch(error){console.error(error);loginError.textContent=error?.message||'No se pudo iniciar sesión.'}
   finally{setLoginBusy(false)}
 });
