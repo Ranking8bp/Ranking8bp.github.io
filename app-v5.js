@@ -395,8 +395,9 @@ async function updatePendingMatchesCount(){
 function updateRankedResultReport(match){
  if(!rankedResultReport)return;
  const confirmed=!!match?.admin_confirmed;
- rankedResultReport.hidden=!confirmed;
- if(!confirmed)return;
+ const playing=!!match?.players_playing;
+ rankedResultReport.hidden=!(confirmed||playing);
+ if(!(confirmed||playing))return;
  const mine=String(match?.my_result_claim||'').toUpperCase(),other=String(match?.opponent_result_claim||'').toUpperCase();
  if(rankedClaimWon){rankedClaimWon.disabled=!!mine;rankedClaimWon.textContent=mine==='WON'?'✓ MARCASTE GANÉ':'🏆 GANÉ'}
  if(rankedClaimLost){rankedClaimLost.disabled=!!mine;rankedClaimLost.textContent=mine==='LOST'?'✓ MARCASTE PERDÍ':'PERDÍ'}
@@ -425,7 +426,7 @@ rankedClaimLost?.addEventListener('click',()=>submitRankedResultClaim('LOST'));
 
 async function updateRankedVideoProof(match){
  if(!rankedVideoProof||!supabaseClient||!match?.match_id)return;
- if(!match.admin_confirmed){rankedVideoProof.hidden=true;return}
+ if(!match.admin_confirmed&&!match.players_playing){rankedVideoProof.hidden=true;return}
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_result_wait_status',{p_match_id:Number(match.match_id)});if(error)throw error;
   const st=Array.isArray(data)?data[0]:data,mine=String(st?.my_claim||'').toUpperCase(),other=String(st?.opponent_claim||'').toUpperCase();
