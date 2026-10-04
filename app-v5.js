@@ -438,13 +438,12 @@ async function updateRankedVideoProof(match){
   if(mine!=='WON'||other==='LOST'){rankedVideoProof.hidden=true;return}
   rankedVideoProof.hidden=false;
   if(match.my_video_uploaded){
-   if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='✅ Evidencia enviada. El tiempo para subir video se detuvo.';
+   if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='✅ Evidencia enviada. Pendiente de revisión.';
    if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 VIDEO ENVIADO';rankedWinnerVideoBtn.disabled=true}
    return;
   }
-  const left=Math.max(0,Number(st?.seconds_left)||0),mm=String(Math.floor(left/60)).padStart(2,'0'),ss=String(left%60).padStart(2,'0');
-  if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='⚠️ SUBE EL VIDEO QUE DEMUESTRE QUE GANASTE. TIENES '+mm+':'+ss+'. SI NO LO ENVÍAS, EL VS SERÁ ANULADO.';
-  if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 SUBIR VIDEO · '+mm+':'+ss;rankedWinnerVideoBtn.disabled=false}
+  if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='⚠️ SUBE EL VIDEO QUE DEMUESTRE QUE GANASTE PARA QUE EL ADMINISTRADOR PUEDA REVISARLO.';
+  if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 SUBIR VIDEO DEL TIRO GANADOR';rankedWinnerVideoBtn.disabled=false}
  }catch(e){console.error('Estado evidencia VS:',e)}
 }
 function getVideoExtension(file){
