@@ -941,7 +941,28 @@ function showAdminModeration(){
 }
 function showAdminVs(){adminMatchView='all';if(adminMatchList)adminMatchList.hidden=false;if(adminPlayerList)adminPlayerList.hidden=true;if(adminPlayerSearch)adminPlayerSearch.hidden=true;if(adminModeration)adminModeration.hidden=true;loadAdminMatches()}
 function showAdminPlayers(){if(adminMatchList)adminMatchList.hidden=true;if(adminPlayerList)adminPlayerList.hidden=false;if(adminPlayerSearch)adminPlayerSearch.hidden=false;if(adminModeration)adminModeration.hidden=true;loadAdminPlayers()}
-if(adminPlayerSearchInput)adminPlayerSearchInput.addEventListener('input',()=>{const q=adminPlayerSearchInput.value.trim().toLowerCase();if(!adminPlayerList)return;adminPlayerList.querySelectorAll('.admin-player-card').forEach(card=>{const name=String(card.dataset.searchName||'');card.hidden=!!q&&!name.includes(q)})});
+let adminPlayerSearchTimer=null;
+if(adminPlayerSearchInput)adminPlayerSearchInput.addEventListener('input',()=>{
+ clearTimeout(adminPlayerSearchTimer);
+ adminPlayerSearchTimer=setTimeout(async()=>{
+  const q=adminPlayerSearchInput.value.trim();
+  if(!q){await loadAdminPlayers();return}
+  if(!adminPlayerList||!supabaseClient)return;
+  adminPlayerList.innerHTML='<div class="admin-empty">Buscando en todos los jugadores...</div>';
+  const {data,error}=await supabaseClient.rpc('admin_search_players',{p_query:q});
+  if(error){console.error(error);adminPlayerList.innerHTML='<div class="admin-empty">No se pudo realizar la búsqueda.</div>';return}
+  const players=Array.isArray(data)?data:[];
+  adminPlayerList.replaceChildren();
+  if(!players.length){adminPlayerList.innerHTML='<div class="admin-empty">No se encontró ningún jugador.</div>';return}
+  players.forEach(p=>{
+   const card=document.createElement('article');card.className='admin-player-card';card.dataset.searchName=String(p.account_name||p.username||'').toLowerCase();
+   const head=document.createElement('div');head.className='admin-player-head';const av=document.createElement('div');av.className='admin-edit-avatar';av.textContent=String(p.account_name||p.username||'?').charAt(0).toUpperCase();
+   if(p.avatar_path){const {data:u}=supabaseClient.storage.from('profile-photos').getPublicUrl(p.avatar_path);if(u?.publicUrl){const im=document.createElement('img');im.src=u.publicUrl;av.replaceChildren(im)}}
+   const title=document.createElement('div');title.innerHTML='<strong></strong><span></span>';title.children[0].textContent=p.account_name||p.username||'Jugador';title.children[1].textContent='Ranking #'+p.global_position+' · ID '+(p.game_id||'--');head.append(av,title);card.append(head);
+   const open=document.createElement('button');open.type='button';open.className='admin-save-player';open.textContent='ABRIR / ADMINISTRAR JUGADOR';open.onclick=async()=>{adminPlayerSearchInput.value='';await loadAdminPlayers();const cards=[...adminPlayerList.querySelectorAll('.admin-player-card')];const target=cards.find(x=>String(x.textContent).includes(String(p.player_id)));if(target)target.scrollIntoView({behavior:'smooth',block:'center'})};card.append(open);adminPlayerList.append(card);
+  });
+ },250);
+});
 
 async function setupAdminMode(){
  if(!currentUser||!supabaseClient||!adminModeBtn)return;
