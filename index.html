@@ -653,7 +653,7 @@
           <a class="dashboard-whatsapp-btn" id="dashboardWhatsappBtn" href="https://chat.whatsapp.com/E8wsyIDMq8TGaSNAbUuFew" aria-label="Grupo de WhatsApp">
             <span class="dashboard-whatsapp-icon" aria-hidden="true">☎</span><span class="dashboard-whatsapp-text">GRUPO DE WHATSAPP</span>
           </a>
-        </div><div class="dashboard-chat-area"><button type="button" class="dashboard-chat-btn" id="dashboardChatBtn">CHAT GENERAL</button></div><div class="push-enable-area"><button type="button" class="push-enable-btn" id="pushEnableBtn">🔔 ACTIVAR NOTIFICACIONES</button></div><div class="general-chat-backdrop" id="generalChatModal" hidden><section class="general-chat-card"><header><strong>CHAT GENERAL</strong><button type="button" id="generalChatClose">×</button></header><div class="general-chat-messages" id="generalChatMessages"></div><form class="general-chat-compose" id="generalChatForm"><textarea id="generalChatInput" maxlength="500" placeholder="Escribe un mensaje..." required></textarea><button type="submit">ENVIAR</button></form></section></div>
+        </div><div class="push-enable-area"><button type="button" class="push-enable-btn" id="pushEnableBtn">🔔 ACTIVAR NOTIFICACIONES</button></div>
 
         <section class="win-loss-grid">
           <article class="result-card victory-card">
@@ -883,7 +883,7 @@
     </div>
   </div>
 
-  <div class="admin-backdrop" id="adminPanel" hidden><section class="admin-card"><div class="admin-head"><div><small>CONTROL DEL RANKING</small><h2>MODO ADMINISTRADOR</h2></div><button id="adminCloseBtn" type="button">×</button></div><div class="admin-tabs"><button id="adminVsTab" type="button">SALA VS</button><button id="adminPlayersTab" type="button">JUGADORES</button><button id="adminModerationTab" type="button">MODERACIÓN</button></div><div class="admin-quick-actions"><button class="admin-refresh" id="adminRefreshBtn" type="button">ACTUALIZAR</button><button class="admin-refresh admin-proofs-btn" id="adminProofsBtn" type="button" hidden>PRUEBAS <span id="adminProofsCount">0</span></button><button class="admin-refresh" id="adminCorrectionsBtn" type="button">CORREGIR ÚLTIMOS 5</button></div><div class="admin-player-search" id="adminVsSearch"><span aria-hidden="true">🔍</span><input id="adminVsSearchInput" type="search" placeholder="Buscar VS por nombre" autocomplete="off" /></div><div class="admin-player-search" id="adminPlayerSearch" hidden><span aria-hidden="true">🔍</span><input id="adminPlayerSearchInput" type="search" placeholder="Buscar jugador por nombre" autocomplete="off" /></div><div class="admin-match-list" id="adminMatchList"></div><div class="admin-player-list" id="adminPlayerList" hidden></div><div class="admin-moderation" id="adminModeration" hidden><div class="admin-mod-section"><h3>CHAT GENERAL</h3><div id="adminGeneralMessages"></div></div><div class="admin-mod-section"><h3>MENSAJES PRIVADOS</h3><div id="adminPrivateMessages"></div></div></div></section></div>
+  <div class="admin-backdrop" id="adminPanel" hidden><section class="admin-card"><div class="admin-head"><div><small>CONTROL DEL RANKING</small><h2>MODO ADMINISTRADOR</h2></div><button id="adminCloseBtn" type="button">×</button></div><div class="admin-tabs"><button id="adminVsTab" type="button">SALA VS</button><button id="adminPlayersTab" type="button">JUGADORES</button><button id="adminModerationTab" type="button">MODERACIÓN</button></div><div class="admin-quick-actions"><button class="admin-refresh" id="adminRefreshBtn" type="button">ACTUALIZAR</button><button class="admin-refresh admin-proofs-btn" id="adminProofsBtn" type="button" hidden>PRUEBAS <span id="adminProofsCount">0</span></button><button class="admin-refresh" id="adminCorrectionsBtn" type="button">CORREGIR ÚLTIMOS 5</button></div><div class="admin-player-search" id="adminVsSearch"><span aria-hidden="true">🔍</span><input id="adminVsSearchInput" type="search" placeholder="Buscar VS por nombre" autocomplete="off" /></div><div class="admin-player-search" id="adminPlayerSearch" hidden><span aria-hidden="true">🔍</span><input id="adminPlayerSearchInput" type="search" placeholder="Buscar jugador por nombre" autocomplete="off" /></div><div class="admin-match-list" id="adminMatchList"></div><div class="admin-player-list" id="adminPlayerList" hidden></div><div class="admin-moderation" id="adminModeration" hidden><div class="admin-mod-section"><h3>MENSAJES PRIVADOS</h3><div id="adminPrivateMessages"></div></div></div></section></div>
   <div class="matchmaking-backdrop" id="matchmakingModal" hidden>
     <section class="matchmaking-card">
       <button type="button" class="matchmaking-close" id="matchmakingClose">×</button>
@@ -980,7 +980,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261004-notimelimit04"></script>
+  <script src="app-v5.js?v=20261004-removegeneralchat01"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
