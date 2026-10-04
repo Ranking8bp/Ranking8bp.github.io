@@ -908,12 +908,7 @@
           <div class="player-vs-safety-actions"><button type="button" id="playerCancelVsBtn">ANULAR VS</button><button type="button" id="playerPlayingBtn">YA ESTAMOS JUGANDO</button></div>
           <strong id="playerPlayingLocked" hidden>🔒 PARTIDA EN JUEGO · ESTE VS YA NO PUEDE SER ANULADO POR LOS JUGADORES</strong>
         </div>
-        <div class="ranked-play-timer" id="rankedPlayTimer" hidden>
-          <span>TIEMPO PARA COORDINAR, JUGAR Y SUBIR PRUEBAS</span>
-          <strong id="rankedPlayTimerValue">30:00</strong>
-          <small id="rankedPlayTimerNote">Si llega a 00:00 y nadie subió evidencia, el VS se anulará automáticamente.<br><b>Mientras este VS esté confirmado, ninguno de los dos jugadores podrá buscar un nuevo rival hasta que el enfrentamiento termine o sea anulado.</b></small>
-        </div>
-        
+        <div class="ranked-play-timer" id="rankedPlayTimer" hidden style="display:none!important"><strong id="rankedPlayTimerValue" hidden>00:00</strong><small id="rankedPlayTimerNote" hidden></small></div>
         <section class="ranked-match-rules" id="rankedMatchRules" hidden>
           <h3>GUÍA PARA TU PARTIDO POR RANKING</h3>
           <p>• COPIA EL ID DE TU RIVAL Y COORDINA EN EL CHAT DEL VS PARA QUE ENTREN AL JUEGO PARA REALIZAR SU ENFRENTAMIENTO. TIENEN QUE PONERSE DE ACUERDO QUIÉN VA A DESAFIAR AL OTRO JUGADOR Y QUIÉN VA A ACEPTAR EL DESAFÍO.</p>
@@ -985,7 +980,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261004-playingcount-noclick01"></script>
+  <script src="app-v5.js?v=20261004-notimer30"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
