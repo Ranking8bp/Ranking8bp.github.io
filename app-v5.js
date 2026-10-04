@@ -997,7 +997,7 @@ async function loadAdminMatches(){
     data=adminMatchesCache;
     if(!data.length){const mr=await supabaseClient.rpc('admin_get_ranked_matches');if(mr.error)throw mr.error;data=Array.isArray(mr.data)?mr.data:[];adminMatchesCache=data}
   }
-  const allRows=adminMatchView==='proofs'?data:data.filter(m=>m.status==='matched');
+  const allRows=adminMatchView==='proofs'?data:data.filter(m=>m.status==='matched'&&!m.player1_video_path&&!m.player2_video_path);
   const proofRows=adminMatchView==='proofs'?allRows:allRows.filter(m=>m.player1_video_path||m.player2_video_path);
   if(adminMatchView==='proofs'&&adminProofsCount)adminProofsCount.textContent=String(proofRows.length);
   const rows=adminMatchView==='proofs'?proofRows.slice(0,6):allRows;
