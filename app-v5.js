@@ -369,11 +369,11 @@ async function refreshPlayerVsSafety(){
   playerVsSafety.hidden=!ready;playerVsSafety.style.display=ready?'block':'none';
   if(!ready)return;
   if(playerCancelVsBtn){const noCancel=locked||mine||other;playerCancelVsBtn.hidden=noCancel;playerCancelVsBtn.disabled=noCancel}
-  if(playerPlayingBtn){playerPlayingBtn.hidden=locked;playerPlayingBtn.disabled=locked||mine;playerPlayingBtn.textContent=mine&&!locked?'✓ ESPERANDO AL RIVAL':'YA ESTAMOS JUGANDO'}
+  if(playerPlayingBtn){playerPlayingBtn.hidden=locked;playerPlayingBtn.disabled=locked}
   if(playerVsSafetyNotice){
    playerVsSafetyNotice.hidden=locked;
-   if(!locked&&mine)playerVsSafetyNotice.innerHTML='🔒 <b>YA CONFIRMASTE QUE ESTÁN JUGANDO.</b> Desde este momento el VS ya no puede ser anulado. Tu rival debe tocar <b>YA ESTAMOS JUGANDO</b> para habilitar el resultado.';
-   else if(!locked&&other)playerVsSafetyNotice.innerHTML='🔒 <b>TU RIVAL YA CONFIRMÓ QUE ESTÁN JUGANDO.</b> Este VS ya no puede ser anulado. Toca <b>YA ESTAMOS JUGANDO</b> cuando la partida haya comenzado para habilitar el resultado.';
+   if(!locked&&mine)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> El VS ya no puede ser anulado.';
+   else if(!locked&&other)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> Tu rival confirmó que ya están jugando. El VS ya no puede ser anulado.';
   }
   if(playerPlayingLocked)playerPlayingLocked.hidden=!locked;
   if(rankedResultReport){rankedResultReport.hidden=!locked;rankedResultReport.style.display=locked?'block':'none'}
