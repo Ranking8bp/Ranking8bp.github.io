@@ -842,7 +842,7 @@ async function refreshPlayersSearchingCount(){
  playersSearchingLoading=true;
  try{const {data,error}=await supabaseClient.rpc('get_matchmaking_search_count');if(error)throw error;const n=Math.max(0,Number(data)||0);playersSearchingCount.textContent=String(n);if(playersSearchingText)playersSearchingText.textContent=n===1?'JUGADOR ESTÁ BUSCANDO RIVAL':'JUGADORES ESTÁN BUSCANDO RIVAL'}catch(e){console.error('Contador buscando rival:',e)}finally{playersSearchingLoading=false}
 }
-setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),500);setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},60000);
+setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),8000+Math.floor(Math.random()*12000));setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},180000);
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient)return;
  rankedSearchActive=true;
@@ -1221,12 +1221,16 @@ async function setPlayerUI(profile,user){
   const showIkarModerator=String(profile?.username||user?.user_metadata?.username||'').trim().toLowerCase()==='ikar8bp'||profile?.is_moderator===true;
   if(ikarModeratorArea)ikarModeratorArea.hidden=!showIkarModerator;
 
-  const rankingTask=loadRanking();
+  // HIGH TRAFFIC MODE: render the account immediately. Secondary Supabase reads are staggered
+  // so a wave of logins/refreshes does not hit every RPC in the same second.
   const rankTask=isAdminDashboard?Promise.resolve():renderRankBadge(rank);
   const avatarTask=profile?.avatar_path?loadAvatar(profile.avatar_path):Promise.resolve(clearAvatar());
-  const followTask=loadDashboardFollowStats(profile?.id||user?.id);
-  const competitiveHub=document.getElementById('competitiveHub');if(competitiveHub)competitiveHub.hidden=isAdminDashboard;const competitiveTask=isAdminDashboard?Promise.resolve():loadCompetitiveHub(profile?.id||user?.id);
-  await Promise.allSettled([rankingTask,rankTask,avatarTask,followTask,competitiveTask]);
+  const competitiveHub=document.getElementById('competitiveHub');if(competitiveHub)competitiveHub.hidden=isAdminDashboard;
+  Promise.allSettled([rankTask,avatarTask]).catch(()=>{});
+  const spread=(fn,min,max)=>setTimeout(()=>{if(currentUser?.id===user?.id&&!document.hidden)Promise.resolve(fn()).catch(()=>{})},min+Math.floor(Math.random()*(max-min)));
+  spread(()=>loadDashboardFollowStats(profile?.id||user?.id),2500,7000);
+  if(!isAdminDashboard)spread(()=>loadCompetitiveHub(profile?.id||user?.id),6000,14000);
+  spread(()=>loadRanking(),10000,22000);
   maybeOpenDirectMatchmaking();
 }
 
@@ -2083,7 +2087,7 @@ function startNotificationRefresh(){
   if(notificationRefreshTimer)clearInterval(notificationRefreshTimer);
   if(currentUser){
     loadNotifications().catch(()=>{});
-    notificationRefreshTimer=setInterval(()=>{if(currentUser&&!document.hidden)loadNotifications().catch(()=>{})},60000);
+    notificationRefreshTimer=setInterval(()=>{if(currentUser&&!document.hidden)loadNotifications().catch(()=>{})},180000);
   }
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser){loadNotifications().catch(()=>{});if(rankedSearchActive){if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}pollRankedMatch().catch(()=>{})}else restoreActiveRankedVs().catch(()=>{})}});
@@ -2100,7 +2104,7 @@ async function restoreActiveRankedVs(){
    startRankedVsChat(m);
  }catch(e){console.error('Restaurar VS activo:',e)}
 }
-setTimeout(startNotificationRefresh,1000);setTimeout(()=>{startOnlinePresence();refreshOnlinePlayers();refreshPlayersPlayingCount();setInterval(()=>{if(!document.hidden)refreshPlayersPlayingCount()},60000)},1200);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser)touchOnlinePresence()});
+setTimeout(startNotificationRefresh,6000+Math.floor(Math.random()*6000));setTimeout(()=>{startOnlinePresence();setTimeout(()=>refreshOnlinePlayers(),3000+Math.floor(Math.random()*7000));setTimeout(()=>refreshPlayersPlayingCount(),5000+Math.floor(Math.random()*10000));setInterval(()=>{if(!document.hidden)refreshPlayersPlayingCount()},180000)},5000+Math.floor(Math.random()*5000));document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser)touchOnlinePresence()});
 if(playerDetailModal)playerDetailModal.addEventListener('click',event=>{if(event.target===playerDetailModal)closeRankingPlayer()});
 
 profilePhotoInput.addEventListener('change',async()=>{
