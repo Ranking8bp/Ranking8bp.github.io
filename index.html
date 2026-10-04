@@ -904,7 +904,7 @@
         <div class="elo-stakes"><span>GANADOR <b>+15 ELO</b></span><span>PERDEDOR <b>-15 ELO</b></span></div>
         <div class="ranked-match-countdown" id="rankedMatchCountdown" hidden style="display:none!important"><b id="rankedMatchCountdownValue" hidden>0</b><button type="button" id="rankedPlayerConfirmBtn" hidden></button><small id="rankedPlayerConfirmStatus" hidden></small></div>
         <div class="player-vs-safety" id="playerVsSafety" hidden>
-          <p id="playerVsSafetyNotice">⚠️ Toca <b>YA ESTAMOS JUGANDO</b> únicamente cuando tú y tu rival ya hayan comenzado la partida. Después de activarlo, ninguno podrá anular el VS.</p>
+          <p id="playerVsSafetyNotice">⚠️ <b>IMPORTANTE:</b> Toca <b>YA ESTAMOS JUGANDO</b> únicamente cuando tú y tu rival ya estén jugando. Al activarlo, <b>ninguno de los dos podrá anular el VS</b>. Hazlo para evitar que alguien haga trampa intentando anular el enfrentamiento después de haber comenzado la partida.</p>
           <div class="player-vs-safety-actions"><button type="button" id="playerCancelVsBtn">ANULAR VS</button><button type="button" id="playerPlayingBtn">YA ESTAMOS JUGANDO</button></div>
           <strong id="playerPlayingLocked" hidden>🔒 PARTIDA EN JUEGO · ESTE VS YA NO PUEDE SER ANULADO POR LOS JUGADORES</strong>
         </div>
@@ -985,7 +985,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261004-vssafety-live01"></script>
+  <script src="app-v5.js?v=20261004-vsnotice01"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
