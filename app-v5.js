@@ -428,6 +428,18 @@ async function submitRankedResultClaim(claim){
 }
 rankedClaimWon?.addEventListener('click',()=>submitRankedResultClaim('WON'));
 rankedClaimLost?.addEventListener('click',()=>submitRankedResultClaim('LOST'));
+const rankedNoTrickBtn=document.getElementById('rankedNoTrickBtn');
+rankedNoTrickBtn?.addEventListener('click',async()=>{
+ if(!currentRankedMatchId||!supabaseClient)return;
+ if(!confirm('¿Confirmas que NADIE HIZO TRICK CON LA 8? El VS se cerrará sin ganador.'))return;
+ rankedNoTrickBtn.disabled=true;
+ try{
+  const {error}=await supabaseClient.rpc('cancel_ranked_no_trick',{p_match_id:Number(currentRankedMatchId)});
+  if(error)throw error;
+  showToast('VS cerrado: nadie hizo trick con la 8.');
+  await closeRankedMatchmaking();await updateRankedDailyStatus();
+ }catch(e){console.error(e);rankedNoTrickBtn.disabled=false;showToast('No se pudo cerrar el VS.')}
+});
 
 async function updateRankedVideoProof(match){
  if(!rankedVideoProof||!supabaseClient||!match?.match_id)return;
