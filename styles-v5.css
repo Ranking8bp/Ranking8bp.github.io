@@ -1941,3 +1941,10 @@ img,svg,video,canvas{max-width:100%}
 
 /* Negative ELO in all ranking tables */
 #playerDashboard .ranking-elo-number.negative-elo,.guest-ranking-elo.negative-elo,.ranking-elo-number.negative-elo{color:#ff3b3b!important;-webkit-text-fill-color:#ff3b3b!important;text-shadow:0 0 7px rgba(255,59,59,.28)!important;}
+
+/* Settings: three actions, edit profile on its own first row */
+#settingsMenu{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important;min-width:330px!important}
+#settingsMenu[hidden]{display:none!important}
+#settingsMenu #editProfileBtn{display:block!important;grid-column:1/-1!important;width:100%!important;background:#173149!important;color:#fff!important}
+#settingsMenu #logoutBtn,#settingsMenu #deleteAccountBtn{display:block!important;width:100%!important}
+@media(max-width:520px){#settingsMenu{min-width:300px!important;max-width:calc(100vw - 24px)!important}}
