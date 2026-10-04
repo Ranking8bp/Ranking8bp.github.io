@@ -1960,6 +1960,32 @@ if(adminCloseBtn)adminCloseBtn.addEventListener('click',()=>adminPanel.hidden=tr
 if(adminRefreshBtn)adminRefreshBtn.addEventListener('click',()=>{if(adminPlayerList&&!adminPlayerList.hidden)return loadAdminPlayers();adminMatchesCache=[];adminVideosCache=[];loadAdminMatches()});
 if(adminVsSearchInput)adminVsSearchInput.addEventListener('input',()=>loadAdminMatches());
 if(adminProofsBtn)adminProofsBtn.addEventListener('click',()=>{adminMatchView='proofs';if(adminMatchList)adminMatchList.hidden=false;if(adminPlayerList)adminPlayerList.hidden=true;if(adminPlayerSearch)adminPlayerSearch.hidden=true;if(adminModeration)adminModeration.hidden=true;loadAdminMatches()});
+const adminCorrectionsBtn=document.getElementById('adminCorrectionsBtn');
+async function loadLastFiveCorrections(){
+ if(!adminMatchList||!supabaseClient)return;
+ adminMatchView='corrections';adminMatchList.hidden=false;if(adminPlayerList)adminPlayerList.hidden=true;if(adminModeration)adminModeration.hidden=true;
+ adminMatchList.innerHTML='<div class="admin-empty">Cargando últimos 5 resultados...</div>';
+ const {data,error}=await supabaseClient.rpc('admin_get_last_finished_matches');
+ if(error){console.error(error);adminMatchList.innerHTML='<div class="admin-empty">No se pudieron cargar los resultados.</div>';return}
+ const rows=Array.isArray(data)?data:[];
+ adminMatchList.replaceChildren();
+ if(!rows.length){adminMatchList.innerHTML='<div class="admin-empty">No hay resultados para corregir.</div>';return}
+ for(const m of rows){
+  const card=document.createElement('article');card.className='admin-match finished';
+  const winner=m.winner_id===m.player1_id?m.player1_name:m.player2_name;
+  const title=document.createElement('strong');title.textContent='#'+m.match_id+' · '+m.player1_name+' VS '+m.player2_name;
+  const state=document.createElement('div');state.className='admin-result-title';state.textContent='GANADOR ACTUAL: '+winner;
+  const actions=document.createElement('div');actions.className='admin-match-actions';
+  for(const [id,name] of [[m.player1_id,m.player1_name],[m.player2_id,m.player2_name]]){
+   if(id===m.winner_id)continue;
+   const b=document.createElement('button');b.className='admin-winner-btn';b.textContent='CORREGIR: GANA '+name;
+   b.onclick=async()=>{if(!confirm('¿Corregir el resultado y poner a '+name+' como ganador? El ELO, victoria y derrota se corregirán automáticamente.'))return;b.disabled=true;const r=await supabaseClient.rpc('admin_correct_ranked_match',{p_match_id:Number(m.match_id),p_winner_id:id});if(r.error){console.error(r.error);showToast('No se pudo corregir el resultado.');b.disabled=false;return}adminMatchesCache=[];showToast('Resultado corregido correctamente.');await loadLastFiveCorrections();loadRanking().catch(()=>{})};
+   actions.appendChild(b);
+  }
+  card.append(title,state,actions);adminMatchList.appendChild(card);
+ }
+}
+adminCorrectionsBtn?.addEventListener('click',loadLastFiveCorrections);
 if(adminVsTab)adminVsTab.addEventListener('click',showAdminVs);
 if(adminPlayersTab)adminPlayersTab.addEventListener('click',showAdminPlayers);
 if(adminModerationTab)adminModerationTab.addEventListener('click',showAdminModeration);
