@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>RANKING IKAR8BP</title>
-  <link rel="stylesheet" href="styles-v5.css?v=20261004-vsbuttons01" />
+  <link rel="stylesheet" href="styles-v5.css?v=20261004-videotop01" />
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest?v=1">
 <meta name="theme-color" content="#06121a">
@@ -937,16 +937,16 @@
             <button type="button" id="rankedClaimLost">PERDÍ</button>
           </div>
           <small id="rankedResultStatus">Esperando tu resultado.</small>
-          <div class="ranked-evidence-reminder">📹 SI MARCAS <b>GANÉ</b> Y TU RIVAL NO MARCA <b>PERDÍ</b>, DEBES SUBIR EVIDENCIA DE TU VICTORIA ANTES DE QUE TERMINE EL TIEMPO.</div>
+          <div class="ranked-video-proof" id="rankedVideoProof" hidden>
+            <strong>📹 SUBE TU VIDEO GANADOR</strong>
+            <span>Sube el video de tu tiro ganador para que el administrador lo revise.</span>
+            <input id="rankedWinnerVideoInput" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" hidden>
+            <button type="button" id="rankedWinnerVideoBtn">🎥 SUBIR VIDEO DEL TIRO GANADOR</button>
+            <small id="rankedWinnerVideoStatus">El administrador revisará el video antes de confirmar el ganador.</small>
+          </div>
+          <div class="ranked-evidence-reminder">📹 SI MARCAS <b>GANÉ</b> Y TU RIVAL NO MARCA <b>PERDÍ</b>, DEBES SUBIR EVIDENCIA DE TU VICTORIA.</div>
           <div class="ranked-false-win-warning">⚠️ IMPORTANTE: Si no eres el ganador y marcas <b>GANÉ</b>, tu cuenta de jugador podrá ser eliminada después de la revisión del administrador.</div>
         </section>
-        <div class="ranked-video-proof" id="rankedVideoProof" hidden>
-          <strong>¿GANASTE EL PARTIDO?</strong>
-          <span>Sube un video de evidencia máximo de <b>20 minutos</b> donde se vea el enfrentamiento y la jugada con la que ganaste.</span>
-          <input id="rankedWinnerVideoInput" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" hidden>
-          <button type="button" id="rankedWinnerVideoBtn">🎥 SUBIR VIDEO DEL TIRO GANADOR</button>
-          <small id="rankedWinnerVideoStatus">El administrador revisará el video antes de confirmar el ganador.</small>
-        </div>
         <button type="button" class="abandon-ranked-btn" id="abandonRankedBtn" hidden style="display:none!important">ABANDONAR EMPAREJAMIENTO</button>
       </div>
     </section>
