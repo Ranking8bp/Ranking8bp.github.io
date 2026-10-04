@@ -261,7 +261,7 @@ let currentDetailHeartBusy=false;
 
 const cloudConfig=window.SUPABASE_CONFIG||{};
 const cloudReady=typeof window.supabase!=='undefined'&&typeof cloudConfig.url==='string'&&cloudConfig.url.startsWith('https://')&&typeof cloudConfig.key==='string'&&cloudConfig.key.length>20;
-if(cloudReady){supabaseClient=window.supabase.createClient(cloudConfig.url,cloudConfig.key)}
+if(cloudReady){supabaseClient=window.supabase.createClient(cloudConfig.url,cloudConfig.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage,storageKey:'ranking8bp-auth'}})}
 
 
 const RANKS=[
@@ -1939,10 +1939,20 @@ async function restoreSession(){
   }
 }
 
-// Mostrar siempre la interfaz pública inmediatamente. La sesión, si existe,
-// se restaura después sin bloquear la clasificación ni el resto del sitio.
-setGuestUI();
-restoreSession().catch(error=>console.error('Error restaurando sesión:',error));
+// Do not force guest mode on every refresh. Supabase persists the session in
+// localStorage and restores it automatically. Guest UI is shown only when
+// there is genuinely no saved session.
+(async()=>{
+  if(!cloudReady){setGuestUI();return}
+  try{
+    const {data}=await supabaseClient.auth.getSession();
+    if(data?.session){
+      const profile=await getProfile(data.session.user.id);
+      if(profile){setPlayerUI(profile,data.session.user).catch(e=>console.error('Carga sesión:',e));return}
+    }
+  }catch(e){console.error('Restaurar sesión inicial:',e)}
+  setGuestUI();
+})();
 
 loginBtn.addEventListener('click',()=>{loginError.textContent='';openModal(loginModal,loginUsername)});
 registerBtn.addEventListener('click',()=>{registerError.textContent='';openModal(registerModal,username)});
