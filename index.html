@@ -538,7 +538,9 @@
 }
 </style>
 <style>#playerDashboard #dashboardElo.negative-elo{color:#ff3b3b!important;-webkit-text-fill-color:#ff3b3b!important;text-shadow:0 0 10px rgba(255,59,59,.35)!important}</style>
-</head>
+<style>
+.edit-profile-backdrop{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:18px}.edit-profile-backdrop[hidden]{display:none!important}.edit-profile-card{width:min(92vw,430px);background:#07121c;border:1px solid #b58b32;border-radius:18px;padding:20px;color:#fff;box-shadow:0 20px 60px #000}.edit-profile-card h3{margin:0 0 16px;color:#e4b634;text-align:center}.edit-profile-card label{display:block;margin:12px 0;font-weight:700}.edit-profile-card input{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:13px;border-radius:10px;border:1px solid #46515c;background:#02080e;color:#fff;font-size:16px}.edit-profile-actions{display:flex;gap:10px;margin-top:18px}.edit-profile-actions button{flex:1;padding:13px;border-radius:10px;border:0;font-weight:800}.edit-profile-actions #editProfileSave{background:#079b35;color:#fff}#editProfileMessage{margin-top:10px;text-align:center}
+</style></head>
 <body>
   <main class="viewport-shell">
     <section class="site-canvas" id="siteCanvas">
@@ -601,10 +603,11 @@
             <div class="notification-list" id="notificationList"><div class="notification-empty">No tienes notificaciones.</div></div>
           </div>
           <div class="settings-menu" id="settingsMenu" hidden>
-            <button id="logoutBtn" type="button">Cerrar sesión</button>
+            <button id="editProfileBtn" type="button">Editar perfil</button><button id="logoutBtn" type="button">Cerrar sesión</button>
             <button id="adminModeBtn" type="button" hidden>🛡 MODO ADMINISTRADOR</button><button id="deleteAccountBtn" type="button" style="color:#ff5b5b">Eliminar cuenta</button>
           </div>
         </header>
+        <div class="edit-profile-backdrop" id="editProfileModal" hidden><section class="edit-profile-card"><h3>EDITAR PERFIL</h3><label>Nombre<input id="editProfileName" maxlength="80"></label><label>ID 8 Ball Pool<input id="editProfileGameId" maxlength="80"></label><label>País<input id="editProfileCountry" maxlength="80"></label><label>Nueva contraseña<input id="editProfilePassword" type="password" minlength="6" placeholder="Déjala vacía si no deseas cambiarla"></label><div class="edit-profile-actions"><button id="editProfileCancel" type="button">CANCELAR</button><button id="editProfileSave" type="button">GUARDAR</button></div><div id="editProfileMessage"></div></section></div>
 
         <section class="identity-section">
           <div class="portrait-column">
@@ -981,7 +984,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261004-zeroelo-vs03"></script>
+  <script src="app-v5.js?v=20261004-editprofile01"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
