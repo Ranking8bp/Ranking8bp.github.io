@@ -1623,7 +1623,7 @@ function openAdminPlayerEditor(player){
       <label class="field admin-editor-photo-field"><span class="field-label">Foto de perfil</span><input id="adminEditAvatar" type="file" accept="image/png,image/jpeg,image/webp"><small>JPG, PNG o WEBP · máximo 5 MB</small></label>
     </div>
     <div class="admin-editor-preview"><div id="adminEditAvatarPreview"></div><span id="adminEditStatus"></span></div>
-    <div class="admin-editor-actions"><button type="button" class="admin-editor-cancel">CANCELAR</button><button type="button" class="admin-editor-save">GUARDAR TODO</button></div>
+    <div class="admin-editor-actions"><button type="button" class="admin-editor-delete" style="background:#8b1111;color:#fff;border:1px solid #ff4d4d;font-weight:900">ELIMINAR CUENTA</button><button type="button" class="admin-editor-cancel">CANCELAR</button><button type="button" class="admin-editor-save">GUARDAR TODO</button></div>
   </section>`;
   document.body.appendChild(modal);
   const q=id=>modal.querySelector('#'+id);
@@ -1648,6 +1648,20 @@ function openAdminPlayerEditor(player){
   modal.querySelector('.admin-editor-close').onclick=closeAdminPlayerEditor;
   modal.querySelector('.admin-editor-cancel').onclick=closeAdminPlayerEditor;
   modal.addEventListener('click',e=>{if(e.target===modal)closeAdminPlayerEditor()});
+  modal.querySelector('.admin-editor-delete').onclick=async()=>{
+    const btn=modal.querySelector('.admin-editor-delete');
+    const name=player.account_name||player.username||'este jugador';
+    if(!confirm('¿ELIMINAR DEFINITIVAMENTE la cuenta de '+name+'? Esta acción no se puede deshacer.'))return;
+    if(!confirm('ÚLTIMA CONFIRMACIÓN: se eliminará la cuenta completa del jugador. ¿Continuar?'))return;
+    btn.disabled=true;q('adminEditStatus').textContent='Eliminando cuenta...';
+    try{
+      const {error}=await supabaseClient.rpc('ikar_delete_player_account',{p_player_id:player.player_id});
+      if(error)throw error;
+      closeAdminPlayerEditor();showToast('Cuenta eliminada definitivamente.');
+      await loadRanking().catch(()=>{});
+      await loadAdminPlayers().catch(()=>{});
+    }catch(error){console.error(error);q('adminEditStatus').textContent='No se pudo eliminar la cuenta.';showToast('No se pudo eliminar la cuenta.');btn.disabled=false}
+  };
   modal.querySelector('.admin-editor-save').onclick=async()=>{
     const save=modal.querySelector('.admin-editor-save');save.disabled=true;q('adminEditStatus').textContent='Guardando...';
     try{
