@@ -89,7 +89,7 @@ const adminVsTab=document.getElementById('adminVsTab');
 const adminPlayersTab=document.getElementById('adminPlayersTab');
 const adminModerationTab=document.getElementById('adminModerationTab');
 const adminModeration=document.getElementById('adminModeration');
-const adminGeneralMessages=document.getElementById('adminGeneralMessages');
+
 const adminPrivateMessages=document.getElementById('adminPrivateMessages');
 const backBtn=document.getElementById('backBtn');
 const settingsBtn=document.getElementById('settingsBtn');
@@ -896,7 +896,7 @@ function showAdminModeration(){
  if(adminMatchList)adminMatchList.hidden=true;
  if(adminPlayerList)adminPlayerList.hidden=true;
  if(adminModeration)adminModeration.hidden=false;
- if(adminGeneralMessages)adminGeneralMessages.innerHTML='<div class="admin-empty">Moderación disponible para el administrador.</div>';
+
  if(adminPrivateMessages)adminPrivateMessages.innerHTML='<div class="admin-empty">Moderación disponible para el administrador.</div>';
 }
 function showAdminVs(){adminMatchView='all';if(adminMatchList)adminMatchList.hidden=false;if(adminPlayerList)adminPlayerList.hidden=true;if(adminPlayerSearch)adminPlayerSearch.hidden=true;if(adminModeration)adminModeration.hidden=true;loadAdminMatches()}
@@ -2207,20 +2207,6 @@ if(cloudReady){
   })
 }
 setTimeout(()=>{if(guestEmpty&&!guestEmpty.hidden)renderGuestRankShowcase().catch(()=>{})},300);
-
-const dashboardChatBtn=document.getElementById('dashboardChatBtn'),generalChatModal=document.getElementById('generalChatModal'),generalChatClose=document.getElementById('generalChatClose'),generalChatMessages=document.getElementById('generalChatMessages'),generalChatForm=document.getElementById('generalChatForm'),generalChatInput=document.getElementById('generalChatInput');
-let generalChatTimer=null;
-async function loadGeneralChat(){
- if(!generalChatMessages||!supabaseClient)return;
- const {data,error}=await supabaseClient.rpc('get_general_chat_messages');if(error){console.error(error);return}
- const rows=(Array.isArray(data)?data:[]).reverse();generalChatMessages.replaceChildren();
- for(const m of rows){const item=document.createElement('div');item.className='general-chat-message'+(m.user_id===currentUser?.id?' mine':'');const av=document.createElement('div');av.className='general-chat-avatar';if(m.avatar_path){const {data:u}=supabaseClient.storage.from('profile-photos').getPublicUrl(m.avatar_path);if(u?.publicUrl)av.style.backgroundImage='url("'+u.publicUrl+'")'}if(!m.avatar_path)av.textContent=String(m.author_name||'?').charAt(0).toUpperCase();const openChatProfile=async()=>{try{const {data,error}=await supabaseClient.rpc('get_profile_by_id',{p_player_id:m.user_id});if(error)throw error;const player=Array.isArray(data)?data[0]:null;if(player){closeGeneralChat();openRankingPlayer(player)}else showToast('No se encontró ese perfil.')}catch(err){console.error(err);showToast('No se pudo abrir el perfil.')}};av.classList.add('general-chat-profile-link');av.setAttribute('role','button');av.tabIndex=0;av.addEventListener('click',openChatProfile);av.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openChatProfile()}});const box=document.createElement('div');const head=document.createElement('strong');head.textContent=m.author_name;head.classList.add('general-chat-profile-link');head.setAttribute('role','button');head.tabIndex=0;head.addEventListener('click',openChatProfile);head.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openChatProfile()}});const body=document.createElement('p');body.textContent=m.body;const time=document.createElement('small');time.textContent=formatCommentDate(m.created_at);box.append(head,body,time);item.append(av,box);generalChatMessages.append(item)}
- generalChatMessages.scrollTop=generalChatMessages.scrollHeight;
-}
-function openGeneralChat(){if(!currentUser){showToast('Inicia sesión para usar el chat.');return}generalChatModal.hidden=false;loadGeneralChat();clearInterval(generalChatTimer);generalChatTimer=setInterval(()=>{if(!document.hidden)loadGeneralChat()},10000);setTimeout(()=>generalChatInput?.focus(),50)}
-function closeGeneralChat(){generalChatModal.hidden=true;clearInterval(generalChatTimer);generalChatTimer=null}
-dashboardChatBtn?.addEventListener('click',openGeneralChat);generalChatClose?.addEventListener('click',closeGeneralChat);
-generalChatForm?.addEventListener('submit',async e=>{e.preventDefault();const body=generalChatInput.value.trim();if(!body||!currentUser)return;const {error}=await supabaseClient.from('general_chat_messages').insert({user_id:currentUser.id,body});if(error){showToast('No se pudo enviar el mensaje.');return}generalChatInput.value='';await loadGeneralChat()});
 
 const PUSH_VAPID_PUBLIC='BJ5JeRALHigbb-mAs1abfCn1vpMo8Z4QI2puRD2PXcM8MLRXEqeRMfbfW0NNugIkrN3xilbKXhuFNmUrX-8ptIs';
 const pushEnableBtn=document.getElementById('pushEnableBtn');
