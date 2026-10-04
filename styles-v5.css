@@ -1930,3 +1930,8 @@ img,svg,video,canvas{max-width:100%}
   .player-vs-safety-actions{gap:8px}
   #playerCancelVsBtn,#playerPlayingBtn{min-height:58px;font-size:13px;padding:8px}
 }
+
+/* Winner evidence: keep upload action immediately visible after GANÉ */
+#rankedVideoProof{margin:12px 0!important;padding:14px!important;border:2px solid #ffd65a!important;border-radius:14px!important;background:rgba(70,45,0,.28)!important;text-align:center!important}
+#rankedVideoProof>strong{display:block!important;font-size:16px!important;color:#ffe082!important;margin-bottom:7px!important}
+#rankedWinnerVideoBtn{display:block!important;width:100%!important;min-height:58px!important;margin:10px 0 7px!important;border:2px solid #ffd65a!important;border-radius:12px!important;font-size:15px!important;font-weight:1000!important;color:#111!important;background:#ffd54f!important;box-shadow:0 7px 18px rgba(0,0,0,.38)!important}
