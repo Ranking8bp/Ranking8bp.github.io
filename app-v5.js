@@ -590,49 +590,9 @@ function stopRankedPlayTimer(){
  if(rankedPlayTimer)rankedPlayTimer.hidden=true;
 }
 function startRankedPlayTimer(match){
- if(!match?.admin_confirmed||!match?.confirmed_at){stopRankedPlayTimer();return}
- const matchId=Number(match.match_id);
- if(rankedPlayTimerMatchId===matchId&&rankedPlayTimerInterval){
-   rankedPlayTimerState={myEvidence:!!match.my_video_uploaded,opponentEvidence:!!match.opponent_video_uploaded};
-   return;
- }
- if(rankedPlayTimerInterval)clearInterval(rankedPlayTimerInterval);
- rankedPlayTimerMatchId=matchId;
- rankedPlayTimerState={myEvidence:!!match.my_video_uploaded,opponentEvidence:!!match.opponent_video_uploaded};
- if(rankedPlayTimer)rankedPlayTimer.hidden=false;
- const confirmedAt=new Date(match.confirmed_at).getTime();
- let expiring=false;
- const tick=async()=>{
-   const left=Math.max(0,30*60*1000-(Date.now()-confirmedAt));
-   const total=Math.ceil(left/1000),min=Math.floor(total/60),sec=total%60;
-   if(rankedPlayTimerValue)rankedPlayTimerValue.textContent=String(min).padStart(2,'0')+':'+String(sec).padStart(2,'0');
-   const hasEvidence=rankedPlayTimerState.myEvidence||rankedPlayTimerState.opponentEvidence;
-   if(hasEvidence&&rankedPlayTimerNote)rankedPlayTimerNote.textContent='Ya se subió evidencia. El VS queda pendiente hasta que el administrador determine el ganador.';
-   if(left<=0&&!expiring){
-     if(hasEvidence){if(rankedPlayTimerValue)rankedPlayTimerValue.textContent='00:00';return}
-     expiring=true;
-     try{
-       const {data,error}=await supabaseClient.rpc('auto_expire_ranked_match',{p_match_id:matchId});
-       if(error)throw error;
-       if(data==='cancelled'){
-         stopRankedPlayTimer();
-         showToast('⏱️ Tiempo terminado. El VS fue anulado porque nadie subió pruebas.');
-         closeRankedMatchmaking();
-         await updateRankedDailyStatus();
-       }
-     }catch(e){
-       console.error('Auto anular VS:',e);
-       const msg=String(e?.message||'');
-       if(msg.includes('NOT_ALLOWED')){
-         stopRankedPlayTimer();
-         return;
-       }
-       expiring=false;
-     }
-   }
- };
- tick();
- rankedPlayTimerInterval=setInterval(tick,1000);
+ // Las partidas no tienen límite de tiempo. Nunca se anulan por duración.
+ stopRankedPlayTimer();
+ return;
 }
 function ensureRankedChatResponseWarning(){
  if(!rankedVsChat)return null;
