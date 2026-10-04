@@ -537,6 +537,7 @@
  font-weight:800!important;
 }
 </style>
+<style>#playerDashboard #dashboardElo.negative-elo{color:#ff3b3b!important;-webkit-text-fill-color:#ff3b3b!important;text-shadow:0 0 10px rgba(255,59,59,.35)!important}</style>
 </head>
 <body>
   <main class="viewport-shell">
@@ -986,7 +987,7 @@
  function syncRankProgress(){
   var eloEl=document.getElementById('dashboardElo'),nameEl=document.getElementById('dashboardRankName'),fill=document.getElementById('rankProgressFill'),txt=document.getElementById('rankProgressText');
   if(!eloEl||!nameEl||!fill||!txt)return;
-  var elo=parseInt(eloEl.textContent,10)||200;
+  var parsedElo=parseInt(eloEl.textContent,10); var elo=Number.isFinite(parsedElo)?parsedElo:0; eloEl.classList.toggle('negative-elo',elo<0); eloEl.style.setProperty('color',elo<0?'#ff3b3b':'#ffd400','important'); eloEl.style.setProperty('-webkit-text-fill-color',elo<0?'#ff3b3b':'#ffd400','important');
   var ranks=[["LATÓN",200],["BRONCE I",230],["BRONCE II",300],["BRONCE III",380],["PLATA I",470],["PLATA II",570],["PLATA III",680],["ORO I",800],["ORO II",930],["ORO III",1070],["AMATISTA I",1220],["AMATISTA II",1380],["AMATISTA III",1550],["ESMERALDA I",1730],["ESMERALDA II",1920],["ESMERALDA III",2120],["DIAMANTE I",2330],["DIAMANTE II",2550],["DIAMANTE III",2770],["DIAMANTE NEGRO",3000]];
   var i=0;for(var n=0;n<ranks.length;n++){if(elo>=ranks[n][1])i=n;else break}
   nameEl.textContent=ranks[i][0];
