@@ -2135,7 +2135,8 @@ registerForm.addEventListener('submit',async event=>{
 
   setRegisterBusy(true);
   try{
-    const {data:registerData,error:registerFunctionError}=await supabaseClient.functions.invoke('register-user',{body:{username:usernameValue,password:passwordValue}});
+    let deviceId=localStorage.getItem('ranking8bp_device_id');if(!deviceId){deviceId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2));localStorage.setItem('ranking8bp_device_id',deviceId)}const deviceBytes=new TextEncoder().encode(deviceId);const deviceDigest=await crypto.subtle.digest('SHA-256',deviceBytes);const deviceHash=Array.from(new Uint8Array(deviceDigest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    const {data:registerData,error:registerFunctionError}=await supabaseClient.functions.invoke('register-user',{body:{username:usernameValue,password:passwordValue,device_hash:deviceHash}});
     if(registerFunctionError||!registerData?.ok)throw new Error(registerData?.error||'No se pudo crear la cuenta.');
 
     const {data:loginData,error:loginAfterRegisterError}=await supabaseClient.auth.signInWithPassword({email:usernameToInternalEmail(usernameValue),password:passwordValue});
