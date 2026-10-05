@@ -1256,7 +1256,7 @@ async function renderGuestRankShowcase(){
   const p=players[i];if(!p)return;
   const card=document.createElement('button');card.type='button';card.className='guest-world-player guest-world-player-'+(i+1);
   card.addEventListener('click',()=>openRankingPlayer(p));
-  const medal=document.createElement('img');medal.className='guest-world-medal guest-world-medal-image';medal.src='assets/M'+String(i+1)+'.png?v=20261005';medal.alt='Puesto '+String(i+1);medal.loading='eager';
+  const medal=document.createElement('img');medal.className='guest-world-medal guest-world-medal-image';medal.src='assets/M'+String(i+1)+'.png?v=20261005-transparent52';medal.alt='Puesto '+String(i+1);medal.loading='eager';
   const avatar=document.createElement('span');avatar.className='guest-world-avatar';avatar.textContent=String(p.username||p.account_name||'J').charAt(0).toUpperCase();
   if(p.avatar_path&&supabaseClient){const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(p.avatar_path);if(data?.publicUrl){avatar.textContent='';const img=document.createElement('img');img.src=data.publicUrl;img.alt='';img.loading='lazy';img.onerror=()=>{img.remove();avatar.textContent=String(p.username||p.account_name||'J').charAt(0).toUpperCase()};avatar.appendChild(img)}}
   const name=document.createElement('b');name.textContent=String(p.username||p.account_name||'Jugador').toUpperCase();
