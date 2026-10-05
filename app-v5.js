@@ -166,6 +166,7 @@ const rankedVideoProof=document.getElementById('rankedVideoProof');
 const rankedVideoModal=document.getElementById('rankedVideoModal'),rankedVideoPlayer=document.getElementById('rankedVideoPlayer'),rankedVideoClose=document.getElementById('rankedVideoClose'),rankedVideoTitle=document.getElementById('rankedVideoTitle'),rankedVideoStatus=document.getElementById('rankedVideoStatus');
 const rankedWinnerVideoInput=document.getElementById('rankedWinnerVideoInput');
 const rankedWinnerVideoBtn=document.getElementById('rankedWinnerVideoBtn');
+const rankedForgotRecordingBtn=document.getElementById('rankedForgotRecordingBtn');
 const rankedWinnerVideoStatus=document.getElementById('rankedWinnerVideoStatus');
 let pendingMatchesTimer=null;
 let matchmakingTimer=null,currentRankedMatchId=null,matchmakingHeartbeatTimer=null,rankedSearchActive=false,currentRankedMatchData=null;
@@ -534,6 +535,18 @@ async function updateRankedVideoProof(match){
   if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 SUBIR VIDEO DEL TIRO GANADOR';rankedWinnerVideoBtn.disabled=false}
  }catch(e){console.error('Estado evidencia VS:',e)}
 }
+rankedForgotRecordingBtn?.addEventListener('click',async()=>{
+ if(!currentRankedMatchId||!supabaseClient)return;
+ if(!confirm('¿SALIR PORQUE OLVIDASTE GRABAR? Tu reclamo de victoria se cerrará sin ganador y el VS terminará.'))return;
+ rankedForgotRecordingBtn.disabled=true;
+ try{
+  const {data,error}=await supabaseClient.rpc('exit_ranked_forgot_recording',{p_match_id:Number(currentRankedMatchId)});
+  if(error)throw error;
+  if(data===true){showToast('VS cerrado. Puedes volver a buscar rival.');await closeRankedMatchmaking();await updateRankedDailyStatus();return}
+  throw new Error('No se pudo cerrar el VS');
+ }catch(e){console.error(e);rankedForgotRecordingBtn.disabled=false;showToast('No se pudo salir del VS.')}
+});
+
 function getVideoExtension(file){
   const t=String(file?.type||'').toLowerCase();
   return t.includes('webm')?'webm':t.includes('quicktime')?'mov':t.includes('x-m4v')?'m4v':'mp4';
