@@ -1165,12 +1165,27 @@ async function loadGuestRanking(){
  }finally{guestRankingLoading=false}
 }
 function onlineDotFor(player){const id=String(player?.id||player?.user_id||'');if(!onlinePlayerIds.has(id))return null;const d=document.createElement('span');d.className='online-player-dot';d.title='En línea';d.setAttribute('aria-label','En línea');return d}
-async function refreshOnlinePlayers(){if(!supabaseClient)return;try{const {data,error}=await supabaseClient.rpc('get_online_players');if(error)throw error;onlinePlayerIds=new Set((data||[]).map(x=>String(x.user_id)));renderFilteredRanking();renderGuestRanking()}catch(e){console.error('Presencia:',e)}}
+let onlinePlayersLoading=false,lastOnlinePlayersFetch=0,lastPlayingCountFetch=0;
+function patchOnlineDots(){
+ document.querySelectorAll('[data-player-id]').forEach(row=>{
+  const id=String(row.dataset.playerId||''),name=row.querySelector('.ranking-player-name');
+  if(!name)return;
+  const dot=name.querySelector('.online-player-dot'),should=onlinePlayerIds.has(id);
+  if(should&&!dot)name.appendChild(onlineDotFor({id}));
+  else if(!should&&dot)dot.remove();
+ });
+}
+async function refreshOnlinePlayers(force=false){
+ if(!supabaseClient||onlinePlayersLoading)return;
+ if(!force&&Date.now()-lastOnlinePlayersFetch<90000)return;
+ onlinePlayersLoading=true;
+ try{const {data,error}=await supabaseClient.rpc('get_online_players');if(error)throw error;onlinePlayerIds=new Set((data||[]).map(x=>String(x.user_id)));lastOnlinePlayersFetch=Date.now();patchOnlineDots()}catch(e){console.error('Presencia:',e)}finally{onlinePlayersLoading=false}
+}
 async function openPlayingVs(){if(!supabaseClient||!playingVsModal||!playingVsList)return;playingVsModal.hidden=false;playingVsList.innerHTML='<div class="ranking-loading">Cargando VS...</div>';try{const {data,error}=await supabaseClient.rpc('get_public_active_ranked_matches');if(error)throw error;const rows=Array.isArray(data)?data:[];playingVsList.replaceChildren();if(!rows.length){const e=document.createElement('div');e.className='playing-vs-empty';e.textContent='No hay VS jugándose ahora.';playingVsList.appendChild(e);return}rows.forEach(m=>{const row=document.createElement('div');row.className='playing-vs-item';const p1=document.createElement('strong');p1.textContent=String(m.player1_name||'Jugador');const vs=document.createElement('span');vs.textContent='VS';const p2=document.createElement('strong');p2.textContent=String(m.player2_name||'Jugador');row.append(p1,vs,p2);playingVsList.appendChild(row)})}catch(e){playingVsList.textContent='No se pudieron cargar los VS.'}}
 if(playersOnlineNow){playersOnlineNow.style.cursor='default';playersOnlineNow.setAttribute('aria-disabled','true');}if(playingVsClose)playingVsClose.addEventListener('click',()=>playingVsModal.hidden=true);if(playingVsModal)playingVsModal.addEventListener('click',e=>{if(e.target===playingVsModal)playingVsModal.hidden=true});
-async function refreshPlayersPlayingCount(){if(!supabaseClient||!playersOnlineCount||playersPlayingLoading)return;playersPlayingLoading=true;try{const {data,error}=await supabaseClient.rpc('get_ranked_players_playing_count');if(error)throw error;playersOnlineCount.textContent=String(Number(data)||0)}catch(e){console.error('Jugadores jugando:',e)}finally{playersPlayingLoading=false}}
-async function touchOnlinePresence(){if(!currentUser||!supabaseClient)return;try{await supabaseClient.rpc('touch_online_presence');await refreshOnlinePlayers()}catch(e){console.error('Presencia:',e)}}
-function startOnlinePresence(){clearInterval(onlinePresenceTimer);if(!currentUser)return;touchOnlinePresence();onlinePresenceTimer=setInterval(()=>{if(!document.hidden)touchOnlinePresence()},60000)}
+async function refreshPlayersPlayingCount(force=false){if(!supabaseClient||!playersOnlineCount||playersPlayingLoading)return;if(!force&&Date.now()-lastPlayingCountFetch<90000)return;playersPlayingLoading=true;try{const {data,error}=await supabaseClient.rpc('get_ranked_players_playing_count');if(error)throw error;playersOnlineCount.textContent=String(Number(data)||0);lastPlayingCountFetch=Date.now()}catch(e){console.error('Jugadores jugando:',e)}finally{playersPlayingLoading=false}}
+async function touchOnlinePresence(){if(!currentUser||!supabaseClient)return;try{await supabaseClient.rpc('touch_online_presence')}catch(e){console.error('Presencia:',e)}}
+function startOnlinePresence(){clearInterval(onlinePresenceTimer);if(!currentUser)return;touchOnlinePresence();onlinePresenceTimer=setInterval(()=>{if(!document.hidden)touchOnlinePresence()},120000)}
 
 function renderGuestRanking(){
  if(!guestRankingList)return;
@@ -1185,16 +1200,16 @@ function renderGuestRanking(){
    const empty=document.createElement('div');empty.className='ranking-loading';empty.textContent=q?'No se encontró ningún jugador.':'Todavía no hay jugadores registrados.';guestRankingList.appendChild(empty);return;
  }
  players.forEach((player,index)=>{
-   const row=document.createElement('div');row.className='guest-ranking-row';
+   const row=document.createElement('div');row.className='guest-ranking-row';row.dataset.playerId=String(player?.player_id||player?.id||'');
    const pos=document.createElement('strong');pos.className='guest-ranking-pos';pos.textContent=String(index+1);
    const name=document.createElement('div');name.className='guest-ranking-player';
    const avatar=document.createElement('span');avatar.className='guest-ranking-avatar';avatar.textContent=String(player.username||player.account_name||'J').charAt(0).toUpperCase();
    if(player.avatar_path&&supabaseClient&&!avatarIsBroken(player.avatar_path)){
     const {data:avatarData}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
-    if(avatarData?.publicUrl){const img=document.createElement('img');img.src=avatarData.publicUrl;img.alt='';img.loading='lazy';img.onerror=()=>{markAvatarBroken(player.avatar_path);img.remove()};avatar.appendChild(img)}
+    if(avatarData?.publicUrl){const img=document.createElement('img');img.src=avatarData.publicUrl;img.alt='';img.loading='lazy';img.decoding='async';img.onerror=()=>{markAvatarBroken(player.avatar_path);img.remove()};avatar.appendChild(img)}
    }
    const info=document.createElement('div');info.className='guest-ranking-player-info';
-   const n=document.createElement('b');n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();const sid=String(player?.player_id||player?.id||'');const sv=Number(rankingStreaks.get(sid)||0);if(sv>0){const ss=document.createElement('span');ss.className='ranking-streak';ss.textContent=' +'+sv;ss.title='Racha de '+sv+' victoria'+(sv===1?'':'s');n.appendChild(ss)}const od=onlineDotFor(player);if(od)n.appendChild(od);
+   const n=document.createElement('b');n.className='ranking-player-name';n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();const sid=String(player?.player_id||player?.id||'');const sv=Number(rankingStreaks.get(sid)||0);if(sv>0){const ss=document.createElement('span');ss.className='ranking-streak';ss.textContent=' +'+sv;ss.title='Racha de '+sv+' victoria'+(sv===1?'':'s');n.appendChild(ss)}const od=onlineDotFor(player);if(od)n.appendChild(od);
    const rank=getRankByElo(player.elo_points);const rankLine=document.createElement('span');rankLine.className='guest-ranking-rank';rankLine.textContent=rank.name.toUpperCase();
    const miniBadge=document.createElement('span');miniBadge.className='guest-ranking-rank-badge';renderRankBadgeOn(miniBadge,rank);
    miniBadge.setAttribute('role','button');miniBadge.tabIndex=0;miniBadge.title='Ver perfil y estadísticas';
@@ -1325,7 +1340,7 @@ function createRankingAvatar(player){
     const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
     if(data?.publicUrl){
       const img=document.createElement('img');
-      img.src=data.publicUrl+'?v='+encodeURIComponent(String(player.avatar_path));
+      img.loading='lazy';img.decoding='async';img.src=data.publicUrl;
       img.alt='Foto de '+String(displayName);
       img.onload=()=>{wrap.replaceChildren(img)};
       img.onerror=()=>{markAvatarBroken(player.avatar_path);img.remove()};
@@ -1868,6 +1883,7 @@ function buildRankingRow(player,index,displayPosition=null){
   row.type='button';
   row.className='ranking-row'+(index===0?' ranking-first':index===1?' ranking-second':index===2?' ranking-third':'');
   row.setAttribute('aria-label','Ver perfil de '+String(player?.username||player?.account_name||'Jugador'));
+  row.dataset.playerId=String(player?.player_id||player?.id||'');
   row.addEventListener('click',()=>openRankingPlayer(player));
   
   const position=document.createElement('div');
@@ -1938,7 +1954,7 @@ async function loadRanking(){
   const {data,error}=await supabaseClient.rpc('get_public_home_snapshot');if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
   if(Array.isArray(snapshot.streaks))rankingStreaks=new Map(snapshot.streaks.map(x=>[String(x.player_id),Number(x.streak)||0]));
-  await refreshRealRegisteredCount();
+  const snapshotTotal=Number(snapshot.total_players);if(Number.isFinite(snapshotTotal)){totalRegisteredPlayers=snapshotTotal;try{localStorage.setItem('ranking8bp_real_registered_count',String(snapshotTotal))}catch(_){}}
   rankingPlayersCache=Array.isArray(snapshot.ranking)?snapshot.ranking:[];
   if(snapshot.latest_result){writePublicCache('ranking8bp_latest_result',snapshot.latest_result);paintLatestRankingResult(snapshot.latest_result)};
   writePublicCache('ranking8bp_full_ranking',rankingPlayersCache);
@@ -2183,10 +2199,10 @@ async function restoreActiveRankedVs(){
 }
 setTimeout(startNotificationRefresh,6000+Math.floor(Math.random()*6000));
 // Show live player activity immediately; keep later refreshes light to avoid DB load.
-refreshOnlinePlayers().catch(()=>{});
-refreshPlayersPlayingCount().catch(()=>{});
-setTimeout(()=>{startOnlinePresence();refreshOnlinePlayers().catch(()=>{});refreshPlayersPlayingCount().catch(()=>{})},1500);
-setInterval(()=>{if(!document.hidden){refreshOnlinePlayers().catch(()=>{});refreshPlayersPlayingCount().catch(()=>{})}},120000);
+refreshOnlinePlayers(true).catch(()=>{});
+refreshPlayersPlayingCount(true).catch(()=>{});
+setTimeout(()=>{startOnlinePresence()},1500);
+setInterval(()=>{if(!document.hidden){refreshOnlinePlayers().catch(()=>{});refreshPlayersPlayingCount().catch(()=>{})}},180000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){refreshOnlinePlayers().catch(()=>{});refreshPlayersPlayingCount().catch(()=>{});if(currentUser)touchOnlinePresence()}});
 if(playerDetailModal)playerDetailModal.addEventListener('click',event=>{if(event.target===playerDetailModal)closeRankingPlayer()});
 
@@ -2202,7 +2218,7 @@ profilePhotoInput.addEventListener('change',async()=>{
   try{
     const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
     const newPath=currentUser.id+'/avatar-'+Date.now()+'.'+ext;
-    const {error:uploadError}=await supabaseClient.storage.from('profile-photos').upload(newPath,file,{cacheControl:'3600',upsert:false,contentType:file.type});
+    const {error:uploadError}=await supabaseClient.storage.from('profile-photos').upload(newPath,file,{cacheControl:'31536000',upsert:false,contentType:file.type});
     if(uploadError)throw uploadError;
     const oldPath=currentProfile?.avatar_path||null;
     const {data:updatedProfile,error:updateError}=await supabaseClient.from('profiles').update({avatar_path:newPath}).eq('id',currentUser.id)
