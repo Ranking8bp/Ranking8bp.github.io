@@ -63,6 +63,21 @@ const guestRankingSearchInput=document.getElementById('guestRankingSearchInput')
 const guestRankingSearchWrap=document.getElementById('guestRankingSearchWrap');
 let guestRankingPlayers=[];
 let totalRegisteredPlayers=0;
+let realRegisteredCountLoading=false;
+async function refreshRealRegisteredCount(){
+ if(!supabaseClient||realRegisteredCountLoading)return totalRegisteredPlayers;
+ realRegisteredCountLoading=true;
+ try{
+  const {data,error}=await supabaseClient.rpc('get_real_registered_count');
+  if(error)throw error;
+  const n=Number(data);
+  if(Number.isFinite(n)){totalRegisteredPlayers=n;try{localStorage.setItem('ranking8bp_real_registered_count',String(n))}catch(_){}}
+  return totalRegisteredPlayers;
+ }catch(e){
+  try{const n=Number(localStorage.getItem('ranking8bp_real_registered_count'));if(Number.isFinite(n)&&n>0)totalRegisteredPlayers=n}catch(_){}
+  return totalRegisteredPlayers;
+ }finally{realRegisteredCountLoading=false}
+}
 const guestRankShowcase=document.getElementById('guestRankShowcase');
 const loginBtn=document.getElementById('loginBtn');
 const registerBtn=document.getElementById('registerBtn');
@@ -1096,7 +1111,7 @@ async function loadGuestRanking(){
   if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
   if(Array.isArray(snapshot.streaks))rankingStreaks=new Map(snapshot.streaks.map(x=>[String(x.player_id),Number(x.streak)||0]));
-  if(Number.isFinite(Number(snapshot.total_players)))totalRegisteredPlayers=Number(snapshot.total_players);
+  await refreshRealRegisteredCount();
   guestRankingPlayers=(Array.isArray(snapshot.ranking)?snapshot.ranking:[]).slice(0,100);
   if(snapshot.latest_result){writePublicCache('ranking8bp_latest_result',snapshot.latest_result);paintLatestRankingResult(snapshot.latest_result)};
   writePublicCache('ranking8bp_public_ranking',guestRankingPlayers);
@@ -1872,7 +1887,7 @@ async function loadRanking(){
   const {data,error}=await supabaseClient.rpc('get_public_home_snapshot');if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
   if(Array.isArray(snapshot.streaks))rankingStreaks=new Map(snapshot.streaks.map(x=>[String(x.player_id),Number(x.streak)||0]));
-  if(Number.isFinite(Number(snapshot.total_players)))totalRegisteredPlayers=Number(snapshot.total_players);
+  await refreshRealRegisteredCount();
   rankingPlayersCache=Array.isArray(snapshot.ranking)?snapshot.ranking:[];
   if(snapshot.latest_result){writePublicCache('ranking8bp_latest_result',snapshot.latest_result);paintLatestRankingResult(snapshot.latest_result)};
   writePublicCache('ranking8bp_full_ranking',rankingPlayersCache);
