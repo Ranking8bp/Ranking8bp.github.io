@@ -1928,6 +1928,10 @@ async function openRankingPlayer(player){
           const full=Array.isArray(data)?data[0]:data;
           if(full)player={...player,...full,player_id:full.player_id||profileId,id:full.player_id||profileId};
         }
+        if(player.game_id===undefined||player.game_id===null||String(player.game_id).trim()===''){
+          const {data:directProfile,error:directError}=await supabaseClient.from('profiles').select('game_id').eq('id',profileId).maybeSingle();
+          if(!directError&&directProfile?.game_id)player={...player,game_id:directProfile.game_id};
+        }
       }catch(error){console.error('No se pudo cargar el ID 8 Ball Pool del perfil:',error)}
     }
   }
