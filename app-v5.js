@@ -390,7 +390,7 @@ async function abandonRankedMatch(){
 let rankedVsBothMessaged=false,lastVsSafetyRpcAt=0;
 function paintPlayerVsSafety(st){
  if(!playerVsSafety||!st)return;
- const ready=!!st.both_messaged,locked=!!st.players_playing,mine=!!st.my_playing_confirmed,other=!!st.opponent_playing_confirmed;
+ const ready=!!st.both_messaged,mine=!!st.my_playing_confirmed,other=!!st.opponent_playing_confirmed,locked=!!st.players_playing||mine||other;
  playerVsSafety.hidden=!ready;playerVsSafety.style.display=ready?'block':'none';
  if(!ready)return;
  const resultPhase=locked||mine||other;
@@ -403,7 +403,7 @@ function paintPlayerVsSafety(st){
 function safetyFromRealtimeRow(row){
  if(!row||!currentUser)return null;
  const uid=String(currentUser.id),p1=String(row.player1_id||''),mineIsP1=uid===p1;
- return {both_messaged:rankedVsBothMessaged,players_playing:!!row.players_playing,my_playing_confirmed:mineIsP1?!!row.player1_playing_confirmed:!!row.player2_playing_confirmed,opponent_playing_confirmed:mineIsP1?!!row.player2_playing_confirmed:!!row.player1_playing_confirmed};
+ const my=mineIsP1?!!row.player1_playing_confirmed:!!row.player2_playing_confirmed,other=mineIsP1?!!row.player2_playing_confirmed:!!row.player1_playing_confirmed;return {both_messaged:rankedVsBothMessaged,players_playing:!!row.players_playing||my||other,my_playing_confirmed:my,opponent_playing_confirmed:other};
 }
 async function refreshPlayerVsSafety(force=false){
  if(!currentRankedMatchId||!supabaseClient||!playerVsSafety)return;
