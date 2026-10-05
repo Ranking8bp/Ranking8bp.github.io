@@ -153,7 +153,7 @@ const rankedMatchRules=document.getElementById('rankedMatchRules');
 const rankedVsChat=document.getElementById('rankedVsChat'),rankedVsChatMessages=document.getElementById('rankedVsChatMessages'),rankedVsChatInput=document.getElementById('rankedVsChatInput'),rankedVsChatSend=document.getElementById('rankedVsChatSend');
 let rankedVsChatMatchId=null,rankedVsChatTimer=null,rankedChatResponseTimer=null,rankedChatResponseExpiring=false;
 // Prevent slow Supabase responses from stacking duplicate polling requests.
-let rankedVsChatLoading=false,rankedChatStatusLoading=false,activeRankedMatchLoading=false,matchmakingPollLoading=false,matchmakingHeartbeatLoading=false,playersPlayingLoading=false,playersSearchingLoading=false;
+let rankedVsChatLoading=false,rankedVsChatSending=false,rankedChatStatusLoading=false,activeRankedMatchLoading=false,matchmakingPollLoading=false,matchmakingHeartbeatLoading=false,matchmakingStartLoading=false,playersPlayingLoading=false,playersSearchingLoading=false;
 const rankedMatchCountdown=document.getElementById('rankedMatchCountdown'),rankedMatchCountdownValue=document.getElementById('rankedMatchCountdownValue');
 const rankedPlayerConfirmBtn=document.getElementById('rankedPlayerConfirmBtn'),rankedPlayerConfirmStatus=document.getElementById('rankedPlayerConfirmStatus');
 const playerVsSafety=document.getElementById('playerVsSafety'),playerCancelVsBtn=document.getElementById('playerCancelVsBtn'),playerPlayingBtn=document.getElementById('playerPlayingBtn'),playerPlayingLocked=document.getElementById('playerPlayingLocked'),playerVsSafetyNotice=document.getElementById('playerVsSafetyNotice');
@@ -691,7 +691,8 @@ function startRankedVsChat(match){
 }
 async function sendRankedVsChat(){
  const message=String(rankedVsChatInput?.value||'').trim();
- if(!message||!currentUser||!supabaseClient)return;
+ if(!message||!currentUser||!supabaseClient||rankedVsChatSending)return;
+ rankedVsChatSending=true;
  if(!rankedVsChatMatchId){
    try{const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');if(error)throw error;const m=Array.isArray(data)?data[0]:data;if(m?.match_id){currentRankedMatchId=m.match_id;rankedVsChatMatchId=Number(m.match_id)}}catch(e){console.error('Recuperar VS para chat:',e)}
  }
@@ -705,7 +706,7 @@ async function sendRankedVsChat(){
   await loadRankedVsChat(rankedVsChatMatchId);
   await updateRankedChatResponseCountdown(rankedVsChatMatchId);
   await refreshPlayerVsSafety();
- }catch(e){console.error('Enviar chat VS:',e);if(String(e?.message||'').includes('VS_CHAT_RESPONSE_TIMEOUT')){showToast('⏱️ El minuto terminó. El VS fue anulado.');await watchCurrentRankedMatch()}else showToast('No se pudo enviar el mensaje. Intenta nuevamente.')}finally{rankedVsChatSend.disabled=false}
+ }catch(e){console.error('Enviar chat VS:',e);if(String(e?.message||'').includes('VS_CHAT_RESPONSE_TIMEOUT')){showToast('⏱️ El minuto terminó. El VS fue anulado.');await watchCurrentRankedMatch()}else showToast('No se pudo enviar el mensaje. Intenta nuevamente.')}finally{rankedVsChatSending=false;rankedVsChatSend.disabled=false}
 }
 rankedVsChatSend?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();sendRankedVsChat()});
 
@@ -861,7 +862,8 @@ async function refreshPlayersSearchingCount(){
 }
 setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),8000+Math.floor(Math.random()*12000));setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},180000);
 async function startRankedMatchmaking(){
- if(!currentUser||!supabaseClient)return;
+ if(!currentUser||!supabaseClient||matchmakingStartLoading)return;
+ matchmakingStartLoading=true;
  rankedSearchActive=true;
  await updateRankedDailyStatus();
  matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true;renderSearchingPlayerProfile().catch(()=>{});
@@ -888,7 +890,7 @@ async function startRankedMatchmaking(){
    clearInterval(matchmakingTimer);matchmakingTimer=setInterval(()=>{if(!document.hidden)pollRankedMatch()},60000);
    clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},180000);
    showToast('Buscando rival…');
- }
+ }finally{matchmakingStartLoading=false}
 }
 async function closeRankedMatchmaking(){
  rankedSearchActive=false;
