@@ -524,13 +524,15 @@ async function updateRankedVideoProof(match){
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_result_wait_status',{p_match_id:Number(match.match_id)});if(error)throw error;
   const st=Array.isArray(data)?data[0]:data,mine=String(st?.my_claim||'').toUpperCase(),other=String(st?.opponent_claim||'').toUpperCase();
-  if(mine!=='WON'||other==='LOST'){rankedVideoProof.hidden=true;return}
+  if(mine!=='WON'||other==='LOST'){rankedVideoProof.hidden=true;if(rankedForgotRecordingBtn)rankedForgotRecordingBtn.hidden=true;return}
   rankedVideoProof.hidden=false;
   if(match.my_video_uploaded){
+   if(rankedForgotRecordingBtn)rankedForgotRecordingBtn.hidden=true;
    if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='✅ Evidencia enviada. Pendiente de revisión.';
    if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 VIDEO ENVIADO';rankedWinnerVideoBtn.disabled=true}
    return;
   }
+  if(rankedForgotRecordingBtn)rankedForgotRecordingBtn.hidden=false;
   if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='⚠️ SUBE EL VIDEO QUE DEMUESTRE QUE GANASTE PARA QUE EL ADMINISTRADOR PUEDA REVISARLO.';
   if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 SUBIR VIDEO DEL TIRO GANADOR';rankedWinnerVideoBtn.disabled=false}
  }catch(e){console.error('Estado evidencia VS:',e)}
