@@ -924,9 +924,10 @@
         <section class="ranked-result-report" id="rankedResultReport" hidden>
           <strong>RESULTADO DEL PARTIDO</strong>
           <span>Cuando termine el VS, cada jugador debe indicar su resultado.</span>
+          <button type="button" id="rankedNoTrickBtn" style="display:block;width:100%;min-height:64px;margin:12px 0 14px;border:2px solid #111;border-radius:12px;background:#ffd633;color:#080808;font-size:clamp(17px,4vw,24px);font-weight:1000;line-height:1.1;padding:12px 10px;box-shadow:0 4px 14px rgba(0,0,0,.35)">⚠️ NADIE HIZO TRICK CON LA 8 · SALIR</button>
           <div class="ranked-result-buttons">
             <button type="button" id="rankedClaimWon">🏆 GANÉ</button>
-            <button type="button" id="rankedClaimLost">PERDÍ</button><button type="button" id="rankedNoTrickBtn">NADIE HIZO TRICK CON LA 8 · SALIR</button>
+            <button type="button" id="rankedClaimLost">PERDÍ</button>
           </div>
           <small id="rankedResultStatus">Esperando tu resultado.</small>
           <div class="ranked-video-proof" id="rankedVideoProof" hidden>
@@ -988,7 +989,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261005-nopresence19"></script>
+  <script src="app-v5.js?v=20261005-notrick20"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
