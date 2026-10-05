@@ -516,14 +516,15 @@ const rankedNoTrickBtn=document.getElementById('rankedNoTrickBtn');
 rankedNoTrickBtn?.addEventListener('click',async()=>{
  if(!currentRankedMatchId||!supabaseClient)return;
  rankedNoTrickBtn.disabled=true;
+ rankedReviewTransitionPending=true;
  stopRankedPlayTimer();
  if(rankedPlayTimer){rankedPlayTimer.hidden=true;rankedPlayTimer.style.display='none'}
  try{
   const {data,error}=await supabaseClient.rpc('cancel_ranked_no_trick',{p_match_id:Number(currentRankedMatchId)});
   if(error)throw error;
-  if(data===true){showToast('VS anulado: ambos confirmaron que nadie hizo trickshot con la 8.');await closeRankedMatchmaking();await updateRankedDailyStatus();}
-  else{rankedReviewTransitionPending=true;stopRankedChatResponseTimer();stopRankedPlayTimer();if(rankedChatResponseBox){rankedChatResponseBox.hidden=true;rankedChatResponseBox.style.display='none'}if(rankedResultReport){rankedResultReport.hidden=true;rankedResultReport.style.display='none'}if(rankedVideoProof){rankedVideoProof.hidden=true;rankedVideoProof.style.display='none'}showRankedReviewNotice();}
- }catch(e){console.error(e);rankedNoTrickBtn.disabled=false;showToast('No se pudo cerrar el VS.')}
+  if(data===true){rankedReviewTransitionPending=false;showToast('VS anulado: ambos confirmaron que nadie hizo trickshot con la 8.');await closeRankedMatchmaking();await updateRankedDailyStatus();}
+  else{stopRankedChatResponseTimer();stopRankedPlayTimer();if(rankedChatResponseBox){rankedChatResponseBox.hidden=true;rankedChatResponseBox.style.display='none'}if(rankedResultReport){rankedResultReport.hidden=true;rankedResultReport.style.display='none'}if(rankedVideoProof){rankedVideoProof.hidden=true;rankedVideoProof.style.display='none'}showRankedReviewNotice();}
+ }catch(e){rankedReviewTransitionPending=false;console.error(e);rankedNoTrickBtn.disabled=false;showToast('No se pudo cerrar el VS.')}
 });
 
 async function updateRankedVideoProof(match){
