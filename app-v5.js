@@ -612,7 +612,7 @@ async function uploadRankedWinnerVideo(){
     rankedWinnerVideoInput.value='';
   }finally{if(!rankedReviewTransitionPending)rankedWinnerVideoBtn.disabled=false}
 }
-rankedReviewOkBtn?.addEventListener('click',async()=>{
+async function finishRankedReviewNotice(){
  rankedReviewTransitionPending=false;
  const reviewNoticeNow=document.getElementById('rankedReviewNotice');if(reviewNoticeNow){reviewNoticeNow.hidden=true;reviewNoticeNow.style.setProperty('display','none','important')}
  clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
@@ -622,7 +622,8 @@ rankedReviewOkBtn?.addEventListener('click',async()=>{
  if(matchmakingModal)matchmakingModal.hidden=true;
  await updateRankedDailyStatus().catch(()=>{});
  showToast('Puedes seguir jugando mientras se revisa el resultado.');
-});
+}
+rankedReviewOkBtn?.addEventListener('click',finishRankedReviewNotice);
 
 async function openAdminRankedVideo(matchId,uploaderId,name){
   if(!rankedVideoModal||!rankedVideoPlayer||!supabaseClient)return;
@@ -843,14 +844,23 @@ function showRankedMatch(match){currentRankedMatchData=match;rankedVsBothMessage
  clearInterval(pendingMatchesTimer);pendingMatchesTimer=setInterval(()=>{if(!document.hidden){updatePendingMatchesCount();watchCurrentRankedMatch()}},60000);
 }
 function showRankedReviewNotice(){
- const notice=document.getElementById('rankedReviewNotice');
- if(!notice)return;
- notice.hidden=false;
- notice.removeAttribute('hidden');
+ let notice=document.getElementById('rankedReviewNotice');
+ if(!notice){
+  notice=document.createElement('div');
+  notice.id='rankedReviewNotice';
+  notice.innerHTML='<div style="width:min(92vw,620px);background:#07131d;border:2px solid #21d35b;border-radius:18px;padding:28px 22px;text-align:center;box-shadow:0 0 35px rgba(0,0,0,.8)"><strong style="display:block;color:#fff;font-size:clamp(22px,3vw,34px);line-height:1.15;margin-bottom:18px">ESTE PARTIDO SE ESTÁ REVISANDO</strong><p style="color:#fff;font-size:clamp(15px,1.7vw,20px);font-weight:700;line-height:1.45;margin:0 0 24px">PUEDES SEGUIR JUGANDO MIENTRAS SE TOMA UNA DECISIÓN. LOS RESULTADOS SE REFLEJARÁN EN TUS PUNTOS CUANDO SE TERMINE DE REVISAR.</p><button type="button" id="rankedReviewOkBtn" style="width:100%;max-width:300px;background:#13b94f;color:#fff;border:0;border-radius:12px;padding:15px;font-size:20px;font-weight:900;cursor:pointer">OK</button></div>';
+  document.body.appendChild(notice);
+  document.getElementById('rankedReviewOkBtn')?.addEventListener('click',finishRankedReviewNotice);
+ }
+ notice.hidden=false;notice.removeAttribute('hidden');
  notice.style.cssText='position:fixed!important;inset:0!important;z-index:2147483647!important;background:rgba(0,0,0,.92)!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:20px!important;visibility:visible!important;opacity:1!important;';
  document.body.appendChild(notice);
- requestAnimationFrame(()=>{notice.hidden=false;notice.style.setProperty('display','flex','important');notice.style.setProperty('visibility','visible','important');notice.style.setProperty('opacity','1','important')});
+ void notice.offsetHeight;
+ notice.style.setProperty('display','flex','important');
+ notice.style.setProperty('visibility','visible','important');
+ notice.style.setProperty('opacity','1','important');
 }
+
 
 async function watchCurrentRankedMatch(){
  if(!currentRankedMatchId||!supabaseClient||activeRankedMatchLoading)return;
