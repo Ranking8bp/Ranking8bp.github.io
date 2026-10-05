@@ -1170,8 +1170,8 @@ async function loadAdminMatches(){
    if(m.status==='matched'||m.status==='review'){
     const actions=document.createElement('div');actions.className='admin-match-actions';
     const actionStatus=document.createElement('div');actionStatus.className='admin-result-title';
-    const actionLabel=(claim,noTrick)=>noTrick?'NADIE HIZO TRICK':(String(claim||'').toLowerCase()==='won'?'GANÉ':(String(claim||'').toLowerCase()==='lost'?'PERDÍ':'NO HA PRESIONADO'));
-    const p1Action=actionLabel(m.player1_claim,m.player1_no_trick),p2Action=actionLabel(m.player2_claim,m.player2_no_trick);
+    const actionLabel=(claim,noTrick,forgot)=>forgot?'SALIR · OLVIDÓ GRABAR':(noTrick?'NADIE HIZO TRICK':(String(claim||'').toLowerCase()==='won'?'GANÉ':(String(claim||'').toLowerCase()==='lost'?'PERDÍ':'NO HA PRESIONADO')));
+    const p1Action=actionLabel(m.player1_claim,m.player1_no_trick,m.player1_forgot_recording),p2Action=actionLabel(m.player2_claim,m.player2_no_trick,m.player2_forgot_recording);
     actionStatus.innerHTML='<div>'+String(m.player1_name||'Jugador')+': <b>'+p1Action+'</b></div><div>'+String(m.player2_name||'Jugador')+': <b>'+p2Action+'</b></div>';
     actions.appendChild(actionStatus);const chatBtn=document.createElement('button');chatBtn.className='admin-chat-btn';chatBtn.textContent='VER CHAT';chatBtn.onclick=e=>{e.preventDefault();e.stopPropagation();window.__adminChatP1Id=m.player1_id;window.__adminChatP2Id=m.player2_id;openAdminVsChat(m.match_id,m.player1_name,m.player2_name)};chatBtn.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();window.__adminChatP1Id=m.player1_id;window.__adminChatP2Id=m.player2_id;openAdminVsChat(m.match_id,m.player1_name,m.player2_name)},{passive:false});actions.appendChild(chatBtn);
     if(!m.admin_confirmed&&m.status==='matched'){
