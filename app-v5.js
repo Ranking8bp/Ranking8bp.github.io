@@ -421,9 +421,7 @@ async function cancelVsByPlayers(){
 }
 async function markVsPlaying(){
  if(!currentRankedMatchId||!supabaseClient)return;
- const createdAt=new Date(currentRankedMatchData?.created_at||0).getTime();
- if(createdAt&&Date.now()-createdAt<60000){showTopPlayingWarning();return}
- if(!confirm('Toca ACEPTAR únicamente si tú y tu rival YA ESTÁN JUGANDO. Después ninguno podrá anular este VS.'))return;
+if(!confirm('Toca ACEPTAR únicamente si tú y tu rival YA ESTÁN JUGANDO. Después ninguno podrá anular este VS.'))return;
  try{
   if(playerPlayingBtn){playerPlayingBtn.disabled=true}
   const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;
