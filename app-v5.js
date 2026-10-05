@@ -1213,7 +1213,7 @@ function renderGuestRanking(){
    const avatar=document.createElement('span');avatar.className='guest-ranking-avatar';avatar.textContent=String(player.username||player.account_name||'J').charAt(0).toUpperCase();
    if(player.avatar_path&&supabaseClient&&!avatarIsBroken(player.avatar_path)){
     const {data:avatarData}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
-    if(avatarData?.publicUrl){const img=document.createElement('img');img.alt='';img.loading='lazy';img.decoding='async';observeRankingAvatar(img,avatarData.publicUrl);img.onerror=()=>{markAvatarBroken(player.avatar_path);img.remove()};avatar.appendChild(img)}
+    if(avatarData?.publicUrl){const img=document.createElement('img');img.src=avatarData.publicUrl;img.alt='';img.loading='lazy';img.decoding='async';img.onerror=()=>{markAvatarBroken(player.avatar_path);img.remove()};avatar.appendChild(img)}
    }
    const info=document.createElement('div');info.className='guest-ranking-player-info';
    const n=document.createElement('b');n.className='ranking-player-name';n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();const sid=String(player?.player_id||player?.id||'');const sv=Number(rankingStreaks.get(sid)||0);if(sv>0){const ss=document.createElement('span');ss.className='ranking-streak';ss.textContent=' +'+sv;ss.title='Racha de '+sv+' victoria'+(sv===1?'':'s');n.appendChild(ss)}const od=onlineDotFor(player);if(od)n.appendChild(od);
@@ -1335,14 +1335,6 @@ function avatarIsBroken(path){return !!path&&brokenAvatarPaths.has(String(path))
 function markAvatarBroken(path){if(!path)return;brokenAvatarPaths.add(String(path));try{localStorage.setItem('ranking8bp_broken_avatars',JSON.stringify([...brokenAvatarPaths].slice(-100)))}catch(_){}}
 function attachAvatarFallback(img,path){if(!img)return img;img.onerror=()=>{markAvatarBroken(path);img.remove()};return img}
 
-let rankingAvatarObserver=null;
-function observeRankingAvatar(img,url){
- if(!img||!url)return;
- img.dataset.src=url;
- if(!('IntersectionObserver'in window)){img.src=url;return}
- if(!rankingAvatarObserver)rankingAvatarObserver=new IntersectionObserver(entries=>{for(const e of entries){if(!e.isIntersecting)continue;const el=e.target,u=el.dataset.src;if(u&&!el.src)el.src=u;rankingAvatarObserver.unobserve(el)}},{rootMargin:'180px 0px'});
- rankingAvatarObserver.observe(img);
-}
 function createRankingAvatar(player){
   const wrap=document.createElement('div');
   wrap.className='ranking-avatar';
@@ -1355,7 +1347,7 @@ function createRankingAvatar(player){
     const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
     if(data?.publicUrl){
       const img=document.createElement('img');
-      img.loading='lazy';img.decoding='async';observeRankingAvatar(img,data.publicUrl);
+      img.loading='lazy';img.decoding='async';img.src=data.publicUrl;
       img.alt='Foto de '+String(displayName);
       img.onload=()=>{wrap.replaceChildren(img)};
       img.onerror=()=>{markAvatarBroken(player.avatar_path);img.remove()};
