@@ -157,6 +157,7 @@ let rankedVsChatLoading=false,rankedVsChatSending=false,rankedChatStatusLoading=
 const rankedMatchCountdown=document.getElementById('rankedMatchCountdown'),rankedMatchCountdownValue=document.getElementById('rankedMatchCountdownValue');
 const rankedPlayerConfirmBtn=document.getElementById('rankedPlayerConfirmBtn'),rankedPlayerConfirmStatus=document.getElementById('rankedPlayerConfirmStatus');
 const playerVsSafety=document.getElementById('playerVsSafety'),playerCancelVsBtn=document.getElementById('playerCancelVsBtn'),playerPlayingBtn=document.getElementById('playerPlayingBtn'),playerPlayingLocked=document.getElementById('playerPlayingLocked'),playerVsSafetyNotice=document.getElementById('playerVsSafetyNotice');
+const playerPlayingConfirmBox=document.getElementById('playerPlayingConfirmBox'),playerPlayingYesBtn=document.getElementById('playerPlayingYesBtn'),playerPlayingNoBtn=document.getElementById('playerPlayingNoBtn');
 let rankedMatchCountdownTimer=null;
 const rankedPlayTimer=document.getElementById('rankedPlayTimer'),rankedPlayTimerValue=document.getElementById('rankedPlayTimerValue'),rankedPlayTimerNote=document.getElementById('rankedPlayTimerNote');
 let rankedPlayTimerInterval=null,rankedPlayTimerMatchId=null,rankedPlayTimerState={myEvidence:false,opponentEvidence:false};
@@ -421,7 +422,12 @@ async function cancelVsByPlayers(){
 }
 async function markVsPlaying(){
  if(!currentRankedMatchId||!supabaseClient)return;
-if(!window.confirm('¿CONFIRMAS QUE YA ESTÁN JUGANDO?\n\nToca ACEPTAR para bloquear este VS y habilitar GANÉ / PERDÍ.'))return;
+ if(playerPlayingConfirmBox){playerPlayingConfirmBox.hidden=false;playerPlayingConfirmBox.style.display='block'}
+ return;
+}
+async function confirmVsPlayingYes(){
+ if(!currentRankedMatchId||!supabaseClient)return;
+ if(playerPlayingConfirmBox){playerPlayingConfirmBox.hidden=true;playerPlayingConfirmBox.style.display='none'}
  try{
   if(playerPlayingBtn){playerPlayingBtn.disabled=true}
   const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;
@@ -446,6 +452,9 @@ if(!window.confirm('¿CONFIRMAS QUE YA ESTÁN JUGANDO?\n\nToca ACEPTAR para bloq
 }
 playerCancelVsBtn?.addEventListener('click',cancelVsByPlayers);
 playerPlayingBtn?.addEventListener('click',markVsPlaying);
+playerPlayingYesBtn?.addEventListener('click',confirmVsPlayingYes);
+playerPlayingNoBtn?.addEventListener('click',()=>{if(playerPlayingConfirmBox){playerPlayingConfirmBox.hidden=true;playerPlayingConfirmBox.style.display='none'}});
+
 
 async function updatePendingMatchesCount(){
  if(!currentUser||!supabaseClient||!pendingMatchesCount)return;
