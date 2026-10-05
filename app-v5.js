@@ -2179,10 +2179,15 @@ registerForm.addEventListener('submit',async event=>{
     try{
       const {data:t,error:tErr}=await supabaseClient.rpc('join_registration_queue',{p_device_hash:deviceHash});if(tErr)throw tErr;registrationTicket=t;
       let pos=99,waits=0;
-      while(pos>1&&waits<120){
+      while(pos>1&&waits<150){
         const {data:p,error:pErr}=await supabaseClient.rpc('registration_queue_position',{p_ticket:registrationTicket});if(pErr)throw pErr;
         pos=Number(p||0);if(pos===0){const {data:nt}=await supabaseClient.rpc('join_registration_queue',{p_device_hash:deviceHash});registrationTicket=nt;pos=99}
-        if(pos>1){registerSubmit.textContent='En cola · turno '+pos;await new Promise(r=>setTimeout(r,1500));waits++}
+        if(pos>1){
+          registerSubmit.textContent='En cola · turno '+pos;
+          const queueDelay=5000+Math.floor(Math.random()*3001);
+          await new Promise(r=>setTimeout(r,queueDelay));
+          waits++;
+        }
       }
       registerSubmit.textContent='Creando cuenta...';
     }catch(qe){console.warn('Cola de registro:',qe);await new Promise(r=>setTimeout(r,2000))}
