@@ -651,7 +651,7 @@ async function updateRankedChatResponseCountdown(matchId){
 function startRankedChatResponseTimer(matchId){
  if(rankedChatResponseTimer)clearInterval(rankedChatResponseTimer);
  updateRankedChatResponseCountdown(matchId);
- rankedChatResponseTimer=setInterval(()=>{if(!document.hidden)updateRankedChatResponseCountdown(matchId)},3000);
+ rankedChatResponseTimer=setInterval(()=>{if(!document.hidden)updateRankedChatResponseCountdown(matchId)},15000);
 }
 async function loadRankedVsChat(matchId){
  if(!supabaseClient||!matchId||!rankedVsChatMessages||rankedVsChatLoading)return;
@@ -687,7 +687,7 @@ function startRankedVsChat(match){
  rankedVsChatMatchId=id;
  loadRankedVsChat(id);
  startRankedChatResponseTimer(id);
- rankedVsChatTimer=setInterval(()=>{if(!document.hidden)loadRankedVsChat(id)},7000);
+ rankedVsChatTimer=setInterval(()=>{if(!document.hidden){loadRankedVsChat(id);updateRankedChatResponseCountdown(id)}},60000);
 }
 async function sendRankedVsChat(){
  const message=String(rankedVsChatInput?.value||'').trim();
@@ -715,6 +715,7 @@ function showRankedMatch(match){currentRankedMatchData=match;
  if(!matchmakingModal)return;
  rankedSearchActive=false;
  currentRankedMatchId=match.match_id;
+ startActiveVsRealtime(currentRankedMatchId);
  matchmakingSearching.hidden=true;matchmakingVersus.hidden=false;
  /* The VS chat must be visible immediately on every device as soon as a match exists. */
  startRankedVsChat(match);
@@ -738,7 +739,7 @@ function showRankedMatch(match){currentRankedMatchData=match;
  setVsAvatar(versusOpponentAvatar,match.opponent_avatar_path,match.opponent_name);
  stopRankedMatchCountdown();if(rankedMatchCountdown){rankedMatchCountdown.hidden=true;rankedMatchCountdown.style.display='none'}if(match.admin_confirmed)startRankedPlayTimer(match);else stopRankedPlayTimer();if(confirmedMatchWarning)confirmedMatchWarning.hidden=!match.admin_confirmed;if(rankedMatchRules)rankedMatchRules.hidden=!match.admin_confirmed;startRankedVsChat(match);updateRankedResultReport(match);updateRankedVideoProof(match);if(abandonRankedBtn){abandonRankedBtn.hidden=true;abandonRankedBtn.style.display='none';abandonRankedBtn.disabled=true}refreshPlayerVsSafety();if(matchmakingClose){matchmakingClose.hidden=!!match.admin_confirmed;matchmakingClose.disabled=!!match.admin_confirmed}
  updatePendingMatchesCount();
- clearInterval(pendingMatchesTimer);pendingMatchesTimer=setInterval(()=>{if(!document.hidden){updatePendingMatchesCount();watchCurrentRankedMatch()}},7000);
+ clearInterval(pendingMatchesTimer);pendingMatchesTimer=setInterval(()=>{if(!document.hidden){updatePendingMatchesCount();watchCurrentRankedMatch()}},60000);
 }
 async function watchCurrentRankedMatch(){
  if(!currentRankedMatchId||!supabaseClient||activeRankedMatchLoading)return;
@@ -747,7 +748,7 @@ async function watchCurrentRankedMatch(){
   const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');if(error)throw error;
   if(data&&data.length&&Number(data[0].match_id)===Number(currentRankedMatchId)){currentRankedMatchData=data[0];const confirmed=!!data[0].admin_confirmed;stopRankedMatchCountdown();if(rankedMatchCountdown){rankedMatchCountdown.hidden=true;rankedMatchCountdown.style.display='none'}if(confirmed)startRankedPlayTimer(data[0]);else stopRankedPlayTimer();updateRankedResultReport(data[0]);updateRankedVideoProof(data[0]);if(confirmedMatchWarning)confirmedMatchWarning.hidden=!confirmed;if(rankedMatchRules)rankedMatchRules.hidden=!confirmed;startRankedVsChat(data[0]);if(abandonRankedBtn){abandonRankedBtn.hidden=true;abandonRankedBtn.style.display='none';abandonRankedBtn.disabled=true}refreshPlayerVsSafety();if(matchmakingClose){matchmakingClose.hidden=confirmed;matchmakingClose.disabled=confirmed}}
   if(!data||!data.length||Number(data[0].match_id)!==Number(currentRankedMatchId)){
-   currentRankedMatchId=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
+   await stopActiveVsRealtime();currentRankedMatchId=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
    stopRankedPlayTimer();
    stopRankedChatResponseTimer();
    if(rankedVsChatTimer){clearInterval(rankedVsChatTimer);rankedVsChatTimer=null}rankedVsChatMatchId=null;
@@ -760,6 +761,34 @@ async function watchCurrentRankedMatch(){
 }
 
 let matchmakingRealtimeChannel=null;
+let activeVsRealtimeChannel=null;
+let activeVsRealtimeMatchId=null;
+let activeVsRealtimeRefreshTimer=null;
+async function stopActiveVsRealtime(){
+ if(activeVsRealtimeRefreshTimer){clearTimeout(activeVsRealtimeRefreshTimer);activeVsRealtimeRefreshTimer=null}
+ if(activeVsRealtimeChannel&&supabaseClient){try{await supabaseClient.removeChannel(activeVsRealtimeChannel)}catch(e){console.error('Realtime VS stop:',e)}}
+ activeVsRealtimeChannel=null;activeVsRealtimeMatchId=null;
+}
+function queueActiveVsRealtimeRefresh(kind){
+ if(activeVsRealtimeRefreshTimer)return;
+ activeVsRealtimeRefreshTimer=setTimeout(async()=>{
+  activeVsRealtimeRefreshTimer=null;
+  if(document.hidden||!currentRankedMatchId)return;
+  if(kind==='chat'){await loadRankedVsChat(currentRankedMatchId);await updateRankedChatResponseCountdown(currentRankedMatchId);await refreshPlayerVsSafety();}
+  else{await watchCurrentRankedMatch();await refreshPlayerVsSafety();}
+ },120);
+}
+function startActiveVsRealtime(matchId){
+ const id=Number(matchId||0);if(!id||!supabaseClient)return;
+ if(activeVsRealtimeChannel&&activeVsRealtimeMatchId===id)return;
+ stopActiveVsRealtime().catch(()=>{});
+ activeVsRealtimeMatchId=id;
+ activeVsRealtimeChannel=supabaseClient.channel('active-vs-'+id+'-'+String(currentUser?.id||'guest'))
+  .on('postgres_changes',{event:'*',schema:'public',table:'ranked_matches',filter:'id=eq.'+id},()=>{queueActiveVsRealtimeRefresh('match');refreshPlayersPlayingCount().catch(()=>{})})
+  .on('postgres_changes',{event:'*',schema:'public',table:'ranked_match_messages',filter:'match_id=eq.'+id},()=>queueActiveVsRealtimeRefresh('chat'))
+  .subscribe();
+}
+
 async function stopMatchmakingRealtime(){
  if(matchmakingRealtimeChannel&&supabaseClient){
   try{await supabaseClient.removeChannel(matchmakingRealtimeChannel)}catch(e){console.error('Realtime matchmaking stop:',e)}
@@ -1115,7 +1144,8 @@ async function loadGuestRanking(){
   if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
   if(Array.isArray(snapshot.streaks))rankingStreaks=new Map(snapshot.streaks.map(x=>[String(x.player_id),Number(x.streak)||0]));
-  await refreshRealRegisteredCount();
+  const snapshotTotal=Number(snapshot.total_players);
+  if(Number.isFinite(snapshotTotal)){totalRegisteredPlayers=snapshotTotal;try{localStorage.setItem('ranking8bp_real_registered_count',String(snapshotTotal))}catch(_){}}
   guestRankingPlayers=(Array.isArray(snapshot.ranking)?snapshot.ranking:[]).slice(0,100);
   if(snapshot.latest_result){writePublicCache('ranking8bp_latest_result',snapshot.latest_result);paintLatestRankingResult(snapshot.latest_result)};
   writePublicCache('ranking8bp_public_ranking',guestRankingPlayers);
@@ -2148,7 +2178,7 @@ setTimeout(startNotificationRefresh,6000+Math.floor(Math.random()*6000));
 refreshOnlinePlayers().catch(()=>{});
 refreshPlayersPlayingCount().catch(()=>{});
 setTimeout(()=>{startOnlinePresence();refreshOnlinePlayers().catch(()=>{});refreshPlayersPlayingCount().catch(()=>{})},1500);
-setInterval(()=>{if(!document.hidden){refreshOnlinePlayers().catch(()=>{});refreshPlayersPlayingCount().catch(()=>{})}},60000);
+setInterval(()=>{if(!document.hidden){refreshOnlinePlayers().catch(()=>{});refreshPlayersPlayingCount().catch(()=>{})}},120000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){refreshOnlinePlayers().catch(()=>{});refreshPlayersPlayingCount().catch(()=>{});if(currentUser)touchOnlinePresence()}});
 if(playerDetailModal)playerDetailModal.addEventListener('click',event=>{if(event.target===playerDetailModal)closeRankingPlayer()});
 
