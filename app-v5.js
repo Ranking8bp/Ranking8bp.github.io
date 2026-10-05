@@ -706,7 +706,7 @@ async function sendRankedVsChat(){
  }catch(e){console.error('Enviar chat VS:',e);if(String(e?.message||'').includes('VS_CHAT_RESPONSE_TIMEOUT')){showToast('⏱️ El minuto terminó. El VS fue anulado.');await watchCurrentRankedMatch()}else showToast('No se pudo enviar el mensaje. Intenta nuevamente.')}finally{rankedVsChatSend.disabled=false}
 }
 rankedVsChatSend?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();sendRankedVsChat()});
-rankedVsChatSend?.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();sendRankedVsChat()},{passive:false});
+
 rankedVsChatInput?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendRankedVsChat()}});
 function showRankedMatch(match){currentRankedMatchData=match;
  if(!matchmakingModal)return;
