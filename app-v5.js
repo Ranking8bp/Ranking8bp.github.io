@@ -397,7 +397,7 @@ function paintPlayerVsSafety(st){
  if(playerPlayingBtn){playerPlayingBtn.hidden=mine||locked;playerPlayingBtn.disabled=mine||locked}
  if(playerVsSafetyNotice){playerVsSafetyNotice.hidden=locked;if(!locked&&mine)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> El VS ya no puede ser anulado.';else if(!locked&&other)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> Tu rival confirmó que ya están jugando. El VS ya no puede ser anulado.'}
  if(playerPlayingLocked)playerPlayingLocked.hidden=!locked;
- if(rankedResultReport){rankedResultReport.hidden=!locked;rankedResultReport.style.display=locked?'block':'none'}
+ if(rankedResultReport){const showResults=locked||mine||other;rankedResultReport.hidden=!showResults;rankedResultReport.style.display=showResults?'block':'none'}
 }
 function safetyFromRealtimeRow(row){
  if(!row||!currentUser)return null;
