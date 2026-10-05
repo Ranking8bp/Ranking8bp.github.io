@@ -151,7 +151,7 @@ const abandonRankedBtn=document.getElementById('abandonRankedBtn');
 const confirmedMatchWarning=document.getElementById('confirmedMatchWarning');
 const rankedMatchRules=document.getElementById('rankedMatchRules');
 const rankedVsChat=document.getElementById('rankedVsChat'),rankedVsChatMessages=document.getElementById('rankedVsChatMessages'),rankedVsChatInput=document.getElementById('rankedVsChatInput'),rankedVsChatSend=document.getElementById('rankedVsChatSend');
-let rankedVsChatMatchId=null,rankedVsChatTimer=null,rankedChatResponseTimer=null,rankedChatResponseExpiring=false;
+let rankedVsChatMatchId=null,rankedVsChatTimer=null,rankedChatResponseTimer=null,rankedChatResponseSyncTimer=null,rankedChatResponseExpiresAt=0,rankedChatResponseExpiring=false;
 // Prevent slow Supabase responses from stacking duplicate polling requests.
 let rankedVsChatLoading=false,rankedVsChatSending=false,rankedChatStatusLoading=false,activeRankedMatchLoading=false,matchmakingPollLoading=false,matchmakingHeartbeatLoading=false,matchmakingStartLoading=false,playersPlayingLoading=false,playersSearchingLoading=false;
 const rankedMatchCountdown=document.getElementById('rankedMatchCountdown'),rankedMatchCountdownValue=document.getElementById('rankedMatchCountdownValue');
@@ -727,7 +727,7 @@ function ensureRankedChatResponseWarning(){
  return box;
 }
 function stopRankedChatResponseTimer(){
- if(rankedChatResponseTimer){clearInterval(rankedChatResponseTimer);rankedChatResponseTimer=null}
+ if(rankedChatResponseTimer){clearInterval(rankedChatResponseTimer);rankedChatResponseTimer=null} if(rankedChatResponseSyncTimer){clearInterval(rankedChatResponseSyncTimer);rankedChatResponseSyncTimer=null} rankedChatResponseExpiresAt=0;
  const box=document.getElementById('rankedChatResponseWarning');if(box)box.hidden=true;
  rankedChatResponseExpiring=false;
 }
@@ -737,9 +737,9 @@ async function updateRankedChatResponseCountdown(matchId){
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_chat_response_status',{p_match_id:Number(matchId)});if(error)throw error;
   const st=Array.isArray(data)?data[0]:data,box=ensureRankedChatResponseWarning(),value=document.getElementById('rankedChatResponseValue');
-  if(!st){if(box){box.hidden=false;box.classList.remove('waiting-on-me');const title=box.querySelector('strong'),p=box.querySelector('p');if(title)title.textContent='⏱️ TIEMPO DE RESPUESTA';if(p)p.textContent='Cuando uno escriba, el otro tendrá 1 minuto para responder.'}if(value)value.textContent='01:00';return}
+  if(!st){if(box){box.hidden=false;box.classList.remove('waiting-on-me');const title=box.querySelector('strong'),p=box.querySelector('p');if(title)title.textContent='⏱️ TIEMPO DE RESPUESTA';if(p)p.textContent='Tienen 1 minuto desde que se arma el VS para enviar sus mensajes.'}if(value)value.textContent='01:00';return}
   if(st.replied){rankedVsBothMessaged=true;stopRankedChatResponseTimer();const local=safetyFromRealtimeRow(currentRankedMatchData);if(local)paintPlayerVsSafety({...local,both_messaged:true});return}
-  const left=Math.max(0,Number(st.seconds_left)||0);
+  rankedChatResponseExpiresAt=st.expires_at?new Date(st.expires_at).getTime():(Date.now()+Math.max(0,Number(st.seconds_left)||0)*1000); const left=Math.max(0,Number(st.seconds_left)||0);
   if(box){box.hidden=false;box.classList.toggle('waiting-on-me',!!st.waiting_for_me);const title=box.querySelector('strong'),p=box.querySelector('p');if(title)title.textContent=st.waiting_for_me?'⚠️ RESPONDE EN EL CHAT':'⏱️ ESPERANDO RESPUESTA';if(p)p.textContent=st.waiting_for_me?'Tienes 1 minuto para responder o el VS será anulado.':'Tu rival tiene 1 minuto para responder.'}
   if(value)value.textContent='00:'+String(left).padStart(2,'0');
   if(left<=0&&!rankedChatResponseExpiring){
@@ -753,8 +753,17 @@ async function updateRankedChatResponseCountdown(matchId){
 }
 function startRankedChatResponseTimer(matchId){
  if(rankedChatResponseTimer)clearInterval(rankedChatResponseTimer);
+ if(rankedChatResponseSyncTimer)clearInterval(rankedChatResponseSyncTimer);
  updateRankedChatResponseCountdown(matchId);
- rankedChatResponseTimer=setInterval(()=>{if(!document.hidden)updateRankedChatResponseCountdown(matchId)},15000);
+ rankedChatResponseTimer=setInterval(()=>{
+  if(document.hidden||!rankedChatResponseExpiresAt)return;
+  const box=ensureRankedChatResponseWarning(),value=document.getElementById('rankedChatResponseValue');
+  const left=Math.max(0,Math.ceil((rankedChatResponseExpiresAt-Date.now())/1000));
+  if(box)box.hidden=false;
+  if(value)value.textContent='00:'+String(left).padStart(2,'0');
+  if(left<=0&&!rankedChatResponseExpiring)updateRankedChatResponseCountdown(matchId);
+ },1000);
+ rankedChatResponseSyncTimer=setInterval(()=>{if(!document.hidden)updateRankedChatResponseCountdown(matchId)},10000);
 }
 async function loadRankedVsChat(matchId){
  if(!supabaseClient||!matchId||!rankedVsChatMessages||rankedVsChatLoading)return;
