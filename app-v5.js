@@ -730,7 +730,7 @@ async function updateRankedChatResponseCountdown(matchId){
   const {data,error}=await supabaseClient.rpc('get_ranked_chat_response_status',{p_match_id:Number(matchId)});if(error)throw error;
   const st=Array.isArray(data)?data[0]:data,box=ensureRankedChatResponseWarning(),value=document.getElementById('rankedChatResponseValue');
   if(!st){if(box){box.hidden=false;box.classList.remove('waiting-on-me');const title=box.querySelector('strong'),p=box.querySelector('p');if(title)title.textContent='⏱️ TIEMPO DE RESPUESTA';if(p)p.textContent='Cuando uno escriba, el otro tendrá 1 minuto para responder.'}if(value)value.textContent='01:00';return}
-  if(st.replied){stopRankedChatResponseTimer();return}
+  if(st.replied){rankedVsBothMessaged=true;stopRankedChatResponseTimer();const local=safetyFromRealtimeRow(currentRankedMatchData);if(local)paintPlayerVsSafety({...local,both_messaged:true});return}
   const left=Math.max(0,Number(st.seconds_left)||0);
   if(box){box.hidden=false;box.classList.toggle('waiting-on-me',!!st.waiting_for_me);const title=box.querySelector('strong'),p=box.querySelector('p');if(title)title.textContent=st.waiting_for_me?'⚠️ RESPONDE EN EL CHAT':'⏱️ ESPERANDO RESPUESTA';if(p)p.textContent=st.waiting_for_me?'Tienes 1 minuto para responder o el VS será anulado.':'Tu rival tiene 1 minuto para responder.'}
   if(value)value.textContent='00:'+String(left).padStart(2,'0');
@@ -755,7 +755,7 @@ async function loadRankedVsChat(matchId){
   const {data,error}=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:Number(matchId)});
   if(error)throw error;
   const hasUnreadIncoming=Array.isArray(data)&&data.some(m=>m.sender_id!==currentUser?.id&&!m.is_admin&&!m.read_by_other);
-  const participantSenders=new Set((Array.isArray(data)?data:[]).filter(m=>!m.is_admin&&m.sender_id).map(m=>String(m.sender_id)));rankedVsBothMessaged=participantSenders.size>=2;const localSafety=safetyFromRealtimeRow(currentRankedMatchData);if(localSafety)paintPlayerVsSafety(localSafety);
+  const participantSenders=new Set((Array.isArray(data)?data:[]).filter(m=>!m.is_admin&&m.sender_id).map(m=>String(m.sender_id)));rankedVsBothMessaged=participantSenders.size>=2;if(rankedVsBothMessaged)stopRankedChatResponseTimer();const localSafety=safetyFromRealtimeRow(currentRankedMatchData);if(localSafety)paintPlayerVsSafety(localSafety);
   if(hasUnreadIncoming){try{await supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:Number(matchId)})}catch(_){}}
   rankedVsChatMessages.replaceChildren();
   if(!data?.length){const e=document.createElement('div');e.className='ranked-vs-chat-empty';e.textContent='Todavía no hay mensajes. Escribe para coordinar el partido.';rankedVsChatMessages.appendChild(e);return}
