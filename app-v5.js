@@ -1154,14 +1154,14 @@ async function loadAdminMatches(){
    if(p1v){const b=document.createElement('button');b.className='received';b.textContent='🎥 VIDEO '+m.player1_name;b.onclick=()=>openAdminRankedVideo(m.match_id,m.player1_id,m.player1_name);videoProof.appendChild(b)}
    if(p2v){const b=document.createElement('button');b.className='received';b.textContent='🎥 VIDEO '+m.player2_name;b.onclick=()=>openAdminRankedVideo(m.match_id,m.player2_id,m.player2_name);videoProof.appendChild(b)}
    if(p1v||p2v){row.appendChild(videoProof);const sent=document.createElement('div');sent.className='admin-video-sent-summary';const parts=[];if(p1v)parts.push('🎥 '+m.player1_name+' ENVIÓ EVIDENCIA');if(p2v)parts.push('🎥 '+m.player2_name+' ENVIÓ EVIDENCIA');sent.textContent=parts.join('  ·  ');row.appendChild(sent)}
-   if(m.status==='matched'){
+   if(m.status==='matched'||m.status==='review'){
     const actions=document.createElement('div');actions.className='admin-match-actions';
     const actionStatus=document.createElement('div');actionStatus.className='admin-result-title';
     const actionLabel=(claim,noTrick)=>noTrick?'NADIE HIZO TRICK':(String(claim||'').toLowerCase()==='won'?'GANÉ':(String(claim||'').toLowerCase()==='lost'?'PERDÍ':'NO HA PRESIONADO'));
     const p1Action=actionLabel(m.player1_claim,m.player1_no_trick),p2Action=actionLabel(m.player2_claim,m.player2_no_trick);
     actionStatus.innerHTML='<div>'+String(m.player1_name||'Jugador')+': <b>'+p1Action+'</b></div><div>'+String(m.player2_name||'Jugador')+': <b>'+p2Action+'</b></div>';
     actions.appendChild(actionStatus);const chatBtn=document.createElement('button');chatBtn.className='admin-chat-btn';chatBtn.textContent='VER CHAT';chatBtn.onclick=e=>{e.preventDefault();e.stopPropagation();window.__adminChatP1Id=m.player1_id;window.__adminChatP2Id=m.player2_id;openAdminVsChat(m.match_id,m.player1_name,m.player2_name)};chatBtn.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();window.__adminChatP1Id=m.player1_id;window.__adminChatP2Id=m.player2_id;openAdminVsChat(m.match_id,m.player1_name,m.player2_name)},{passive:false});actions.appendChild(chatBtn);
-    if(!m.admin_confirmed){
+    if(!m.admin_confirmed&&m.status==='matched'){
      const confirmBtn=document.createElement('button');confirmBtn.className='confirm-vs';confirmBtn.textContent='CONFIRMAR VS';
      confirmBtn.onclick=async()=>{if(!confirm('¿Confirmar este VS? Después de confirmarlo los jugadores ya no podrán abandonar.'))return;const {error}=await supabaseClient.rpc('admin_confirm_ranked_match',{p_match_id:m.match_id});if(error){showToast('No se pudo confirmar el VS.');return}adminMatchesCache=[];adminVideosCache=[];await loadAdminMatches();showToast('VS confirmado. Ahora selecciona quién ganó.')};
      actions.appendChild(confirmBtn);
@@ -1170,7 +1170,7 @@ async function loadAdminMatches(){
      actions.appendChild(winnerTitle);
      for(const [id,name] of [[m.player1_id,m.player1_name],[m.player2_id,m.player2_name]]){
       const winBtn=document.createElement('button');winBtn.className='admin-winner-btn';winBtn.textContent='GANA '+name;
-      winBtn.onclick=async()=>{if(!confirm('¿Confirmar a '+name+' como ganador? Se aplicará +15 ELO al ganador y -15 ELO al perdedor.'))return;const {error}=await supabaseClient.rpc('admin_resolve_ranked_match',{p_match_id:m.match_id,p_winner_id:id});if(error){showToast('No se pudo guardar el resultado.');return}await cleanupRankedMatchVideos(m.match_id);adminMatchesCache=[];adminVideosCache=[];await loadAdminMatches();showToast('Resultado aplicado. Evidencias eliminadas.')};
+      winBtn.onclick=async()=>{if(!confirm('¿Confirmar a '+name+' como ganador? Se aplicará +15 ELO al ganador y la penalización correspondiente al perdedor.'))return;const {error}=await supabaseClient.rpc('admin_resolve_ranked_match',{p_match_id:m.match_id,p_winner_id:id});if(error){showToast('No se pudo guardar el resultado.');return}await cleanupRankedMatchVideos(m.match_id);adminMatchesCache=[];adminVideosCache=[];await loadAdminMatches();showToast('Resultado aplicado. Evidencias eliminadas.')};
       actions.appendChild(winBtn);
      }
     }
