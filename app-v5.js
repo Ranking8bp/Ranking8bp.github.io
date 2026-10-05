@@ -168,6 +168,7 @@ const rankedWinnerVideoInput=document.getElementById('rankedWinnerVideoInput');
 const rankedWinnerVideoBtn=document.getElementById('rankedWinnerVideoBtn');
 const rankedForgotRecordingBtn=document.getElementById('rankedForgotRecordingBtn');
 const rankedWinnerVideoStatus=document.getElementById('rankedWinnerVideoStatus');
+const rankedReviewNotice=document.getElementById('rankedReviewNotice'),rankedReviewOkBtn=document.getElementById('rankedReviewOkBtn');
 let pendingMatchesTimer=null;
 let matchmakingTimer=null,currentRankedMatchId=null,matchmakingHeartbeatTimer=null,rankedSearchActive=false,currentRankedMatchData=null;
 const gamesPlayed=document.getElementById('gamesPlayed');
@@ -589,12 +590,24 @@ async function uploadRankedWinnerVideo(){
     rankedWinnerVideoBtn.textContent='🎥 VIDEO ENVIADO · SUBIR OTRO';
     rankedWinnerVideoInput.value='';
     showToast('Video del tiro ganador enviado.');
+    if(rankedReviewNotice){rankedReviewNotice.hidden=false;rankedReviewNotice.style.display='flex'}
   }catch(e){
     console.error('Video del ganador:',e);
     rankedWinnerVideoStatus.textContent=e?.message||'No se pudo subir el video.';
     rankedWinnerVideoInput.value='';
   }finally{rankedWinnerVideoBtn.disabled=false}
 }
+rankedReviewOkBtn?.addEventListener('click',async()=>{
+ if(rankedReviewNotice){rankedReviewNotice.hidden=true;rankedReviewNotice.style.display='none'}
+ clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
+ await stopActiveVsRealtime().catch(()=>{});
+ await stopMatchmakingRealtime().catch(()=>{});
+ currentRankedMatchId=null;currentRankedMatchData=null;rankedPlayingLockedLocally=false;
+ if(matchmakingModal)matchmakingModal.hidden=true;
+ await updateRankedDailyStatus().catch(()=>{});
+ showToast('Puedes seguir jugando mientras se revisa el resultado.');
+});
+
 async function openAdminRankedVideo(matchId,uploaderId,name){
   if(!rankedVideoModal||!rankedVideoPlayer||!supabaseClient)return;
   try{
