@@ -1845,6 +1845,11 @@ function buildRankingRow(player,index,displayPosition=null){
   const sid=String(player?.player_id||player?.id||'');const sv=Number(rankingStreaks.get(sid)||0);if(sv>0){const ss=document.createElement('span');ss.className='ranking-streak';ss.textContent=' +'+sv;ss.title='Racha de '+sv+' victoria'+(sv===1?'':'s');name.appendChild(ss)}
   const od=onlineDotFor(player);if(od)name.appendChild(od);
   playerCell.appendChild(name);
+  const gameId=String(player?.game_id??'').trim();
+  const gameIdLine=document.createElement('small');
+  gameIdLine.className='ranking-player-game-id';
+  gameIdLine.textContent='ID: '+(gameId||'—');
+  playerCell.appendChild(gameIdLine);
 
   const countryCell=document.createElement('div');
   countryCell.className='ranking-country';
