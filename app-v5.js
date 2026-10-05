@@ -388,10 +388,10 @@ async function abandonRankedMatch(){
  }catch(e){console.error(e);const msg=String(e?.message||'');if(msg.includes('match locked')){showToast('VS confirmado por el administrador. Ya no puedes abandonar.');if(abandonRankedBtn){abandonRankedBtn.disabled=true;abandonRankedBtn.textContent='VS CONFIRMADO · NO SE PUEDE ABANDONAR'}}else showToast('No se pudo abandonar el emparejamiento.')}
 }
 
-let rankedVsBothMessaged=false,lastVsSafetyRpcAt=0;
+let rankedVsBothMessaged=false,lastVsSafetyRpcAt=0,rankedPlayingLockedLocally=false;
 function paintPlayerVsSafety(st){
  if(!playerVsSafety||!st)return;
- const ready=!!st.both_messaged,mine=!!st.my_playing_confirmed,other=!!st.opponent_playing_confirmed,locked=!!st.players_playing;
+ const ready=!!st.both_messaged,mine=!!st.my_playing_confirmed,other=!!st.opponent_playing_confirmed,locked=rankedPlayingLockedLocally||!!st.players_playing;
  playerVsSafety.hidden=!ready;playerVsSafety.style.display=ready?'block':'none';
  if(!ready)return;
  const resultPhase=locked;
@@ -428,8 +428,10 @@ async function markVsPlaying(){
 async function confirmVsPlayingYes(){
  if(!currentRankedMatchId||!supabaseClient)return;
  if(playerPlayingConfirmBox){playerPlayingConfirmBox.hidden=true;playerPlayingConfirmBox.style.display='none'}
+ rankedPlayingLockedLocally=true;
+ if(playerPlayingBtn){playerPlayingBtn.hidden=true;playerPlayingBtn.disabled=true;playerPlayingBtn.style.display='none'}
+ if(playerCancelVsBtn){playerCancelVsBtn.hidden=true;playerCancelVsBtn.disabled=true;playerCancelVsBtn.style.display='none'}
  try{
-  if(playerPlayingBtn){playerPlayingBtn.disabled=true}
   const matchId=Number(currentRankedMatchId);
   const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:matchId});if(error)throw error;
   const {data:fresh,error:freshError}=await supabaseClient.rpc('get_my_active_ranked_match');if(freshError)throw freshError;
@@ -450,7 +452,9 @@ async function confirmVsPlayingYes(){
   setTimeout(()=>rankedResultReport?.scrollIntoView({behavior:'smooth',block:'center'}),60);
  }catch(e){
   console.error(e);const msg=String(e?.message||'');
-  if(playerPlayingBtn)playerPlayingBtn.disabled=false;
+  rankedPlayingLockedLocally=false;
+  if(playerPlayingBtn){playerPlayingBtn.disabled=false;playerPlayingBtn.hidden=false;playerPlayingBtn.style.display=''}
+  if(playerCancelVsBtn){playerCancelVsBtn.disabled=false;playerCancelVsBtn.hidden=false;playerCancelVsBtn.style.display=''}
   msg.includes('CHAT_NOT_READY')?showToast('Ambos jugadores deben escribir en el chat antes de confirmar que ya están jugando.'):showToast('No se pudo marcar el VS como jugando.');
  }
 }
@@ -765,7 +769,7 @@ async function sendRankedVsChat(){
 rankedVsChatSend?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();sendRankedVsChat()});
 
 rankedVsChatInput?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendRankedVsChat()}});
-function showRankedMatch(match){currentRankedMatchData=match;rankedVsBothMessaged=false;lastVsSafetyRpcAt=0;
+function showRankedMatch(match){currentRankedMatchData=match;rankedVsBothMessaged=false;lastVsSafetyRpcAt=0;rankedPlayingLockedLocally=!!match?.players_playing;
  if(!matchmakingModal)return;
  rankedSearchActive=false;
  currentRankedMatchId=match.match_id;
