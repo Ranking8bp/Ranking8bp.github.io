@@ -1250,7 +1250,8 @@ async function setPlayerUI(profile,user){
   const spread=(fn,min,max)=>setTimeout(()=>{if(currentUser?.id===user?.id&&!document.hidden)Promise.resolve(fn()).catch(()=>{})},min+Math.floor(Math.random()*(max-min)));
   spread(()=>loadDashboardFollowStats(profile?.id||user?.id),2500,7000);
   if(!isAdminDashboard)spread(()=>loadCompetitiveHub(profile?.id||user?.id),6000,14000);
-  spread(()=>loadRanking(),10000,22000);
+  // La clasificación debe aparecer de inmediato; loadRanking pinta primero el caché local y refresca detrás.
+  loadRanking().catch(()=>{});
   maybeOpenDirectMatchmaking();
   playerUiReadyFor=uiUserId;playerUiLoadingFor=null;
 }
