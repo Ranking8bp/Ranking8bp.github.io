@@ -422,7 +422,7 @@ async function cancelVsByPlayers(){
 }
 async function markVsPlaying(){
  if(!currentRankedMatchId||!supabaseClient)return;
- if(playerPlayingConfirmBox){playerPlayingConfirmBox.hidden=false;playerPlayingConfirmBox.style.display='block'}
+ if(playerPlayingConfirmBox){playerPlayingConfirmBox.hidden=false;playerPlayingConfirmBox.style.display='flex'}
  return;
 }
 async function confirmVsPlayingYes(){
