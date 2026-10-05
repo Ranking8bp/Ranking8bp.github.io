@@ -1090,7 +1090,7 @@ async function loadAdminMatches(){
   const proofRows=adminMatchView==='proofs'?allRows:allRows.filter(m=>m.player1_video_path||m.player2_video_path);
   if(adminMatchView==='proofs'&&adminProofsCount)adminProofsCount.textContent=String(proofRows.length);
   const q=String(adminVsSearchInput?.value||'').trim().toLowerCase();
-  const sourceRows=adminMatchView==='proofs'?proofRows:allRows;
+  const sourceRows=adminMatchView==='proofs'?proofRows:[...allRows].sort((a,b)=>new Date(a.created_at||0)-new Date(b.created_at||0));
   const filteredRows=!q?sourceRows:sourceRows.filter(m=>[m.player1_name,m.player2_name,m.player1_game_id,m.player2_game_id,m.match_id].some(v=>String(v??'').toLowerCase().includes(q)));
   const rows=adminMatchView==='proofs'?filteredRows.slice(0,6):filteredRows;
   adminMatchList.replaceChildren();
