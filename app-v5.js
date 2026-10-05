@@ -1387,20 +1387,22 @@ function createRankingAvatar(player){
   const displayName=player?.username||player?.account_name||'J';
   fallback.textContent=String(displayName).trim().charAt(0).toUpperCase()||'J';
   wrap.appendChild(fallback);
-
-  if(player?.avatar_path&&supabaseClient&&!avatarIsBroken(player.avatar_path)){
-    const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
-    if(data?.publicUrl){
+  if(player?.avatar_path){
+    const base=String(window.SUPABASE_CONFIG?.url||'').replace(/\/$/,'');
+    if(base){
       const img=document.createElement('img');
-      img.loading='lazy';img.decoding='async';img.src=data.publicUrl;
+      const encoded=String(player.avatar_path).split('/').map(encodeURIComponent).join('/');
+      img.src=base+'/storage/v1/object/public/profile-photos/'+encoded;
       img.alt='Foto de '+String(displayName);
+      img.loading='eager';
+      img.decoding='async';
+      img.style.cssText='display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important';
       img.onload=()=>{wrap.replaceChildren(img)};
-      img.onerror=()=>{markAvatarBroken(player.avatar_path);img.remove()};
+      img.onerror=()=>{console.warn('Foto de ranking no cargó:',player.avatar_path)};
     }
   }
   return wrap;
 }
-
 
 
 function updateHeartUI(count,hearted,isOwn=false){
