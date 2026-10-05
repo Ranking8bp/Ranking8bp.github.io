@@ -917,7 +917,14 @@
         <div class="ranked-match-countdown" id="rankedMatchCountdown" hidden style="display:none!important"><b id="rankedMatchCountdownValue" hidden>0</b><button type="button" id="rankedPlayerConfirmBtn" hidden></button><small id="rankedPlayerConfirmStatus" hidden></small></div>
         <div class="player-vs-safety" id="playerVsSafety" hidden>
           <p id="playerVsSafetyNotice">⚠️ <b>IMPORTANTE:</b> Toca <b>YA ESTAMOS JUGANDO</b> únicamente cuando tú y tu rival ya estén jugando. Al activarlo, <b>ninguno de los dos podrá anular el VS</b>. Hazlo para evitar que alguien haga trampa intentando anular el enfrentamiento después de haber comenzado la partida.</p>
-          <div class="player-vs-safety-actions"><button type="button" id="playerCancelVsBtn">ANULAR VS</button><button type="button" id="playerPlayingBtn">YA ESTAMOS JUGANDO</button></div><div id="playerPlayingConfirmBox" hidden style="position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:20px"><div style="width:min(92vw,620px);background:#081d2a;border:3px solid #f0c84b;border-radius:22px;padding:32px 24px;text-align:center;box-shadow:0 20px 70px rgba(0,0,0,.8)"><strong style="display:block;font-size:clamp(24px,5vw,38px);line-height:1.15;margin-bottom:28px;color:#fff">¿YA ESTÁN JUGANDO EN LA MESA DE 8 BALL POOL?</strong><div style="display:grid;grid-template-columns:1fr 1fr;gap:18px"><button type="button" id="playerPlayingYesBtn" style="min-height:76px;border:0;border-radius:14px;background:#10b956;color:#fff;font-size:28px;font-weight:900">SÍ</button><button type="button" id="playerPlayingNoBtn" style="min-height:76px;border:0;border-radius:14px;background:#d92323;color:#fff;font-size:28px;font-weight:900">NO</button></div></div></div>
+          <div class="player-vs-safety-actions"><button type="button" id="playerCancelVsBtn">ANULAR VS</button><button type="button" id="playerPlayingBtn">YA ESTAMOS JUGANDO</button></div><div id="rankedReviewNotice" hidden style="position:fixed;inset:0;z-index:1000000;background:rgba(0,0,0,.86);display:none;align-items:center;justify-content:center;padding:20px">
+  <div style="width:min(92vw,620px);background:#081d2a;border:3px solid #f0c84b;border-radius:22px;padding:30px 22px;text-align:center;box-shadow:0 20px 70px rgba(0,0,0,.8)">
+    <strong style="display:block;color:#fff;font-size:clamp(23px,5vw,34px);line-height:1.15;margin-bottom:18px">ESTE PARTIDO SE ESTÁ REVISANDO</strong>
+    <p style="color:#fff;font-size:clamp(16px,3.8vw,21px);line-height:1.45;margin:0 0 24px">PUEDES SEGUIR JUGANDO MIENTRAS SE TOMA UNA DECISIÓN. LOS RESULTADOS SE REFLEJARÁN EN TUS PUNTOS CUANDO SE TERMINE DE REVISAR.</p>
+    <button type="button" id="rankedReviewOkBtn" style="width:100%;min-height:68px;border:0;border-radius:14px;background:#10b956;color:#fff;font-size:28px;font-weight:1000">OK</button>
+  </div>
+</div>
+<div id="playerPlayingConfirmBox" hidden style="position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:20px"><div style="width:min(92vw,620px);background:#081d2a;border:3px solid #f0c84b;border-radius:22px;padding:32px 24px;text-align:center;box-shadow:0 20px 70px rgba(0,0,0,.8)"><strong style="display:block;font-size:clamp(24px,5vw,38px);line-height:1.15;margin-bottom:28px;color:#fff">¿YA ESTÁN JUGANDO EN LA MESA DE 8 BALL POOL?</strong><div style="display:grid;grid-template-columns:1fr 1fr;gap:18px"><button type="button" id="playerPlayingYesBtn" style="min-height:76px;border:0;border-radius:14px;background:#10b956;color:#fff;font-size:28px;font-weight:900">SÍ</button><button type="button" id="playerPlayingNoBtn" style="min-height:76px;border:0;border-radius:14px;background:#d92323;color:#fff;font-size:28px;font-weight:900">NO</button></div></div></div>
           <strong id="playerPlayingLocked" hidden>🔒 PARTIDA EN JUEGO · ESTE VS YA NO PUEDE SER ANULADO POR LOS JUGADORES</strong>
         </div>
         <div class="ranked-play-timer" id="rankedPlayTimer" hidden style="display:none!important"><strong id="rankedPlayTimerValue" hidden>00:00</strong><small id="rankedPlayTimerNote" hidden></small></div>
@@ -989,7 +996,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261005-forgotrecord23"></script>
+  <script src="app-v5.js?v=20261005-reviewfree24"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
