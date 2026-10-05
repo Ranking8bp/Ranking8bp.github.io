@@ -421,7 +421,7 @@ async function cancelVsByPlayers(){
 }
 async function markVsPlaying(){
  if(!currentRankedMatchId||!supabaseClient)return;
-if(!confirm('Toca ACEPTAR únicamente si tú y tu rival YA ESTÁN JUGANDO. Después ninguno podrá anular este VS.'))return;
+if(!window.confirm('¿CONFIRMAS QUE YA ESTÁN JUGANDO?\n\nToca ACEPTAR para bloquear este VS y habilitar GANÉ / PERDÍ.'))return;
  try{
   if(playerPlayingBtn){playerPlayingBtn.disabled=true}
   const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;
