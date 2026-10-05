@@ -299,7 +299,7 @@ const RANKS=[
   {min:380,name:'Bronce III',image:'assets/ranks/04_Bronce_III.png'},
   {min:470,name:'Plata I',image:'assets/ranks/05_Plata_I.png'},
   {min:570,name:'Plata II',image:'assets/ranks/06_Plata_II.png'},
-  {min:680,name:'Plata III',image:'assets/ranks/07_Plata_III.png'},
+  {min:680,name:'Plata III',image:'assets/PLATA 3.png?v=20261005-plata3new'},
   {min:800,name:'Oro I',image:'assets/ranks/08_Oro_I.png'},
   {min:930,name:'Oro II',image:'assets/ranks/09_Oro_II.png'},
   {min:1070,name:'Oro III',image:'assets/ranks/10_Oro_III.png'},
