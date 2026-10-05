@@ -395,7 +395,7 @@ function paintPlayerVsSafety(st){
  if(!playerVsSafety||!st)return;
  const ready=!!st.both_messaged,mine=!!st.my_playing_confirmed,other=!!st.opponent_playing_confirmed,locked=rankedPlayingLockedLocally||!!st.players_playing;
  playerVsSafety.hidden=!ready;playerVsSafety.style.display=ready?'block':'none';
- if(!ready)return;
+ if(!ready){if(abandonRankedBtn){abandonRankedBtn.hidden=locked;abandonRankedBtn.style.display=locked?'none':'block';abandonRankedBtn.disabled=locked;abandonRankedBtn.textContent='ABANDONAR VS'}return;}
  const resultPhase=locked;
  if(abandonRankedBtn){abandonRankedBtn.hidden=locked;abandonRankedBtn.style.display=locked?'none':'block';abandonRankedBtn.disabled=locked;abandonRankedBtn.textContent='ABANDONAR VS'}
  if(playerCancelVsBtn){playerCancelVsBtn.hidden=resultPhase;playerCancelVsBtn.disabled=resultPhase;playerCancelVsBtn.style.display=resultPhase?'none':''}
@@ -855,7 +855,7 @@ async function watchCurrentRankedMatch(){
  activeRankedMatchLoading=true;
  try{
   const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');if(error)throw error;
-  if(data&&data.length&&Number(data[0].match_id)===Number(currentRankedMatchId)){currentRankedMatchData=data[0];if(String(data[0].status||'').toLowerCase()==='review'&&data[0].my_video_uploaded){rankedReviewTransitionPending=true;showRankedReviewNotice()}if(data[0].players_playing)rankedPlayingLockedLocally=true;const confirmed=!!data[0].admin_confirmed;stopRankedMatchCountdown();if(rankedMatchCountdown){rankedMatchCountdown.hidden=true;rankedMatchCountdown.style.display='none'}if(confirmed)startRankedPlayTimer(data[0]);else stopRankedPlayTimer();updateRankedResultReport(data[0]);updateRankedVideoProof(data[0]);if(confirmedMatchWarning)confirmedMatchWarning.hidden=!confirmed;if(rankedMatchRules)rankedMatchRules.hidden=!confirmed;startRankedVsChat(data[0]);if(abandonRankedBtn){abandonRankedBtn.hidden=true;abandonRankedBtn.style.display='none';abandonRankedBtn.disabled=true}refreshPlayerVsSafety();if(matchmakingClose){matchmakingClose.hidden=confirmed;matchmakingClose.disabled=confirmed}}
+  if(data&&data.length&&Number(data[0].match_id)===Number(currentRankedMatchId)){currentRankedMatchData=data[0];if(String(data[0].status||'').toLowerCase()==='review'&&data[0].my_video_uploaded){rankedReviewTransitionPending=true;showRankedReviewNotice()}if(data[0].players_playing)rankedPlayingLockedLocally=true;const confirmed=!!data[0].admin_confirmed;stopRankedMatchCountdown();if(rankedMatchCountdown){rankedMatchCountdown.hidden=true;rankedMatchCountdown.style.display='none'}if(confirmed)startRankedPlayTimer(data[0]);else stopRankedPlayTimer();updateRankedResultReport(data[0]);updateRankedVideoProof(data[0]);if(confirmedMatchWarning)confirmedMatchWarning.hidden=!confirmed;if(rankedMatchRules)rankedMatchRules.hidden=!confirmed;startRankedVsChat(data[0]);if(abandonRankedBtn){const locked=rankedPlayingLockedLocally||!!data[0].players_playing;abandonRankedBtn.hidden=locked;abandonRankedBtn.style.display=locked?'none':'block';abandonRankedBtn.disabled=locked;abandonRankedBtn.textContent='ABANDONAR VS'}refreshPlayerVsSafety();if(matchmakingClose){matchmakingClose.hidden=confirmed;matchmakingClose.disabled=confirmed}}
   if(!data||!data.length||Number(data[0].match_id)!==Number(currentRankedMatchId)){
    if(rankedReviewTransitionPending){return}
    await stopActiveVsRealtime();currentRankedMatchId=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
