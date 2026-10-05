@@ -425,26 +425,26 @@ async function markVsPlaying(){
  if(createdAt&&Date.now()-createdAt<60000){showTopPlayingWarning();return}
  if(!confirm('Toca ACEPTAR únicamente si tú y tu rival YA ESTÁN JUGANDO. Después ninguno podrá anular este VS.'))return;
  try{
+  if(playerPlayingBtn){playerPlayingBtn.disabled=true}
   const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;
-  await refreshPlayerVsSafety(true);
-  const {data:freshData,error:freshError}=await supabaseClient.rpc('get_my_active_ranked_match');
-  if(freshError)throw freshError;
-  const freshMatch=Array.isArray(freshData)?freshData[0]:freshData;
-  if(freshMatch&&Number(freshMatch.match_id)===Number(currentRankedMatchId)){
-    currentRankedMatchData=freshMatch;
-    updateRankedResultReport(freshMatch);
-    refreshPlayerVsSafety(true);
-  }
-  const {data:stData,error:stError}=await supabaseClient.rpc('get_ranked_player_action_status',{p_match_id:Number(currentRankedMatchId)});
-  if(stError)throw stError;
-  const st=Array.isArray(stData)?stData[0]:stData;
-  if(st?.players_playing){
-    showToast('🔒 AMBOS CONFIRMARON. Ahora pueden marcar GANÉ o PERDÍ.');
-    if(rankedResultReport){rankedResultReport.hidden=false;rankedResultReport.style.display='block';rankedResultReport.scrollIntoView({behavior:'smooth',block:'center'})}
-  }else{
-    showToast('✅ Confirmaste que ya están jugando. Falta que tu rival también toque YA ESTAMOS JUGANDO.');
-  }
- }catch(e){console.error(e);const msg=String(e?.message||'');msg.includes('PLAYING_TOO_EARLY')?showTopPlayingWarning():msg.includes('CHAT_NOT_READY')?showToast('Ambos jugadores deben escribir en el chat antes de confirmar que ya están jugando.'):showToast('No se pudo marcar el VS como jugando.')}
+  currentRankedMatchData={...(currentRankedMatchData||{}),players_playing:true,admin_confirmed:true,players_playing_at:currentRankedMatchData?.players_playing_at||new Date().toISOString(),confirmed_at:currentRankedMatchData?.confirmed_at||new Date().toISOString()};
+  rankedVsBothMessaged=true;
+  updateRankedResultReport(currentRankedMatchData);
+  updateRankedVideoProof(currentRankedMatchData);
+  paintPlayerVsSafety(safetyFromRealtimeRow(currentRankedMatchData));
+  if(playerPlayingBtn){playerPlayingBtn.hidden=true;playerPlayingBtn.style.display='none'}
+  if(playerCancelVsBtn){playerCancelVsBtn.hidden=true;playerCancelVsBtn.style.display='none'}
+  if(rankedResultReport){rankedResultReport.hidden=false;rankedResultReport.style.display='block'}
+  if(rankedClaimWon){rankedClaimWon.hidden=false;rankedClaimWon.style.display=''}
+  if(rankedClaimLost){rankedClaimLost.hidden=false;rankedClaimLost.style.display=''}
+  startRankedPlayTimer(currentRankedMatchData);
+  showToast('🔒 VS EN JUEGO. Marca GANÉ o PERDÍ al terminar.');
+  setTimeout(()=>rankedResultReport?.scrollIntoView({behavior:'smooth',block:'center'}),60);
+ }catch(e){
+  console.error(e);const msg=String(e?.message||'');
+  if(playerPlayingBtn)playerPlayingBtn.disabled=false;
+  msg.includes('PLAYING_TOO_EARLY')?showTopPlayingWarning():msg.includes('CHAT_NOT_READY')?showToast('Ambos jugadores deben escribir en el chat antes de confirmar que ya están jugando.'):showToast('No se pudo marcar el VS como jugando.');
+ }
 }
 playerCancelVsBtn?.addEventListener('click',cancelVsByPlayers);
 playerPlayingBtn?.addEventListener('click',markVsPlaying);
