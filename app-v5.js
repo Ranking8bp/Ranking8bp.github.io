@@ -393,8 +393,9 @@ function paintPlayerVsSafety(st){
  const ready=!!st.both_messaged,locked=!!st.players_playing,mine=!!st.my_playing_confirmed,other=!!st.opponent_playing_confirmed;
  playerVsSafety.hidden=!ready;playerVsSafety.style.display=ready?'block':'none';
  if(!ready)return;
- if(playerCancelVsBtn){const noCancel=locked||mine||other;playerCancelVsBtn.hidden=noCancel;playerCancelVsBtn.disabled=noCancel}
- if(playerPlayingBtn){playerPlayingBtn.hidden=mine||locked;playerPlayingBtn.disabled=mine||locked}
+ const resultPhase=locked||mine||other;
+ if(playerCancelVsBtn){playerCancelVsBtn.hidden=resultPhase;playerCancelVsBtn.disabled=resultPhase;playerCancelVsBtn.style.display=resultPhase?'none':''}
+ if(playerPlayingBtn){playerPlayingBtn.hidden=resultPhase;playerPlayingBtn.disabled=resultPhase;playerPlayingBtn.style.display=resultPhase?'none':''}
  if(playerVsSafetyNotice){playerVsSafetyNotice.hidden=locked;if(!locked&&mine)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> El VS ya no puede ser anulado.';else if(!locked&&other)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> Tu rival confirmó que ya están jugando. El VS ya no puede ser anulado.'}
  if(playerPlayingLocked)playerPlayingLocked.hidden=!locked;
  if(rankedResultReport){const showResults=locked||mine||other;rankedResultReport.hidden=!showResults;rankedResultReport.style.display=showResults?'block':'none'}
