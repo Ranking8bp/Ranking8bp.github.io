@@ -821,7 +821,7 @@ function startActiveVsRealtime(matchId){
  stopActiveVsRealtime().catch(()=>{});
  activeVsRealtimeMatchId=id;
  activeVsRealtimeChannel=supabaseClient.channel('active-vs-'+id+'-'+String(currentUser?.id||'guest'))
-  .on('postgres_changes',{event:'*',schema:'public',table:'ranked_matches',filter:'id=eq.'+id},payload=>{if(payload?.new){currentRankedMatchData={...(currentRankedMatchData||{}),...payload.new};const st=safetyFromRealtimeRow(payload.new);if(st)paintPlayerVsSafety(st)}queueActiveVsRealtimeRefresh('match');refreshPlayersPlayingCount().catch(()=>{})})
+  .on('postgres_changes',{event:'*',schema:'public',table:'ranked_matches',filter:'id=eq.'+id},payload=>{if(payload?.new){currentRankedMatchData={...(currentRankedMatchData||{}),...payload.new};const st=safetyFromRealtimeRow(payload.new);if(st)paintPlayerVsSafety(st);if(payload.new.players_playing||payload.new.admin_confirmed){updateRankedResultReport(currentRankedMatchData);updateRankedVideoProof(currentRankedMatchData);if(rankedResultReport){rankedResultReport.hidden=false;rankedResultReport.style.display='block'}if(confirmedMatchWarning)confirmedMatchWarning.hidden=false;if(rankedMatchRules)rankedMatchRules.hidden=false;startRankedPlayTimer(currentRankedMatchData)}}queueActiveVsRealtimeRefresh('match');refreshPlayersPlayingCount().catch(()=>{})})
   .on('postgres_changes',{event:'*',schema:'public',table:'ranked_match_messages',filter:'match_id=eq.'+id},()=>queueActiveVsRealtimeRefresh('chat'))
   .subscribe();
 }
