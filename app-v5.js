@@ -188,6 +188,14 @@ function readPublicCache(key){return readPublicCacheEntry(key)?.data??null}
 function publicCacheFresh(key,maxAge=120000){const x=readPublicCacheEntry(key);return Boolean(x&&Date.now()-Number(x.savedAt||0)<maxAge)}
 function writePublicCache(key,data){try{localStorage.setItem(key,JSON.stringify({savedAt:Date.now(),data}))}catch(_){}}
 function burstJitter(max=2500){return new Promise(resolve=>setTimeout(resolve,Math.floor(Math.random()*max)))}
+const avatarUrlCache=new Map();
+async function getCachedAvatarUrl(path){
+ const key=String(path||'');if(!key||!supabaseClient)return null;
+ const cached=avatarUrlCache.get(key);if(cached&&cached.expiresAt>Date.now())return cached.url;
+ // profile-photos is public: use the stable public URL so browser/CDN caching works.
+ const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(key);
+ const url=data?.publicUrl||null;if(url)avatarUrlCache.set(key,{url,expiresAt:Date.now()+6*60*60*1000});return url;
+}
 function paintLatestRankingResult(r){
  const boxes=[document.getElementById('latestRankingResult'),document.getElementById('guestLatestRankingResult')].filter(Boolean);
  if(!r){boxes.forEach(x=>x.textContent='Aún no hay resultados en el Ranking.');return}
@@ -881,7 +889,7 @@ function maybeOpenDirectMatchmaking(){
   setTimeout(()=>startRankedMatchmaking().catch(e=>console.error('Acceso directo a rival:',e)),120);
 }
 
-async function renderSearchingPlayerProfile(){const n=document.getElementById('searchingPlayerName'),e=document.getElementById('searchingPlayerElo'),r=document.getElementById('searchingPlayerRank'),av=document.getElementById('searchingPlayerAvatar');if(!n||!currentProfile)return;const name=String(currentProfile.account_name||currentProfile.username||'JUGADOR').toUpperCase();const elo=Number(currentProfile.elo_points)||0;n.textContent=name;if(e)e.textContent='ELO '+elo;if(r)r.textContent=getRankByElo(elo).name.toUpperCase();if(av){av.replaceChildren();const f=document.createElement('span');f.textContent=name.charAt(0)||'J';av.appendChild(f);if(currentProfile.avatar_path&&supabaseClient){try{const {data}=await supabaseClient.storage.from('profile-photos').createSignedUrl(currentProfile.avatar_path,3600);if(data?.signedUrl){const img=document.createElement('img');img.src=data.signedUrl;img.alt='Foto de '+name;img.onload=()=>av.replaceChildren(img)}}catch(x){}}}}
+async function renderSearchingPlayerProfile(){const n=document.getElementById('searchingPlayerName'),e=document.getElementById('searchingPlayerElo'),r=document.getElementById('searchingPlayerRank'),av=document.getElementById('searchingPlayerAvatar');if(!n||!currentProfile)return;const name=String(currentProfile.account_name||currentProfile.username||'JUGADOR').toUpperCase();const elo=Number(currentProfile.elo_points)||0;n.textContent=name;if(e)e.textContent='ELO '+elo;if(r)r.textContent=getRankByElo(elo).name.toUpperCase();if(av){av.replaceChildren();const f=document.createElement('span');f.textContent=name.charAt(0)||'J';av.appendChild(f);if(currentProfile.avatar_path&&supabaseClient){try{const url=await getCachedAvatarUrl(currentProfile.avatar_path);if(url){const img=document.createElement('img');img.loading='lazy';img.decoding='async';img.src=url;img.alt='Foto de '+name;img.onload=()=>av.replaceChildren(img)}}catch(x){}}}}
 
 
 async function refreshPlayersSearchingCount(){
@@ -1211,9 +1219,9 @@ function clearAvatar(){
 }
 async function loadAvatar(path){
   if(!supabaseClient||!path){clearAvatar();return}
-  const {data,error}=await supabaseClient.storage.from('profile-photos').createSignedUrl(path,3600);
-  if(error||!data?.signedUrl){clearAvatar();return}
-  profileAvatar.src=data.signedUrl;profileAvatar.hidden=false;avatarPlaceholder.hidden=true
+  const url=await getCachedAvatarUrl(path);
+  if(!url){clearAvatar();return}
+  if(profileAvatar.src!==url)profileAvatar.src=url;profileAvatar.hidden=false;avatarPlaceholder.hidden=true
 }
 
 async function setPlayerUI(profile,user){
@@ -1842,10 +1850,10 @@ async function openRankingPlayer(player){
 
   if(player?.avatar_path&&supabaseClient){
     try{
-      const {data,error}=await supabaseClient.storage.from('profile-photos').createSignedUrl(player.avatar_path,3600);
-      if(!error&&data?.signedUrl&&playerDetailModal.classList.contains('open')){
+      const url=await getCachedAvatarUrl(player.avatar_path);
+      if(url&&playerDetailModal.classList.contains('open')){
         const img=document.createElement('img');
-        img.src=data.signedUrl;
+        img.loading='lazy';img.decoding='async';img.src=url;
         img.alt='Foto de '+displayName;
         img.onload=()=>playerDetailAvatar.replaceChildren(img);
       }
