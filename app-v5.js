@@ -1254,8 +1254,9 @@ function renderGuestRanking(){
    const name=document.createElement('div');name.className='guest-ranking-player';
    const avatar=document.createElement('span');avatar.className='guest-ranking-avatar';avatar.textContent=String(player.username||player.account_name||'J').charAt(0).toUpperCase();
    if(player.avatar_path&&supabaseClient){
-    const {data:avatarData}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
-    if(avatarData?.publicUrl){const img=document.createElement('img');img.src=avatarData.publicUrl;img.alt='';img.loading='lazy';img.decoding='async';img.onerror=()=>{img.remove()};avatar.appendChild(img)}
+    const base=String(window.SUPABASE_CONFIG?.url||'').replace(/\/$/,'');
+    const publicUrl=base+'/storage/v1/object/public/profile-photos/'+String(player.avatar_path).split('/').map(encodeURIComponent).join('/');
+    if(base){const img=document.createElement('img');img.src=publicUrl;img.alt=String(player.username||player.account_name||'Jugador');img.loading='eager';img.decoding='async';img.referrerPolicy='no-referrer';img.style.cssText='display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important;z-index:3!important';img.onload=()=>{avatar.style.color='transparent'};img.onerror=()=>{console.warn('Avatar ranking no cargó',player.avatar_path)};avatar.appendChild(img)}
    }
    const info=document.createElement('div');info.className='guest-ranking-player-info';
    const n=document.createElement('b');n.className='ranking-player-name';n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();const sid=String(player?.player_id||player?.id||'');const sv=Number(rankingStreaks.get(sid)||0);if(sv>0){const ss=document.createElement('span');ss.className='ranking-streak';ss.textContent=' +'+sv;ss.title='Racha de '+sv+' victoria'+(sv===1?'':'s');n.appendChild(ss)}const od=onlineDotFor(player);if(od)n.appendChild(od);
