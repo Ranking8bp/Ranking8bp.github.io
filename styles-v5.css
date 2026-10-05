@@ -1970,3 +1970,13 @@ img,svg,video,canvas{max-width:100%}
 #guestWorldTop3 .guest-world-player-3 .guest-world-medal{background:radial-gradient(circle at 35% 25%,#ffd69a 0 8%,#d9822b 30%,#8c4315 72%,#4e220b 100%)!important;border-color:#ffc06b!important}
 #guestWorldTop3 .guest-world-player-3 .guest-world-medal:before,#guestWorldTop3 .guest-world-player-3 .guest-world-medal:after{color:#d9822b!important}
 @media(max-width:600px){#guestWorldTop3 .guest-world-medal{width:50px!important;height:50px!important;top:-20px!important;right:-5px!important;font-size:22px!important}#guestWorldTop3 .guest-world-medal:before{top:-22px;font-size:22px!important}#guestWorldTop3 .guest-world-medal:after{bottom:-17px;font-size:19px!important}}
+
+/* TOP 3 HOME — use exact uploaded M1/M2/M3 artwork */
+#guestWorldTop3 .guest-world-medal-image{
+ width:78px!important;height:78px!important;object-fit:contain!important;
+ position:absolute!important;top:-35px!important;right:-16px!important;
+ border:0!important;border-radius:0!important;background:none!important;
+ box-shadow:none!important;text-shadow:none!important;z-index:9!important;
+}
+#guestWorldTop3 .guest-world-medal-image:before,#guestWorldTop3 .guest-world-medal-image:after{content:none!important;display:none!important}
+@media(max-width:600px){#guestWorldTop3 .guest-world-medal-image{width:62px!important;height:62px!important;top:-27px!important;right:-10px!important}}
