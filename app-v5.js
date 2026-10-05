@@ -484,7 +484,7 @@ function updateRankedResultReport(match){
  }
  if(!resultPhase)return;
  const mine=String(match?.my_result_claim||'').toUpperCase(),other=String(match?.opponent_result_claim||'').toUpperCase();
- if(rankedNoTrickBtn){const hasResult=!!mine||!!other;rankedNoTrickBtn.hidden=hasResult;rankedNoTrickBtn.style.display=hasResult?'none':'block';rankedNoTrickBtn.disabled=hasResult}
+ if(rankedNoTrickBtn){const hasMyResult=!!mine;rankedNoTrickBtn.hidden=hasMyResult;rankedNoTrickBtn.style.display=hasMyResult?'none':'block';rankedNoTrickBtn.disabled=hasMyResult}
  if(rankedClaimWon){rankedClaimWon.disabled=!!mine;rankedClaimWon.textContent=mine==='WON'?'✓ MARCASTE GANÉ':'🏆 GANÉ'}
  if(rankedClaimLost){rankedClaimLost.disabled=!!mine;rankedClaimLost.textContent=mine==='LOST'?'✓ MARCASTE PERDÍ':'PERDÍ'}
  if(match?.result_disputed&&mine==='WON'&&other==='WON'){
