@@ -921,15 +921,6 @@
           <strong id="playerPlayingLocked" hidden>🔒 PARTIDA EN JUEGO · ESTE VS YA NO PUEDE SER ANULADO POR LOS JUGADORES</strong>
         </div>
         <div class="ranked-play-timer" id="rankedPlayTimer" hidden style="display:none!important"><strong id="rankedPlayTimerValue" hidden>00:00</strong><small id="rankedPlayTimerNote" hidden></small></div>
-        <section class="ranked-match-rules" id="rankedMatchRules" hidden>
-          <h3>REGLAS DEL PARTIDO</h3>
-          <p>• GANA METIENDO LA 8 CON TRICKSHOT.</p>
-          <p>• PIERDES SOLO SI EL RIVAL TE HACE TRICKSHOT CON LA 8.</p>
-          <p>• LAS OTRAS BOLAS SE PUEDEN METER DIRECTAS Y LA 8 DEBE SER A TRICKSHOT.</p>
-          <p>• SI PIERDES, TOCA <b>PERDÍ</b>.</p>
-          <p>• SI GANAS, TOCA <b>GANÉ</b>.</p>
-          <p>• SI EL RIVAL NO TOCA <b>PERDÍ</b>, SUBE EL VIDEO DE TU TRICKSHOT CON LA 8.</p>
-        </section>
         <section class="ranked-result-report" id="rankedResultReport" hidden>
           <strong>RESULTADO DEL PARTIDO</strong>
           <span>Cuando termine el VS, cada jugador debe indicar su resultado.</span>
@@ -948,6 +939,16 @@
           <div class="ranked-evidence-reminder">📹 SI MARCAS <b>GANÉ</b> Y TU RIVAL NO MARCA <b>PERDÍ</b>, DEBES SUBIR EVIDENCIA DE TU VICTORIA.</div>
           <div class="ranked-false-win-warning">⚠️ <b>REGLA IMPORTANTE:</b> Si nadie ganó correctamente haciendo <b>TRICKSHOT CON LA 8</b>, debes tocar <b>NADIE HIZO TRICK CON LA 8 · SALIR</b>. Si marcas <b>GANÉ</b> y no presentas un video válido que demuestre tu trickshot ganador con la 8, recibirás una sanción de <b>-100 ELO</b>.</div>
         </section>
+        <section class="ranked-match-rules" id="rankedMatchRules" hidden>
+          <h3>REGLAS DEL PARTIDO</h3>
+          <p>• GANA METIENDO LA 8 CON TRICKSHOT.</p>
+          <p>• PIERDES SOLO SI EL RIVAL TE HACE TRICKSHOT CON LA 8.</p>
+          <p>• LAS OTRAS BOLAS SE PUEDEN METER DIRECTAS Y LA 8 DEBE SER A TRICKSHOT.</p>
+          <p>• SI PIERDES, TOCA <b>PERDÍ</b>.</p>
+          <p>• SI GANAS, TOCA <b>GANÉ</b>.</p>
+          <p>• SI EL RIVAL NO TOCA <b>PERDÍ</b>, SUBE EL VIDEO DE TU TRICKSHOT CON LA 8.</p>
+        </section>
+
         <button type="button" class="abandon-ranked-btn" id="abandonRankedBtn" hidden style="display:none!important">ABANDONAR EMPAREJAMIENTO</button>
       </div>
     </section>
@@ -986,7 +987,7 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261005-bigconfirm15"></script>
+  <script src="app-v5.js?v=20261005-resultup16"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
