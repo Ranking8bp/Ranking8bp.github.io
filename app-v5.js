@@ -482,6 +482,7 @@ function updateRankedResultReport(match){
  }
  if(!resultPhase)return;
  const mine=String(match?.my_result_claim||'').toUpperCase(),other=String(match?.opponent_result_claim||'').toUpperCase();
+ if(rankedNoTrickBtn){const hasResult=!!mine||!!other;rankedNoTrickBtn.hidden=hasResult;rankedNoTrickBtn.style.display=hasResult?'none':'block';rankedNoTrickBtn.disabled=hasResult}
  if(rankedClaimWon){rankedClaimWon.disabled=!!mine;rankedClaimWon.textContent=mine==='WON'?'✓ MARCASTE GANÉ':'🏆 GANÉ'}
  if(rankedClaimLost){rankedClaimLost.disabled=!!mine;rankedClaimLost.textContent=mine==='LOST'?'✓ MARCASTE PERDÍ':'PERDÍ'}
  if(match?.result_disputed&&mine==='WON'&&other==='WON'){
@@ -496,13 +497,14 @@ async function submitRankedResultClaim(claim){
  const won=claim==='WON';
  if(!confirm(won?'¿Confirmas que GANASTE este partido? Marca GANÉ únicamente si realmente fuiste el ganador.':'¿Confirmas que PERDISTE este partido?'))return;
  if(rankedClaimWon)rankedClaimWon.disabled=true;if(rankedClaimLost)rankedClaimLost.disabled=true;
+ if(rankedNoTrickBtn){rankedNoTrickBtn.hidden=true;rankedNoTrickBtn.style.display='none';rankedNoTrickBtn.disabled=true}
  try{
   const {data,error}=await supabaseClient.rpc('submit_ranked_result_claim',{p_match_id:Number(currentRankedMatchId),p_claim:claim});if(error)throw error;
   const row=Array.isArray(data)?data[0]:data;
   if(row?.resolved){showToast(claim==='LOST'?'✅ Derrota confirmada. Tu rival ganó automáticamente.':'✅ Resultado confirmado. ELO aplicado automáticamente.');await closeRankedMatchmaking();await updateRankedDailyStatus();loadRanking().catch(()=>{});return}
   if(row?.disputed){showToast('⚠️ Ambos marcaron GANÉ. Suban evidencia para que el administrador decida.')}
   await watchCurrentRankedMatch();
- }catch(e){console.error(e);showToast('No se pudo registrar tu resultado.');if(rankedClaimWon)rankedClaimWon.disabled=false;if(rankedClaimLost)rankedClaimLost.disabled=false}
+ }catch(e){console.error(e);showToast('No se pudo registrar tu resultado.');if(rankedClaimWon)rankedClaimWon.disabled=false;if(rankedClaimLost)rankedClaimLost.disabled=false;if(rankedNoTrickBtn){rankedNoTrickBtn.hidden=false;rankedNoTrickBtn.style.display='block';rankedNoTrickBtn.disabled=false}}
 }
 rankedClaimWon?.addEventListener('click',()=>submitRankedResultClaim('WON'));
 rankedClaimLost?.addEventListener('click',()=>submitRankedResultClaim('LOST'));
