@@ -196,6 +196,8 @@ function paintLatestRankingResult(r){
 }
 let onlinePlayerIds=new Set(),onlinePresenceTimer=null,rankingStreaks=new Map();
 let explicitLogoutRequested=false;
+let playerUiLoadingFor=null;
+let playerUiReadyFor=null;
 const playerDetailModal=document.getElementById('playerDetailModal');
 const closePlayerDetail=document.getElementById('closePlayerDetail');
 const playerDetailAvatar=document.getElementById('playerDetailAvatar');
@@ -1183,6 +1185,9 @@ async function loadAvatar(path){
 }
 
 async function setPlayerUI(profile,user){
+  const uiUserId=String(user?.id||currentUser?.id||'');
+  if(uiUserId&&playerUiLoadingFor===uiUserId)return;
+  playerUiLoadingFor=uiUserId;
   currentUser=user||currentUser;currentProfile=profile||currentProfile;
   guestTopbar.hidden=true;guestEmpty.hidden=true;playerDashboard.hidden=false;
 
@@ -1247,6 +1252,7 @@ async function setPlayerUI(profile,user){
   if(!isAdminDashboard)spread(()=>loadCompetitiveHub(profile?.id||user?.id),6000,14000);
   spread(()=>loadRanking(),10000,22000);
   maybeOpenDirectMatchmaking();
+  playerUiReadyFor=uiUserId;playerUiLoadingFor=null;
 }
 
 
@@ -1962,8 +1968,9 @@ async function restoreSession(){
   try{
     const {data}=await supabaseClient.auth.getSession();
     if(data?.session){
+      currentUser=data.session.user;
       const profile=await getProfile(data.session.user.id);
-      if(profile){setPlayerUI(profile,data.session.user).catch(e=>console.error('Carga sesión:',e));return}
+      if(profile){await setPlayerUI(profile,data.session.user);return}
     }
   }catch(e){console.error('Restaurar sesión inicial:',e)}
   setGuestUI();
@@ -2265,7 +2272,8 @@ if(cloudReady){
     if(!session)return;
     if(event==='TOKEN_REFRESHED'){currentUser=session.user;return}
     if(event==='SIGNED_IN'||event==='INITIAL_SESSION'){
-      if(currentUser?.id===session.user.id&&currentProfile)return;
+      const uid=String(session.user.id||'');
+      if((currentUser?.id===session.user.id&&currentProfile)||playerUiLoadingFor===uid||playerUiReadyFor===uid)return;
       try{
         const profile=await getProfile(session.user.id);
         await setPlayerUI(profile,session.user);
