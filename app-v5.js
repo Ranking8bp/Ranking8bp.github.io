@@ -540,12 +540,12 @@ async function updateRankedVideoProof(match){
 }
 rankedForgotRecordingBtn?.addEventListener('click',async()=>{
  if(!currentRankedMatchId||!supabaseClient)return;
- if(!confirm('¿SALIR PORQUE OLVIDASTE GRABAR? Tu reclamo de victoria se cerrará sin ganador y el VS terminará.'))return;
+ if(!confirm('¿SALIR PORQUE OLVIDASTE GRABAR? El VS pasará a REVISIÓN y tu rival podrá enviar su evidencia.'))return;
  rankedForgotRecordingBtn.disabled=true;
  try{
   const {data,error}=await supabaseClient.rpc('exit_ranked_forgot_recording',{p_match_id:Number(currentRankedMatchId)});
   if(error)throw error;
-  if(data===true){showToast('VS cerrado. Puedes volver a buscar rival.');await closeRankedMatchmaking();await updateRankedDailyStatus();return}
+  if(data===true){showToast('VS enviado a revisión. Tu rival podrá enviar su evidencia.');if(rankedReviewNotice){rankedReviewNotice.hidden=false;rankedReviewNotice.style.display='flex'}return}
   throw new Error('No se pudo cerrar el VS');
  }catch(e){console.error(e);rankedForgotRecordingBtn.disabled=false;showToast('No se pudo salir del VS.')}
 });
