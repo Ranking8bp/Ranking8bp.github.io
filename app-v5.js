@@ -423,7 +423,20 @@ async function markVsPlaying(){
  const createdAt=new Date(currentRankedMatchData?.created_at||0).getTime();
  if(createdAt&&Date.now()-createdAt<120000){showTopPlayingWarning();return}
  if(!confirm('Toca ACEPTAR únicamente si tú y tu rival YA ESTÁN JUGANDO. Después ninguno podrá anular este VS.'))return;
- try{const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;showToast('🔒 VS marcado como JUGANDO. Ya no puede anularse.');await refreshPlayerVsSafety(true)}catch(e){console.error(e);const msg=String(e?.message||'');msg.includes('PLAYING_TOO_EARLY')?showTopPlayingWarning():showToast('No se pudo marcar el VS como jugando.')}
+ try{
+  const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;
+  await refreshPlayerVsSafety(true);
+  await watchCurrentRankedMatch();
+  const {data:stData,error:stError}=await supabaseClient.rpc('get_ranked_player_action_status',{p_match_id:Number(currentRankedMatchId)});
+  if(stError)throw stError;
+  const st=Array.isArray(stData)?stData[0]:stData;
+  if(st?.players_playing){
+    showToast('🔒 AMBOS CONFIRMARON. Ahora pueden marcar GANÉ o PERDÍ.');
+    if(rankedResultReport){rankedResultReport.hidden=false;rankedResultReport.style.display='block';rankedResultReport.scrollIntoView({behavior:'smooth',block:'center'})}
+  }else{
+    showToast('✅ Confirmaste que ya están jugando. Falta que tu rival también toque YA ESTAMOS JUGANDO.');
+  }
+ }catch(e){console.error(e);const msg=String(e?.message||'');msg.includes('PLAYING_TOO_EARLY')?showTopPlayingWarning():msg.includes('CHAT_NOT_READY')?showToast('Ambos jugadores deben escribir en el chat antes de confirmar que ya están jugando.'):showToast('No se pudo marcar el VS como jugando.')}
 }
 playerCancelVsBtn?.addEventListener('click',cancelVsByPlayers);
 playerPlayingBtn?.addEventListener('click',markVsPlaying);
