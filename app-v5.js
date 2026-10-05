@@ -498,6 +498,8 @@ async function submitRankedResultClaim(claim){
  if(!currentRankedMatchId||!supabaseClient)return;
  const won=claim==='WON';
  if(!confirm(won?'¿Confirmas que GANASTE este partido? Marca GANÉ únicamente si realmente fuiste el ganador.':'¿Confirmas que PERDISTE este partido?'))return;
+ stopRankedPlayTimer();
+ if(rankedPlayTimer){rankedPlayTimer.hidden=true;rankedPlayTimer.style.display='none'}
  if(rankedClaimWon)rankedClaimWon.disabled=true;if(rankedClaimLost)rankedClaimLost.disabled=true;
  if(rankedNoTrickBtn){rankedNoTrickBtn.hidden=true;rankedNoTrickBtn.style.display='none';rankedNoTrickBtn.disabled=true}
  try{
@@ -515,6 +517,8 @@ rankedNoTrickBtn?.addEventListener('click',async()=>{
  if(!currentRankedMatchId||!supabaseClient)return;
  if(!confirm('¿Confirmas que NADIE HIZO TRICK CON LA 8? El VS se cerrará sin ganador.'))return;
  rankedNoTrickBtn.disabled=true;
+ stopRankedPlayTimer();
+ if(rankedPlayTimer){rankedPlayTimer.hidden=true;rankedPlayTimer.style.display='none'}
  try{
   const {data,error}=await supabaseClient.rpc('cancel_ranked_no_trick',{p_match_id:Number(currentRankedMatchId)});
   if(error)throw error;
