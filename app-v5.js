@@ -1342,9 +1342,11 @@ async function loadDashboardFollowStats(profileId){
  }catch(e){console.error('Error cargando seguidores del perfil:',e)}
 }
 
-const brokenAvatarPaths=new Set(JSON.parse(localStorage.getItem('ranking8bp_broken_avatars')||'[]'));
+// Do not persist failed avatar loads across visits: a temporary network/storage error must not hide a valid photo forever.
+try{localStorage.removeItem('ranking8bp_broken_avatars')}catch(_){}
+const brokenAvatarPaths=new Set();
 function avatarIsBroken(path){return !!path&&brokenAvatarPaths.has(String(path))}
-function markAvatarBroken(path){if(!path)return;brokenAvatarPaths.add(String(path));try{localStorage.setItem('ranking8bp_broken_avatars',JSON.stringify([...brokenAvatarPaths].slice(-100)))}catch(_){}}
+function markAvatarBroken(path){if(!path)return;brokenAvatarPaths.add(String(path))}
 function attachAvatarFallback(img,path){if(!img)return img;img.onerror=()=>{markAvatarBroken(path);img.remove()};return img}
 
 function createRankingAvatar(player){
