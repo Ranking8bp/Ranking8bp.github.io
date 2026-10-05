@@ -387,23 +387,30 @@ async function abandonRankedMatch(){
  }catch(e){console.error(e);const msg=String(e?.message||'');if(msg.includes('match locked')){showToast('VS confirmado por el administrador. Ya no puedes abandonar.');if(abandonRankedBtn){abandonRankedBtn.disabled=true;abandonRankedBtn.textContent='VS CONFIRMADO · NO SE PUEDE ABANDONAR'}}else showToast('No se pudo abandonar el emparejamiento.')}
 }
 
-async function refreshPlayerVsSafety(){
+let rankedVsBothMessaged=false,lastVsSafetyRpcAt=0;
+function paintPlayerVsSafety(st){
+ if(!playerVsSafety||!st)return;
+ const ready=!!st.both_messaged,locked=!!st.players_playing,mine=!!st.my_playing_confirmed,other=!!st.opponent_playing_confirmed;
+ playerVsSafety.hidden=!ready;playerVsSafety.style.display=ready?'block':'none';
+ if(!ready)return;
+ if(playerCancelVsBtn){const noCancel=locked||mine||other;playerCancelVsBtn.hidden=noCancel;playerCancelVsBtn.disabled=noCancel}
+ if(playerPlayingBtn){playerPlayingBtn.hidden=locked;playerPlayingBtn.disabled=locked}
+ if(playerVsSafetyNotice){playerVsSafetyNotice.hidden=locked;if(!locked&&mine)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> El VS ya no puede ser anulado.';else if(!locked&&other)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> Tu rival confirmó que ya están jugando. El VS ya no puede ser anulado.'}
+ if(playerPlayingLocked)playerPlayingLocked.hidden=!locked;
+ if(rankedResultReport){rankedResultReport.hidden=!locked;rankedResultReport.style.display=locked?'block':'none'}
+}
+function safetyFromRealtimeRow(row){
+ if(!row||!currentUser)return null;
+ const uid=String(currentUser.id),p1=String(row.player1_id||''),mineIsP1=uid===p1;
+ return {both_messaged:rankedVsBothMessaged,players_playing:!!row.players_playing,my_playing_confirmed:mineIsP1?!!row.player1_playing_confirmed:!!row.player2_playing_confirmed,opponent_playing_confirmed:mineIsP1?!!row.player2_playing_confirmed:!!row.player1_playing_confirmed};
+}
+async function refreshPlayerVsSafety(force=false){
  if(!currentRankedMatchId||!supabaseClient||!playerVsSafety)return;
+ const local=safetyFromRealtimeRow(currentRankedMatchData);if(local)paintPlayerVsSafety(local);
+ if(!force&&Date.now()-lastVsSafetyRpcAt<120000)return;
  try{
-  const {data,error}=await supabaseClient.rpc('get_ranked_player_action_status',{p_match_id:Number(currentRankedMatchId)});
-  if(error)throw error;
-  const st=Array.isArray(data)?data[0]:data,ready=!!st?.both_messaged,locked=!!st?.players_playing,mine=!!st?.my_playing_confirmed,other=!!st?.opponent_playing_confirmed;
-  playerVsSafety.hidden=!ready;playerVsSafety.style.display=ready?'block':'none';
-  if(!ready)return;
-  if(playerCancelVsBtn){const noCancel=locked||mine||other;playerCancelVsBtn.hidden=noCancel;playerCancelVsBtn.disabled=noCancel}
-  if(playerPlayingBtn){playerPlayingBtn.hidden=locked;playerPlayingBtn.disabled=locked}
-  if(playerVsSafetyNotice){
-   playerVsSafetyNotice.hidden=locked;
-   if(!locked&&mine)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> El VS ya no puede ser anulado.';
-   else if(!locked&&other)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> Tu rival confirmó que ya están jugando. El VS ya no puede ser anulado.';
-  }
-  if(playerPlayingLocked)playerPlayingLocked.hidden=!locked;
-  if(rankedResultReport){rankedResultReport.hidden=!locked;rankedResultReport.style.display=locked?'block':'none'}
+  const {data,error}=await supabaseClient.rpc('get_ranked_player_action_status',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;
+  const st=Array.isArray(data)?data[0]:data;if(st){rankedVsBothMessaged=!!st.both_messaged;paintPlayerVsSafety(st);lastVsSafetyRpcAt=Date.now()}
  }catch(e){console.error('Seguridad VS:',e)}
 }
 async function cancelVsByPlayers(){
@@ -414,7 +421,7 @@ async function cancelVsByPlayers(){
 async function markVsPlaying(){
  if(!currentRankedMatchId||!supabaseClient)return;
  if(!confirm('Toca ACEPTAR únicamente si tú y tu rival YA ESTÁN JUGANDO. Después ninguno podrá anular este VS.'))return;
- try{const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;showToast('🔒 VS marcado como JUGANDO. Ya no puede anularse.');await refreshPlayerVsSafety()}catch(e){console.error(e);showToast('No se pudo marcar el VS como jugando.')}
+ try{const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;showToast('🔒 VS marcado como JUGANDO. Ya no puede anularse.');await refreshPlayerVsSafety(true)}catch(e){console.error(e);showToast('No se pudo marcar el VS como jugando.')}
 }
 playerCancelVsBtn?.addEventListener('click',cancelVsByPlayers);
 playerPlayingBtn?.addEventListener('click',markVsPlaying);
@@ -668,6 +675,7 @@ async function loadRankedVsChat(matchId){
   const {data,error}=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:Number(matchId)});
   if(error)throw error;
   const hasUnreadIncoming=Array.isArray(data)&&data.some(m=>m.sender_id!==currentUser?.id&&!m.is_admin&&!m.read_by_other);
+  const participantSenders=new Set((Array.isArray(data)?data:[]).filter(m=>!m.is_admin&&m.sender_id).map(m=>String(m.sender_id)));rankedVsBothMessaged=participantSenders.size>=2;const localSafety=safetyFromRealtimeRow(currentRankedMatchData);if(localSafety)paintPlayerVsSafety(localSafety);
   if(hasUnreadIncoming){try{await supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:Number(matchId)})}catch(_){}}
   rankedVsChatMessages.replaceChildren();
   if(!data?.length){const e=document.createElement('div');e.className='ranked-vs-chat-empty';e.textContent='Todavía no hay mensajes. Escribe para coordinar el partido.';rankedVsChatMessages.appendChild(e);return}
@@ -713,13 +721,12 @@ async function sendRankedVsChat(){
   rankedVsChatInput.blur();
   await loadRankedVsChat(rankedVsChatMatchId);
   await updateRankedChatResponseCountdown(rankedVsChatMatchId);
-  await refreshPlayerVsSafety();
  }catch(e){console.error('Enviar chat VS:',e);if(String(e?.message||'').includes('VS_CHAT_RESPONSE_TIMEOUT')){showToast('⏱️ El minuto terminó. El VS fue anulado.');await watchCurrentRankedMatch()}else showToast('No se pudo enviar el mensaje. Intenta nuevamente.')}finally{rankedVsChatSending=false;rankedVsChatSend.disabled=false}
 }
 rankedVsChatSend?.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();sendRankedVsChat()});
 
 rankedVsChatInput?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendRankedVsChat()}});
-function showRankedMatch(match){currentRankedMatchData=match;
+function showRankedMatch(match){currentRankedMatchData=match;rankedVsBothMessaged=false;lastVsSafetyRpcAt=0;
  if(!matchmakingModal)return;
  rankedSearchActive=false;
  currentRankedMatchId=match.match_id;
@@ -782,8 +789,8 @@ function queueActiveVsRealtimeRefresh(kind){
  activeVsRealtimeRefreshTimer=setTimeout(async()=>{
   activeVsRealtimeRefreshTimer=null;
   if(document.hidden||!currentRankedMatchId)return;
-  if(kind==='chat'){await loadRankedVsChat(currentRankedMatchId);await updateRankedChatResponseCountdown(currentRankedMatchId);await refreshPlayerVsSafety();}
-  else{await watchCurrentRankedMatch();await refreshPlayerVsSafety();}
+  if(kind==='chat'){await loadRankedVsChat(currentRankedMatchId);await updateRankedChatResponseCountdown(currentRankedMatchId);}
+  else{await watchCurrentRankedMatch();}
  },120);
 }
 function startActiveVsRealtime(matchId){
@@ -792,7 +799,7 @@ function startActiveVsRealtime(matchId){
  stopActiveVsRealtime().catch(()=>{});
  activeVsRealtimeMatchId=id;
  activeVsRealtimeChannel=supabaseClient.channel('active-vs-'+id+'-'+String(currentUser?.id||'guest'))
-  .on('postgres_changes',{event:'*',schema:'public',table:'ranked_matches',filter:'id=eq.'+id},()=>{queueActiveVsRealtimeRefresh('match');refreshPlayersPlayingCount().catch(()=>{})})
+  .on('postgres_changes',{event:'*',schema:'public',table:'ranked_matches',filter:'id=eq.'+id},payload=>{if(payload?.new){currentRankedMatchData={...(currentRankedMatchData||{}),...payload.new};const st=safetyFromRealtimeRow(payload.new);if(st)paintPlayerVsSafety(st)}queueActiveVsRealtimeRefresh('match');refreshPlayersPlayingCount().catch(()=>{})})
   .on('postgres_changes',{event:'*',schema:'public',table:'ranked_match_messages',filter:'match_id=eq.'+id},()=>queueActiveVsRealtimeRefresh('chat'))
   .subscribe();
 }
@@ -1206,7 +1213,7 @@ function renderGuestRanking(){
    const avatar=document.createElement('span');avatar.className='guest-ranking-avatar';avatar.textContent=String(player.username||player.account_name||'J').charAt(0).toUpperCase();
    if(player.avatar_path&&supabaseClient&&!avatarIsBroken(player.avatar_path)){
     const {data:avatarData}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
-    if(avatarData?.publicUrl){const img=document.createElement('img');img.src=avatarData.publicUrl;img.alt='';img.loading='lazy';img.decoding='async';img.onerror=()=>{markAvatarBroken(player.avatar_path);img.remove()};avatar.appendChild(img)}
+    if(avatarData?.publicUrl){const img=document.createElement('img');img.alt='';img.loading='lazy';img.decoding='async';observeRankingAvatar(img,avatarData.publicUrl);img.onerror=()=>{markAvatarBroken(player.avatar_path);img.remove()};avatar.appendChild(img)}
    }
    const info=document.createElement('div');info.className='guest-ranking-player-info';
    const n=document.createElement('b');n.className='ranking-player-name';n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();const sid=String(player?.player_id||player?.id||'');const sv=Number(rankingStreaks.get(sid)||0);if(sv>0){const ss=document.createElement('span');ss.className='ranking-streak';ss.textContent=' +'+sv;ss.title='Racha de '+sv+' victoria'+(sv===1?'':'s');n.appendChild(ss)}const od=onlineDotFor(player);if(od)n.appendChild(od);
@@ -1328,6 +1335,14 @@ function avatarIsBroken(path){return !!path&&brokenAvatarPaths.has(String(path))
 function markAvatarBroken(path){if(!path)return;brokenAvatarPaths.add(String(path));try{localStorage.setItem('ranking8bp_broken_avatars',JSON.stringify([...brokenAvatarPaths].slice(-100)))}catch(_){}}
 function attachAvatarFallback(img,path){if(!img)return img;img.onerror=()=>{markAvatarBroken(path);img.remove()};return img}
 
+let rankingAvatarObserver=null;
+function observeRankingAvatar(img,url){
+ if(!img||!url)return;
+ img.dataset.src=url;
+ if(!('IntersectionObserver'in window)){img.src=url;return}
+ if(!rankingAvatarObserver)rankingAvatarObserver=new IntersectionObserver(entries=>{for(const e of entries){if(!e.isIntersecting)continue;const el=e.target,u=el.dataset.src;if(u&&!el.src)el.src=u;rankingAvatarObserver.unobserve(el)}},{rootMargin:'180px 0px'});
+ rankingAvatarObserver.observe(img);
+}
 function createRankingAvatar(player){
   const wrap=document.createElement('div');
   wrap.className='ranking-avatar';
@@ -1340,7 +1355,7 @@ function createRankingAvatar(player){
     const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
     if(data?.publicUrl){
       const img=document.createElement('img');
-      img.loading='lazy';img.decoding='async';img.src=data.publicUrl;
+      img.loading='lazy';img.decoding='async';observeRankingAvatar(img,data.publicUrl);
       img.alt='Foto de '+String(displayName);
       img.onload=()=>{wrap.replaceChildren(img)};
       img.onerror=()=>{markAvatarBroken(player.avatar_path);img.remove()};
