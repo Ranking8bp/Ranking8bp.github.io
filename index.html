@@ -906,13 +906,14 @@
         <div class="versus-grid"><div class="versus-player"><div class="versus-avatar" id="versusMyAvatar"><span>?</span></div><strong id="versusMe">TÚ</strong><div class="versus-rank-badge" id="versusMyRankBadge"></div><span id="versusMyRank">LATÓN</span><span id="versusMyPosition">RANKING #--</span><span id="versusMyElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusMyGameId">--</strong><button type="button" id="copyMyGameId" title="Copiar ID">📋 COPIAR</button></div></div><b>VS</b><div class="versus-player"><div class="versus-avatar" id="versusOpponentAvatar"><span>?</span></div><strong id="versusOpponent">RIVAL</strong><div class="versus-rank-badge" id="versusOpponentRankBadge"></div><span id="versusOpponentRank">LATÓN</span><span id="versusOpponentPosition">RANKING #--</span><span id="versusOpponentElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusOpponentGameId">--</strong><button type="button" id="copyOpponentGameId" title="Copiar ID">📋 COPIAR</button></div></div></div>
         <section class="ranked-vs-chat" id="rankedVsChat" hidden>
           <div class="ranked-vs-chat-head"><strong>💬 CHAT DEL VS</strong><span>Solo jugadores de este VS y administrador</span></div>
+          <div style="margin:10px 0;padding:10px 12px;border:1px solid #ffb300;border-radius:10px;background:rgba(255,179,0,.10);font-size:12px;line-height:1.45"><b>⚠️ REGLA DE ELO:</b> Si pierdes y aceptas tu derrota tocando <b>PERDÍ</b>, pierdes <b>-15 ELO</b>. Si no aceptas la derrota y el ganador se define mediante <b>revisión de video por ADMINISTRADOR/MODERADOR</b>, el perdedor recibe <b>-45 ELO</b>. El ganador recibe <b>+15 ELO</b>.</div>
           <div class="ranked-vs-chat-messages" id="rankedVsChatMessages"><div class="ranked-vs-chat-empty">Todavía no hay mensajes.</div></div>
           <div class="ranked-vs-chat-compose">
             <textarea id="rankedVsChatInput" maxlength="1000" rows="2" placeholder="Escribe un mensaje para coordinar el partido..."></textarea>
             <button type="button" id="rankedVsChatSend">ENVIAR</button>
           </div>
         </section>
-        <div class="elo-stakes"><span>GANADOR <b>+15 ELO</b></span><span>PERDEDOR <b>-15 ELO</b></span></div>
+        <div class="elo-stakes"><span>GANADOR <b>+15 ELO</b></span><span>PERDEDOR <b>-15 ELO</b> · <b>-45 ELO</b> SI ADMIN/MOD DEFINE EL RESULTADO</span></div>
         <div class="ranked-match-countdown" id="rankedMatchCountdown" hidden style="display:none!important"><b id="rankedMatchCountdownValue" hidden>0</b><button type="button" id="rankedPlayerConfirmBtn" hidden></button><small id="rankedPlayerConfirmStatus" hidden></small></div>
         <div class="player-vs-safety" id="playerVsSafety" hidden>
           <p id="playerVsSafetyNotice">⚠️ <b>IMPORTANTE:</b> Toca <b>YA ESTAMOS JUGANDO</b> únicamente cuando tú y tu rival ya estén jugando. Al activarlo, <b>ninguno de los dos podrá anular el VS</b>. Hazlo para evitar que alguien haga trampa intentando anular el enfrentamiento después de haber comenzado la partida.</p>
