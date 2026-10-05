@@ -458,8 +458,13 @@ function updateRankedResultReport(match){
  if(!rankedResultReport)return;
  const confirmed=!!match?.admin_confirmed;
  const playing=!!match?.players_playing;
- rankedResultReport.hidden=!(confirmed||playing);rankedResultReport.style.display=(confirmed||playing)?'block':'none';
- if(!(confirmed||playing))return;
+ const resultPhase=confirmed||playing;
+ rankedResultReport.hidden=!resultPhase;rankedResultReport.style.display=resultPhase?'block':'none';
+ if(resultPhase){
+   if(playerCancelVsBtn){playerCancelVsBtn.hidden=true;playerCancelVsBtn.disabled=true;playerCancelVsBtn.style.display='none'}
+   if(playerPlayingBtn){playerPlayingBtn.hidden=true;playerPlayingBtn.disabled=true;playerPlayingBtn.style.display='none'}
+ }
+ if(!resultPhase)return;
  const mine=String(match?.my_result_claim||'').toUpperCase(),other=String(match?.opponent_result_claim||'').toUpperCase();
  if(rankedClaimWon){rankedClaimWon.disabled=!!mine;rankedClaimWon.textContent=mine==='WON'?'✓ MARCASTE GANÉ':'🏆 GANÉ'}
  if(rankedClaimLost){rankedClaimLost.disabled=!!mine;rankedClaimLost.textContent=mine==='LOST'?'✓ MARCASTE PERDÍ':'PERDÍ'}
