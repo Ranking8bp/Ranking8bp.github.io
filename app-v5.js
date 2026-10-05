@@ -403,7 +403,7 @@ function paintPlayerVsSafety(st){
 function safetyFromRealtimeRow(row){
  if(!row||!currentUser)return null;
  const uid=String(currentUser.id),p1=String(row.player1_id||''),mineIsP1=uid===p1;
- const my=mineIsP1?!!row.player1_playing_confirmed:!!row.player2_playing_confirmed,other=mineIsP1?!!row.player2_playing_confirmed:!!row.player1_playing_confirmed;return {both_messaged:rankedVsBothMessaged,players_playing:!!row.players_playing||my||other,my_playing_confirmed:my,opponent_playing_confirmed:other};
+ const my=mineIsP1?!!row.player1_playing_confirmed:!!row.player2_playing_confirmed,other=mineIsP1?!!row.player2_playing_confirmed:!!row.player1_playing_confirmed,playing=!!row.players_playing||!!row.admin_confirmed||my||other;return {both_messaged:rankedVsBothMessaged||playing,players_playing:playing,my_playing_confirmed:my,opponent_playing_confirmed:other};
 }
 async function refreshPlayerVsSafety(force=false){
  if(!currentRankedMatchId||!supabaseClient||!playerVsSafety)return;
