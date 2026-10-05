@@ -522,7 +522,7 @@ rankedNoTrickBtn?.addEventListener('click',async()=>{
   const {data,error}=await supabaseClient.rpc('cancel_ranked_no_trick',{p_match_id:Number(currentRankedMatchId)});
   if(error)throw error;
   if(data===true){showToast('VS anulado: ambos confirmaron que nadie hizo trickshot con la 8.');await closeRankedMatchmaking();await updateRankedDailyStatus();}
-  else{rankedReviewTransitionPending=true;stopRankedChatResponseTimer();if(rankedChatResponseBox){rankedChatResponseBox.hidden=true;rankedChatResponseBox.style.display='none'}if(rankedResultReport){rankedResultReport.hidden=true;rankedResultReport.style.display='none'}showRankedReviewNotice();}
+  else{rankedReviewTransitionPending=true;stopRankedChatResponseTimer();stopRankedPlayTimer();if(rankedChatResponseBox){rankedChatResponseBox.hidden=true;rankedChatResponseBox.style.display='none'}if(rankedResultReport){rankedResultReport.hidden=true;rankedResultReport.style.display='none'}if(rankedVideoProof){rankedVideoProof.hidden=true;rankedVideoProof.style.display='none'}showRankedReviewNotice();}
  }catch(e){console.error(e);rankedNoTrickBtn.disabled=false;showToast('No se pudo cerrar el VS.')}
 });
 
