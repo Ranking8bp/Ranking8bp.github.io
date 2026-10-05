@@ -394,12 +394,12 @@ function paintPlayerVsSafety(st){
  const ready=!!st.both_messaged,mine=!!st.my_playing_confirmed,other=!!st.opponent_playing_confirmed,locked=!!st.players_playing;
  playerVsSafety.hidden=!ready;playerVsSafety.style.display=ready?'block':'none';
  if(!ready)return;
- const resultPhase=locked||mine||other;
+ const resultPhase=locked;
  if(playerCancelVsBtn){playerCancelVsBtn.hidden=resultPhase;playerCancelVsBtn.disabled=resultPhase;playerCancelVsBtn.style.display=resultPhase?'none':''}
  if(playerPlayingBtn){playerPlayingBtn.hidden=resultPhase;playerPlayingBtn.disabled=resultPhase;playerPlayingBtn.style.display=resultPhase?'none':''}
  if(playerVsSafetyNotice){playerVsSafetyNotice.hidden=locked;if(!locked&&mine)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> El VS ya no puede ser anulado.';else if(!locked&&other)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> Tu rival confirmó que ya están jugando. El VS ya no puede ser anulado.'}
  if(playerPlayingLocked)playerPlayingLocked.hidden=!locked;
- if(rankedResultReport){const showResults=locked||mine||other;rankedResultReport.hidden=!showResults;rankedResultReport.style.display=showResults?'block':'none'}
+ if(rankedResultReport){rankedResultReport.hidden=!locked;rankedResultReport.style.display=locked?'block':'none'}
 }
 function safetyFromRealtimeRow(row){
  if(!row||!currentUser)return null;
@@ -430,8 +430,12 @@ async function confirmVsPlayingYes(){
  if(playerPlayingConfirmBox){playerPlayingConfirmBox.hidden=true;playerPlayingConfirmBox.style.display='none'}
  try{
   if(playerPlayingBtn){playerPlayingBtn.disabled=true}
-  const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;
-  currentRankedMatchData={...(currentRankedMatchData||{}),players_playing:true,admin_confirmed:true,players_playing_at:currentRankedMatchData?.players_playing_at||new Date().toISOString(),confirmed_at:currentRankedMatchData?.confirmed_at||new Date().toISOString()};
+  const matchId=Number(currentRankedMatchId);
+  const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:matchId});if(error)throw error;
+  const {data:fresh,error:freshError}=await supabaseClient.rpc('get_my_active_ranked_match');if(freshError)throw freshError;
+  const freshMatch=(Array.isArray(fresh)?fresh[0]:fresh);
+  if(!freshMatch||Number(freshMatch.match_id)!==matchId||!freshMatch.players_playing)throw new Error('PLAYING_STATE_NOT_SAVED');
+  currentRankedMatchData=freshMatch;
   rankedVsBothMessaged=true;
   updateRankedResultReport(currentRankedMatchData);
   updateRankedVideoProof(currentRankedMatchData);
