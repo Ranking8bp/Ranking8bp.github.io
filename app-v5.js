@@ -1207,7 +1207,7 @@ async function loadGuestRanking(){
  if(cached?.length){guestRankingPlayers=cached.slice(0,100);renderGuestRanking();renderGuestRankShowcase()}
  else guestRankingList.innerHTML='<div class="ranking-loading">Cargando clasificación...</div>';
  if(!supabaseClient)return;
- if(cached?.length&&publicCacheFresh('ranking8bp_public_ranking')&&totalRegisteredPlayers>100)return;
+ // Always refresh ranking so new/changed profile photos are received from Supabase.
  guestRankingLoading=true;
  try{
   if(cached?.length)await burstJitter();
@@ -1253,9 +1253,9 @@ function renderGuestRanking(){
    const pos=document.createElement('strong');pos.className='guest-ranking-pos';pos.textContent=String(index+1);
    const name=document.createElement('div');name.className='guest-ranking-player';
    const avatar=document.createElement('span');avatar.className='guest-ranking-avatar';avatar.textContent=String(player.username||player.account_name||'J').charAt(0).toUpperCase();
-   if(player.avatar_path&&supabaseClient&&!avatarIsBroken(player.avatar_path)){
+   if(player.avatar_path&&supabaseClient){
     const {data:avatarData}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
-    if(avatarData?.publicUrl){const img=document.createElement('img');img.src=avatarData.publicUrl;img.alt='';img.loading='lazy';img.decoding='async';img.onerror=()=>{markAvatarBroken(player.avatar_path);img.remove()};avatar.appendChild(img)}
+    if(avatarData?.publicUrl){const img=document.createElement('img');img.src=avatarData.publicUrl;img.alt='';img.loading='lazy';img.decoding='async';img.onerror=()=>{img.remove()};avatar.appendChild(img)}
    }
    const info=document.createElement('div');info.className='guest-ranking-player-info';
    const n=document.createElement('b');n.className='ranking-player-name';n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();const sid=String(player?.player_id||player?.id||'');const sv=Number(rankingStreaks.get(sid)||0);if(sv>0){const ss=document.createElement('span');ss.className='ranking-streak';ss.textContent=' +'+sv;ss.title='Racha de '+sv+' victoria'+(sv===1?'':'s');n.appendChild(ss)}const od=onlineDotFor(player);if(od)n.appendChild(od);
