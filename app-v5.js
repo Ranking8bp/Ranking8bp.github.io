@@ -564,6 +564,7 @@ async function getVideoDuration(file){
     video.src=url;
   });
 }
+let rankedReviewTransitionPending=false;
 async function uploadRankedWinnerVideo(){
   if(!currentUser||!supabaseClient||!currentRankedMatchId)return;
   const {data:permission,error:permissionError}=await supabaseClient.rpc('get_ranked_result_wait_status',{p_match_id:Number(currentRankedMatchId)});
@@ -585,12 +586,13 @@ async function uploadRankedWinnerVideo(){
     rankedWinnerVideoStatus.textContent='Subiendo video...';
     const {error:uploadError}=await supabaseClient.storage.from('ranked-match-videos').upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'});
     if(uploadError)throw uploadError;
-    const {error:saveError}=await supabaseClient.rpc('save_ranked_match_video',{p_match_id:Number(currentRankedMatchId),p_video_path:path});if(saveError)throw saveError;
+    rankedReviewTransitionPending=true;
+    const {error:saveError}=await supabaseClient.rpc('save_ranked_match_video',{p_match_id:Number(currentRankedMatchId),p_video_path:path});if(saveError){rankedReviewTransitionPending=false;throw saveError;}
     rankedWinnerVideoStatus.textContent='✅ Video enviado correctamente. El administrador lo revisará.';
     rankedWinnerVideoBtn.textContent='🎥 VIDEO ENVIADO · SUBIR OTRO';
     rankedWinnerVideoInput.value='';
     showToast('Video del tiro ganador enviado.');
-    if(rankedReviewNotice){rankedReviewNotice.hidden=false;rankedReviewNotice.style.display='flex'}
+    if(rankedReviewNotice){rankedReviewNotice.hidden=false;rankedReviewNotice.style.setProperty('display','flex','important');rankedReviewNotice.style.setProperty('visibility','visible','important');rankedReviewNotice.style.setProperty('opacity','1','important')}
   }catch(e){
     console.error('Video del ganador:',e);
     rankedWinnerVideoStatus.textContent=e?.message||'No se pudo subir el video.';
@@ -598,6 +600,7 @@ async function uploadRankedWinnerVideo(){
   }finally{rankedWinnerVideoBtn.disabled=false}
 }
 rankedReviewOkBtn?.addEventListener('click',async()=>{
+ rankedReviewTransitionPending=false;
  if(rankedReviewNotice){rankedReviewNotice.hidden=true;rankedReviewNotice.style.display='none'}
  clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
  await stopActiveVsRealtime().catch(()=>{});
@@ -833,6 +836,7 @@ async function watchCurrentRankedMatch(){
   const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');if(error)throw error;
   if(data&&data.length&&Number(data[0].match_id)===Number(currentRankedMatchId)){currentRankedMatchData=data[0];if(data[0].players_playing)rankedPlayingLockedLocally=true;const confirmed=!!data[0].admin_confirmed;stopRankedMatchCountdown();if(rankedMatchCountdown){rankedMatchCountdown.hidden=true;rankedMatchCountdown.style.display='none'}if(confirmed)startRankedPlayTimer(data[0]);else stopRankedPlayTimer();updateRankedResultReport(data[0]);updateRankedVideoProof(data[0]);if(confirmedMatchWarning)confirmedMatchWarning.hidden=!confirmed;if(rankedMatchRules)rankedMatchRules.hidden=!confirmed;startRankedVsChat(data[0]);if(abandonRankedBtn){abandonRankedBtn.hidden=true;abandonRankedBtn.style.display='none';abandonRankedBtn.disabled=true}refreshPlayerVsSafety();if(matchmakingClose){matchmakingClose.hidden=confirmed;matchmakingClose.disabled=confirmed}}
   if(!data||!data.length||Number(data[0].match_id)!==Number(currentRankedMatchId)){
+   if(rankedReviewTransitionPending){return}
    await stopActiveVsRealtime();currentRankedMatchId=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
    stopRankedPlayTimer();
    stopRankedChatResponseTimer();
