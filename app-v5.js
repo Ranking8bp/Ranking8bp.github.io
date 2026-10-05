@@ -397,6 +397,7 @@ function paintPlayerVsSafety(st){
  playerVsSafety.hidden=!ready;playerVsSafety.style.display=ready?'block':'none';
  if(!ready)return;
  const resultPhase=locked;
+ if(abandonRankedBtn){abandonRankedBtn.hidden=locked;abandonRankedBtn.style.display=locked?'none':'block';abandonRankedBtn.disabled=locked;abandonRankedBtn.textContent='ABANDONAR VS'}
  if(playerCancelVsBtn){playerCancelVsBtn.hidden=resultPhase;playerCancelVsBtn.disabled=resultPhase;playerCancelVsBtn.style.display=resultPhase?'none':''}
  if(playerPlayingBtn){playerPlayingBtn.hidden=resultPhase;playerPlayingBtn.disabled=resultPhase;playerPlayingBtn.style.display=resultPhase?'none':''}
  if(playerVsSafetyNotice){playerVsSafetyNotice.hidden=locked;if(!locked&&mine)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> El VS ya no puede ser anulado.';else if(!locked&&other)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> Tu rival confirmó que ya están jugando. El VS ya no puede ser anulado.'}
@@ -433,6 +434,7 @@ async function confirmVsPlayingYes(){
  rankedPlayingLockedLocally=true;
  if(playerPlayingBtn){playerPlayingBtn.hidden=true;playerPlayingBtn.disabled=true;playerPlayingBtn.style.display='none'}
  if(playerCancelVsBtn){playerCancelVsBtn.hidden=true;playerCancelVsBtn.disabled=true;playerCancelVsBtn.style.display='none'}
+ if(abandonRankedBtn){abandonRankedBtn.hidden=true;abandonRankedBtn.disabled=true;abandonRankedBtn.style.display='none'}
  try{
   const matchId=Number(currentRankedMatchId);
   const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:matchId});if(error)throw error;
@@ -827,7 +829,7 @@ function showRankedMatch(match){currentRankedMatchData=match;rankedVsBothMessage
  const setVsAvatar=(el,path,name)=>{if(!el)return;el.replaceChildren();if(path){const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(path);if(data?.publicUrl){const img=document.createElement('img');img.src=data.publicUrl;img.alt=name;el.appendChild(img);return}}const s=document.createElement('span');s.textContent=String(name||'?').charAt(0).toUpperCase();el.appendChild(s)};
  setVsAvatar(versusMyAvatar,match.my_avatar_path,currentProfile?.account_name||currentProfile?.username||'TÚ');
  setVsAvatar(versusOpponentAvatar,match.opponent_avatar_path,match.opponent_name);
- stopRankedMatchCountdown();if(rankedMatchCountdown){rankedMatchCountdown.hidden=true;rankedMatchCountdown.style.display='none'}if(match.admin_confirmed)startRankedPlayTimer(match);else stopRankedPlayTimer();if(confirmedMatchWarning)confirmedMatchWarning.hidden=!match.admin_confirmed;if(rankedMatchRules)rankedMatchRules.hidden=!match.admin_confirmed;startRankedVsChat(match);updateRankedResultReport(match);updateRankedVideoProof(match);if(abandonRankedBtn){abandonRankedBtn.hidden=true;abandonRankedBtn.style.display='none';abandonRankedBtn.disabled=true}refreshPlayerVsSafety();if(matchmakingClose){matchmakingClose.hidden=!!match.admin_confirmed;matchmakingClose.disabled=!!match.admin_confirmed}
+ stopRankedMatchCountdown();if(rankedMatchCountdown){rankedMatchCountdown.hidden=true;rankedMatchCountdown.style.display='none'}if(match.admin_confirmed)startRankedPlayTimer(match);else stopRankedPlayTimer();if(confirmedMatchWarning)confirmedMatchWarning.hidden=!match.admin_confirmed;if(rankedMatchRules)rankedMatchRules.hidden=!match.admin_confirmed;startRankedVsChat(match);updateRankedResultReport(match);updateRankedVideoProof(match);if(abandonRankedBtn){const canAbandon=!confirmed&&!rankedPlayingLockedLocally;abandonRankedBtn.hidden=!canAbandon;abandonRankedBtn.style.display=canAbandon?'block':'none';abandonRankedBtn.disabled=!canAbandon;abandonRankedBtn.textContent='ABANDONAR VS'}refreshPlayerVsSafety();if(matchmakingClose){matchmakingClose.hidden=!!match.admin_confirmed;matchmakingClose.disabled=!!match.admin_confirmed}
  updatePendingMatchesCount();
  clearInterval(pendingMatchesTimer);pendingMatchesTimer=setInterval(()=>{if(!document.hidden){updatePendingMatchesCount();watchCurrentRankedMatch()}},60000);
 }
