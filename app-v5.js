@@ -421,9 +421,9 @@ async function cancelVsByPlayers(){
 async function markVsPlaying(){
  if(!currentRankedMatchId||!supabaseClient)return;
  const createdAt=new Date(currentRankedMatchData?.created_at||0).getTime();
- if(createdAt&&Date.now()-createdAt<120000){showToast('Debes tocar el botón cuando ya estés jugando con tu rival asignado en 8 Ball Pool.');return}
+ if(createdAt&&Date.now()-createdAt<120000){showTopPlayingWarning();return}
  if(!confirm('Toca ACEPTAR únicamente si tú y tu rival YA ESTÁN JUGANDO. Después ninguno podrá anular este VS.'))return;
- try{const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;showToast('🔒 VS marcado como JUGANDO. Ya no puede anularse.');await refreshPlayerVsSafety(true)}catch(e){console.error(e);const msg=String(e?.message||'');showToast(msg.includes('PLAYING_TOO_EARLY')?'Debes tocar el botón cuando ya estés jugando con tu rival asignado en 8 Ball Pool.':'No se pudo marcar el VS como jugando.')}
+ try{const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;showToast('🔒 VS marcado como JUGANDO. Ya no puede anularse.');await refreshPlayerVsSafety(true)}catch(e){console.error(e);const msg=String(e?.message||'');msg.includes('PLAYING_TOO_EARLY')?showTopPlayingWarning():showToast('No se pudo marcar el VS como jugando.')}
 }
 playerCancelVsBtn?.addEventListener('click',cancelVsByPlayers);
 playerPlayingBtn?.addEventListener('click',markVsPlaying);
@@ -1101,6 +1101,16 @@ function normalizeUsername(value){return value.trim().toLowerCase()}
 function usernameToInternalEmail(value){return normalizeUsername(value)+'@login.rankingikar8bp.com'}
 function validUsername(value){return /^[a-zA-Z0-9._-]{3,30}$/.test(value)}
 
+function showTopPlayingWarning(){
+ let box=document.getElementById('playingTooEarlyWarning');
+ if(!box){
+  box=document.createElement('div');box.id='playingTooEarlyWarning';
+  box.style.cssText='position:fixed;top:0;left:0;right:0;z-index:2147483647;background:#b00020;color:#fff;padding:18px 52px 18px 18px;text-align:center;font-weight:900;font-size:15px;line-height:1.35;box-shadow:0 4px 18px rgba(0,0,0,.45);';
+  const text=document.createElement('div');text.textContent='DEBES TOCAR EL BOTON CUANDO YA ESTES JUGANDO CON TU RIVAL ASIGNADO EN 8 BALL POOL';
+  const close=document.createElement('button');close.type='button';close.textContent='×';close.setAttribute('aria-label','Cerrar');close.style.cssText='position:absolute;right:12px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#fff;font-size:34px;font-weight:900;line-height:1;cursor:pointer;padding:4px 8px;';
+  close.addEventListener('click',()=>box.remove());box.append(text,close);document.body.appendChild(box);
+ }else box.hidden=false;
+}
 function showToast(message){
   toast.textContent=message;toast.classList.add('show');clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>toast.classList.remove('show'),3000)
