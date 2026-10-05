@@ -426,7 +426,14 @@ async function markVsPlaying(){
  try{
   const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;
   await refreshPlayerVsSafety(true);
-  await watchCurrentRankedMatch();
+  const {data:freshData,error:freshError}=await supabaseClient.rpc('get_my_active_ranked_match');
+  if(freshError)throw freshError;
+  const freshMatch=Array.isArray(freshData)?freshData[0]:freshData;
+  if(freshMatch&&Number(freshMatch.match_id)===Number(currentRankedMatchId)){
+    currentRankedMatchData=freshMatch;
+    updateRankedResultReport(freshMatch);
+    refreshPlayerVsSafety(true);
+  }
   const {data:stData,error:stError}=await supabaseClient.rpc('get_ranked_player_action_status',{p_match_id:Number(currentRankedMatchId)});
   if(stError)throw stError;
   const st=Array.isArray(stData)?stData[0]:stData;
