@@ -1102,7 +1102,12 @@ async function loadAdminMatches(){
    const meta=document.createElement('small');meta.textContent='#'+m.match_id+' · '+String(m.status).toUpperCase()+' · '+formatCommentDate(m.created_at);
    row.append(title,meta);
    const playingState=document.createElement('div');playingState.className='admin-result-title';playingState.style.marginTop='10px';playingState.style.textAlign='center';playingState.style.fontWeight='800';
-   if(m.players_playing){playingState.textContent='🟢 YA ESTÁN JUGANDO · CONFIRMADO POR UN JUGADOR';playingState.style.color='#34d058'}else{playingState.textContent='🟡 AÚN NO HAN TOCADO “YA ESTAMOS JUGANDO”';playingState.style.color='#ffd33d'}
+   const p1Playing=!!m.player1_playing_confirmed,p2Playing=!!m.player2_playing_confirmed;
+   if(p1Playing||p2Playing||m.players_playing){
+    const who=[];if(p1Playing)who.push(String(m.player1_name||'JUGADOR 1'));if(p2Playing)who.push(String(m.player2_name||'JUGADOR 2'));
+    playingState.textContent='🟢 YA ESTAMOS JUGANDO · '+(who.length?who.join(' Y ')+' PRESIONÓ'+(who.length>1?'N':'')+' SÍ':'VS EN JUEGO');
+    playingState.style.color='#34d058';
+   }else{playingState.textContent='🟡 NADIE HA PRESIONADO “YA ESTAMOS JUGANDO”';playingState.style.color='#ffd33d'}
    row.appendChild(playingState);
    const timer=document.createElement('div');timer.className='admin-vs-time-left';row.appendChild(timer);
    const updateTime=()=>{const start=new Date(m.players_playing_at||m.confirmed_at||m.created_at).getTime();const p1Won=String(m.player1_claim||'').toUpperCase()==='WON',p2Won=String(m.player2_claim||'').toUpperCase()==='WON';const wonAt=p1Won&&m.player1_claimed_at?new Date(m.player1_claimed_at).getTime():p2Won&&m.player2_claimed_at?new Date(m.player2_claimed_at).getTime():null;const end=wonAt||Date.now();const total=Math.max(0,Math.floor((end-start)/1000)),hh=Math.floor(total/3600),mm=Math.floor((total%3600)/60),ss=total%60;timer.textContent=(wonAt?'🏁 TIEMPO HASTA GANÉ ':'⏱️ TIEMPO EN PARTIDA ')+(hh>0?String(hh).padStart(2,'0')+':':'')+String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');timer.classList.toggle('expired',!!wonAt)};updateTime();const timerId=setInterval(()=>{if(!row.isConnected){clearInterval(timerId);return}updateTime()},1000);
