@@ -2143,7 +2143,13 @@ async function restoreActiveRankedVs(){
    startRankedVsChat(m);
  }catch(e){console.error('Restaurar VS activo:',e)}
 }
-setTimeout(startNotificationRefresh,6000+Math.floor(Math.random()*6000));setTimeout(()=>{startOnlinePresence();setTimeout(()=>refreshOnlinePlayers(),3000+Math.floor(Math.random()*7000));setTimeout(()=>refreshPlayersPlayingCount(),5000+Math.floor(Math.random()*10000));setInterval(()=>{if(!document.hidden)refreshPlayersPlayingCount()},180000)},5000+Math.floor(Math.random()*5000));document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser)touchOnlinePresence()});
+setTimeout(startNotificationRefresh,6000+Math.floor(Math.random()*6000));
+// Show live player activity immediately; keep later refreshes light to avoid DB load.
+refreshOnlinePlayers().catch(()=>{});
+refreshPlayersPlayingCount().catch(()=>{});
+setTimeout(()=>{startOnlinePresence();refreshOnlinePlayers().catch(()=>{});refreshPlayersPlayingCount().catch(()=>{})},1500);
+setInterval(()=>{if(!document.hidden){refreshOnlinePlayers().catch(()=>{});refreshPlayersPlayingCount().catch(()=>{})}},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){refreshOnlinePlayers().catch(()=>{});refreshPlayersPlayingCount().catch(()=>{});if(currentUser)touchOnlinePresence()}});
 if(playerDetailModal)playerDetailModal.addEventListener('click',event=>{if(event.target===playerDetailModal)closeRankingPlayer()});
 
 profilePhotoInput.addEventListener('change',async()=>{
