@@ -525,9 +525,9 @@ rankedNoTrickBtn?.addEventListener('click',async()=>{
  try{
   const {data,error}=await supabaseClient.rpc('cancel_ranked_no_trick',{p_match_id:Number(currentRankedMatchId)});
   if(error)throw error;
-  if(data===true){rankedReviewTransitionPending=false;showToast('VS anulado: ambos confirmaron que nadie hizo trickshot con la 8.');await closeRankedMatchmaking();await updateRankedDailyStatus();}
+  if(data===true){showToast('VS anulado: ambos confirmaron que nadie hizo trickshot con la 8.');showRankedReviewNotice();return}
   else{stopRankedChatResponseTimer();stopRankedPlayTimer();if(rankedChatResponseBox){rankedChatResponseBox.hidden=true;rankedChatResponseBox.style.display='none'}if(rankedResultReport){rankedResultReport.hidden=true;rankedResultReport.style.display='none'}if(rankedVideoProof){rankedVideoProof.hidden=true;rankedVideoProof.style.display='none'}if(matchmakingModal){matchmakingModal.hidden=false;matchmakingModal.style.display='flex'}showRankedReviewNotice();}
- }catch(e){rankedReviewTransitionPending=false;const n=document.getElementById('rankedReviewNotice');if(n){n.hidden=true;n.style.setProperty('display','none','important')}console.error(e);rankedNoTrickBtn.disabled=false;showToast('No se pudo enviar el VS a revisión.')}
+ }catch(e){console.error(e);rankedNoTrickBtn.disabled=false;showRankedReviewNotice();showToast('No se pudo confirmar el estado del VS. Pulsa OK para salir y vuelve a intentarlo si es necesario.')}
 });
 
 async function updateRankedVideoProof(match){
