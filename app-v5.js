@@ -525,6 +525,7 @@ rankedNoTrickBtn?.addEventListener('click',async()=>{
 
 async function updateRankedVideoProof(match){
  if(!rankedVideoProof||!supabaseClient||!match?.match_id)return;
+ if(rankedReviewTransitionPending){rankedVideoProof.hidden=false;if(rankedForgotRecordingBtn)rankedForgotRecordingBtn.hidden=true;if(rankedWinnerVideoStatus)rankedWinnerVideoStatus.textContent='✅ VIDEO ENVIADO · PARTIDO EN REVISIÓN.';if(rankedWinnerVideoBtn){rankedWinnerVideoBtn.textContent='🎥 VIDEO ENVIADO';rankedWinnerVideoBtn.disabled=true}return}
  if(!match.admin_confirmed&&!match.players_playing){rankedVideoProof.hidden=true;return}
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_result_wait_status',{p_match_id:Number(match.match_id)});if(error)throw error;
@@ -593,7 +594,9 @@ async function uploadRankedWinnerVideo(){
     rankedReviewTransitionPending=true;
     const {error:saveError}=await supabaseClient.rpc('save_ranked_match_video',{p_match_id:Number(currentRankedMatchId),p_video_path:path});if(saveError){rankedReviewTransitionPending=false;throw saveError;}
     rankedWinnerVideoStatus.textContent='✅ Video enviado correctamente. El administrador lo revisará.';
-    rankedWinnerVideoBtn.textContent='🎥 VIDEO ENVIADO · SUBIR OTRO';
+    rankedWinnerVideoBtn.textContent='🎥 VIDEO ENVIADO';
+    rankedWinnerVideoBtn.disabled=true;
+    if(rankedForgotRecordingBtn){rankedForgotRecordingBtn.hidden=true;rankedForgotRecordingBtn.style.display='none'}
     rankedWinnerVideoInput.value='';
     showToast('Video del tiro ganador enviado.');
     if(rankedReviewNotice){rankedReviewNotice.hidden=false;rankedReviewNotice.style.setProperty('display','flex','important');rankedReviewNotice.style.setProperty('visibility','visible','important');rankedReviewNotice.style.setProperty('opacity','1','important')}
@@ -601,7 +604,7 @@ async function uploadRankedWinnerVideo(){
     console.error('Video del ganador:',e);
     rankedWinnerVideoStatus.textContent=e?.message||'No se pudo subir el video.';
     rankedWinnerVideoInput.value='';
-  }finally{rankedWinnerVideoBtn.disabled=false}
+  }finally{if(!rankedReviewTransitionPending)rankedWinnerVideoBtn.disabled=false}
 }
 rankedReviewOkBtn?.addEventListener('click',async()=>{
  rankedReviewTransitionPending=false;
