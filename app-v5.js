@@ -523,7 +523,7 @@ rankedNoTrickBtn?.addEventListener('click',async()=>{
   const {data,error}=await supabaseClient.rpc('cancel_ranked_no_trick',{p_match_id:Number(currentRankedMatchId)});
   if(error)throw error;
   if(data===true){rankedReviewTransitionPending=false;showToast('VS anulado: ambos confirmaron que nadie hizo trickshot con la 8.');await closeRankedMatchmaking();await updateRankedDailyStatus();}
-  else{stopRankedChatResponseTimer();stopRankedPlayTimer();if(rankedChatResponseBox){rankedChatResponseBox.hidden=true;rankedChatResponseBox.style.display='none'}if(rankedResultReport){rankedResultReport.hidden=true;rankedResultReport.style.display='none'}if(rankedVideoProof){rankedVideoProof.hidden=true;rankedVideoProof.style.display='none'}showRankedReviewNotice();}
+  else{showRankedReviewNotice();stopRankedChatResponseTimer();stopRankedPlayTimer();if(rankedChatResponseBox){rankedChatResponseBox.hidden=true;rankedChatResponseBox.style.display='none'}if(rankedResultReport){rankedResultReport.hidden=true;rankedResultReport.style.display='none'}if(rankedVideoProof){rankedVideoProof.hidden=true;rankedVideoProof.style.display='none'}showRankedReviewNotice();}
  }catch(e){rankedReviewTransitionPending=false;console.error(e);rankedNoTrickBtn.disabled=false;showToast('No se pudo cerrar el VS.')}
 });
 
@@ -857,7 +857,7 @@ async function watchCurrentRankedMatch(){
   const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');if(error)throw error;
   if(data&&data.length&&Number(data[0].match_id)===Number(currentRankedMatchId)){currentRankedMatchData=data[0];if(String(data[0].status||'').toLowerCase()==='review'&&data[0].my_video_uploaded){rankedReviewTransitionPending=true;showRankedReviewNotice()}if(data[0].players_playing)rankedPlayingLockedLocally=true;const confirmed=!!data[0].admin_confirmed;stopRankedMatchCountdown();if(rankedMatchCountdown){rankedMatchCountdown.hidden=true;rankedMatchCountdown.style.display='none'}if(confirmed)startRankedPlayTimer(data[0]);else stopRankedPlayTimer();updateRankedResultReport(data[0]);updateRankedVideoProof(data[0]);if(confirmedMatchWarning)confirmedMatchWarning.hidden=!confirmed;if(rankedMatchRules)rankedMatchRules.hidden=!confirmed;startRankedVsChat(data[0]);if(abandonRankedBtn){const locked=rankedPlayingLockedLocally||!!data[0].players_playing;abandonRankedBtn.hidden=locked;abandonRankedBtn.style.display=locked?'none':'block';abandonRankedBtn.disabled=locked;abandonRankedBtn.textContent='ABANDONAR VS'}refreshPlayerVsSafety();if(matchmakingClose){matchmakingClose.hidden=confirmed;matchmakingClose.disabled=confirmed}}
   if(!data||!data.length||Number(data[0].match_id)!==Number(currentRankedMatchId)){
-   if(rankedReviewTransitionPending){return}
+   if(rankedReviewTransitionPending){showRankedReviewNotice();return}
    await stopActiveVsRealtime();currentRankedMatchId=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
    stopRankedPlayTimer();
    stopRankedChatResponseTimer();
