@@ -612,7 +612,7 @@ async function uploadRankedWinnerVideo(){
 }
 rankedReviewOkBtn?.addEventListener('click',async()=>{
  rankedReviewTransitionPending=false;
- if(rankedReviewNotice){rankedReviewNotice.hidden=true;rankedReviewNotice.style.display='none'}
+ const reviewNoticeNow=document.getElementById('rankedReviewNotice');if(reviewNoticeNow){reviewNoticeNow.hidden=true;reviewNoticeNow.style.setProperty('display','none','important')}
  clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
  await stopActiveVsRealtime().catch(()=>{});
  await stopMatchmakingRealtime().catch(()=>{});
@@ -841,13 +841,13 @@ function showRankedMatch(match){currentRankedMatchData=match;rankedVsBothMessage
  clearInterval(pendingMatchesTimer);pendingMatchesTimer=setInterval(()=>{if(!document.hidden){updatePendingMatchesCount();watchCurrentRankedMatch()}},60000);
 }
 function showRankedReviewNotice(){
- if(!rankedReviewNotice)return;
- rankedReviewNotice.hidden=false;
- rankedReviewNotice.removeAttribute('hidden');
- rankedReviewNotice.style.setProperty('display','flex','important');
- rankedReviewNotice.style.setProperty('visibility','visible','important');
- rankedReviewNotice.style.setProperty('opacity','1','important');
- document.body.appendChild(rankedReviewNotice);
+ const notice=document.getElementById('rankedReviewNotice');
+ if(!notice)return;
+ notice.hidden=false;
+ notice.removeAttribute('hidden');
+ notice.style.cssText='position:fixed!important;inset:0!important;z-index:2147483647!important;background:rgba(0,0,0,.92)!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:20px!important;visibility:visible!important;opacity:1!important;';
+ document.body.appendChild(notice);
+ requestAnimationFrame(()=>{notice.hidden=false;notice.style.setProperty('display','flex','important');notice.style.setProperty('visibility','visible','important');notice.style.setProperty('opacity','1','important')});
 }
 
 async function watchCurrentRankedMatch(){
