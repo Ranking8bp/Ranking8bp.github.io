@@ -515,7 +515,6 @@ rankedClaimLost?.addEventListener('click',()=>submitRankedResultClaim('LOST'));
 const rankedNoTrickBtn=document.getElementById('rankedNoTrickBtn');
 rankedNoTrickBtn?.addEventListener('click',async()=>{
  if(!currentRankedMatchId||!supabaseClient)return;
- if(!confirm('¿Confirmas que NADIE HIZO TRICK CON LA 8? El VS se cerrará sin ganador.'))return;
  rankedNoTrickBtn.disabled=true;
  stopRankedPlayTimer();
  if(rankedPlayTimer){rankedPlayTimer.hidden=true;rankedPlayTimer.style.display='none'}
