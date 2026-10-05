@@ -1980,3 +1980,20 @@ img,svg,video,canvas{max-width:100%}
 }
 #guestWorldTop3 .guest-world-medal-image:before,#guestWorldTop3 .guest-world-medal-image:after{content:none!important;display:none!important}
 @media(max-width:600px){#guestWorldTop3 .guest-world-medal-image{width:62px!important;height:62px!important;top:-27px!important;right:-10px!important}}
+
+/* TOP 3 PNG transparency — authoritative */
+#guestWorldTop3 img.guest-world-medal,
+#guestWorldTop3 img.guest-world-medal-image{
+ display:block!important;
+ background-color:transparent!important;
+ background-image:none!important;
+ border:none!important;
+ outline:none!important;
+ box-shadow:none!important;
+ filter:none!important;
+ padding:0!important;
+ margin:0!important;
+ border-radius:0!important;
+ mix-blend-mode:normal!important;
+ isolation:auto!important;
+}
