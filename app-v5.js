@@ -1919,6 +1919,18 @@ async function loadPlayerDetailCompetitive(player){const streak=document.getElem
 
 async function openRankingPlayer(player){
   if(!playerDetailModal)return;
+  if(supabaseClient&&player&&(player.game_id===undefined||player.game_id===null||String(player.game_id).trim()==='')){
+    const profileId=player.player_id||player.id;
+    if(profileId){
+      try{
+        const {data,error}=await supabaseClient.rpc('get_profile_by_id',{p_player_id:profileId});
+        if(!error&&data){
+          const full=Array.isArray(data)?data[0]:data;
+          if(full)player={...player,...full,player_id:full.player_id||profileId,id:full.player_id||profileId};
+        }
+      }catch(error){console.error('No se pudo cargar el ID 8 Ball Pool del perfil:',error)}
+    }
+  }
   currentDetailPlayer=player;
   if(playerAdminBtn){
     playerAdminBtn.hidden=!isCurrentUserAdmin() || String(player?.username||'').toLowerCase()==='ikar8bp';
