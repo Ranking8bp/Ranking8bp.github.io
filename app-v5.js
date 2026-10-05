@@ -420,8 +420,10 @@ async function cancelVsByPlayers(){
 }
 async function markVsPlaying(){
  if(!currentRankedMatchId||!supabaseClient)return;
+ const createdAt=new Date(currentRankedMatchData?.created_at||0).getTime();
+ if(createdAt&&Date.now()-createdAt<120000){showToast('Debes tocar el botón cuando ya estés jugando con tu rival asignado en 8 Ball Pool.');return}
  if(!confirm('Toca ACEPTAR únicamente si tú y tu rival YA ESTÁN JUGANDO. Después ninguno podrá anular este VS.'))return;
- try{const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;showToast('🔒 VS marcado como JUGANDO. Ya no puede anularse.');await refreshPlayerVsSafety(true)}catch(e){console.error(e);showToast('No se pudo marcar el VS como jugando.')}
+ try{const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:Number(currentRankedMatchId)});if(error)throw error;showToast('🔒 VS marcado como JUGANDO. Ya no puede anularse.');await refreshPlayerVsSafety(true)}catch(e){console.error(e);const msg=String(e?.message||'');showToast(msg.includes('PLAYING_TOO_EARLY')?'Debes tocar el botón cuando ya estés jugando con tu rival asignado en 8 Ball Pool.':'No se pudo marcar el VS como jugando.')}
 }
 playerCancelVsBtn?.addEventListener('click',cancelVsByPlayers);
 playerPlayingBtn?.addEventListener('click',markVsPlaying);
