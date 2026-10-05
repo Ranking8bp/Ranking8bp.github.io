@@ -1149,9 +1149,9 @@ function renderGuestRanking(){
    const pos=document.createElement('strong');pos.className='guest-ranking-pos';pos.textContent=String(index+1);
    const name=document.createElement('div');name.className='guest-ranking-player';
    const avatar=document.createElement('span');avatar.className='guest-ranking-avatar';avatar.textContent=String(player.username||player.account_name||'J').charAt(0).toUpperCase();
-   if(player.avatar_path&&supabaseClient){
+   if(player.avatar_path&&supabaseClient&&!avatarIsBroken(player.avatar_path)){
     const {data:avatarData}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
-    if(avatarData?.publicUrl){const img=document.createElement('img');img.src=avatarData.publicUrl;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();avatar.appendChild(img)}
+    if(avatarData?.publicUrl){const img=document.createElement('img');img.src=avatarData.publicUrl;img.alt='';img.loading='lazy';img.onerror=()=>{markAvatarBroken(player.avatar_path);img.remove()};avatar.appendChild(img)}
    }
    const info=document.createElement('div');info.className='guest-ranking-player-info';
    const n=document.createElement('b');n.textContent=String(player.username||player.account_name||'Jugador').toUpperCase();const sid=String(player?.player_id||player?.id||'');const sv=Number(rankingStreaks.get(sid)||0);if(sv>0){const ss=document.createElement('span');ss.className='ranking-streak';ss.textContent=' +'+sv;ss.title='Racha de '+sv+' victoria'+(sv===1?'':'s');n.appendChild(ss)}const od=onlineDotFor(player);if(od)n.appendChild(od);
@@ -1268,6 +1268,11 @@ async function loadDashboardFollowStats(profileId){
  }catch(e){console.error('Error cargando seguidores del perfil:',e)}
 }
 
+const brokenAvatarPaths=new Set(JSON.parse(localStorage.getItem('ranking8bp_broken_avatars')||'[]'));
+function avatarIsBroken(path){return !!path&&brokenAvatarPaths.has(String(path))}
+function markAvatarBroken(path){if(!path)return;brokenAvatarPaths.add(String(path));try{localStorage.setItem('ranking8bp_broken_avatars',JSON.stringify([...brokenAvatarPaths].slice(-100)))}catch(_){}}
+function attachAvatarFallback(img,path){if(!img)return img;img.onerror=()=>{markAvatarBroken(path);img.remove()};return img}
+
 function createRankingAvatar(player){
   const wrap=document.createElement('div');
   wrap.className='ranking-avatar';
@@ -1276,14 +1281,14 @@ function createRankingAvatar(player){
   fallback.textContent=String(displayName).trim().charAt(0).toUpperCase()||'J';
   wrap.appendChild(fallback);
 
-  if(player?.avatar_path&&supabaseClient){
+  if(player?.avatar_path&&supabaseClient&&!avatarIsBroken(player.avatar_path)){
     const {data}=supabaseClient.storage.from('profile-photos').getPublicUrl(player.avatar_path);
     if(data?.publicUrl){
       const img=document.createElement('img');
       img.src=data.publicUrl+'?v='+encodeURIComponent(String(player.avatar_path));
       img.alt='Foto de '+String(displayName);
       img.onload=()=>{wrap.replaceChildren(img)};
-      img.onerror=()=>{img.remove()};
+      img.onerror=()=>{markAvatarBroken(player.avatar_path);img.remove()};
     }
   }
   return wrap;
