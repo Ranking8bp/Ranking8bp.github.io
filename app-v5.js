@@ -966,10 +966,13 @@ async function stopMatchmakingRealtime(){
 async function openCreatedRankedVsNow(){
  if(!currentUser||!supabaseClient||currentRankedMatchId)return false;
  try{
+  const {data:activeId,error:idError}=await supabaseClient.rpc('get_my_active_ranked_match_id');
+  if(idError)throw idError;
+  if(!activeId)return false;
   const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');
   if(error)throw error;
   const match=Array.isArray(data)?data[0]:data;
-  if(!match)return false;
+  if(!match||Number(match.match_id)!==Number(activeId))return false;
   rankedSearchActive=false;stopRankedSearchLoop();
   clearInterval(matchmakingTimer);matchmakingTimer=null;
   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
@@ -1042,7 +1045,7 @@ function startRankedSearchLoop(){
  const tick=async()=>{
   if(token!==rankedSearchLoopToken||!rankedSearchActive||currentRankedMatchId)return;
   try{await openCreatedRankedVsNow();if(!currentRankedMatchId)await pollRankedMatch()}catch(_){}
-  if(token===rankedSearchLoopToken&&rankedSearchActive&&!currentRankedMatchId)setTimeout(tick,1200);
+  if(token===rankedSearchLoopToken&&rankedSearchActive&&!currentRankedMatchId)setTimeout(tick,500);
  };
  setTimeout(tick,300);
 }
