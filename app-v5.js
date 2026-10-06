@@ -2601,8 +2601,28 @@ function startFreshRankedRoom(id,secondsLeft=60){
  const videoInput=document.getElementById('freshWinnerVideoInput');if(videoInput)videoInput.value='';
  const chat=document.getElementById('freshRankedChat');if(chat)chat.classList.remove('fresh-chat-top');
  const tick=()=>{const left=Math.max(0,Math.ceil((freshRoomExpiresAt-Date.now())/1000)),t=document.getElementById('freshChatTimer');if(t)t.textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');if(left<=0){clearInterval(freshRoomTimer);freshRoomTimer=null;(async()=>{try{const {data,error}=await supabaseClient.rpc('auto_cancel_unanswered_ranked_chat',{p_match_id:freshRoomMatchId,p_force:false});if(error)throw error;if(data==='cancelled'){clearInterval(freshRoomChatPoll);freshRoomChatPoll=null;freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS anulado: ambos jugadores debían enviar un mensaje antes de terminar el minuto.')}}catch(e){console.error('Auto cancelar VS:',e)}})()}};
- tick();freshRoomTimer=setInterval(tick,250);
- loadFreshRankedChat();freshRoomChatPoll=setInterval(async()=>{if(!freshRoomMatchId)return;const checkingId=freshRoomMatchId;try{const {data:status,error}=await supabaseClient.rpc('get_ranked_match_live_status',{p_match_id:checkingId});if(error)throw error;
+ // If the room was restored while the match is already under REVIEW, the other
+ // player must answer the result immediately; do not restart the 1-minute chat phase.
+ (async()=>{try{
+   const {data:initialStatus,error:initialStatusError}=await supabaseClient.rpc('get_ranked_match_live_status',{p_match_id:id});
+   if(initialStatusError)throw initialStatusError;
+   if(String(initialStatus||'')==='review'){
+     clearInterval(freshRoomTimer);freshRoomTimer=null;
+     if(warning)warning.hidden=true;
+     if(abandon){abandon.hidden=true;abandon.disabled=true}
+     if(leave){leave.hidden=true;leave.disabled=true}
+     if(chat)chat.classList.add('fresh-chat-top');
+     if(ready){ready.hidden=false;ready.classList.add('fresh-actions-chat-place')}
+     if(results)results.hidden=false;
+     const chatInput=document.getElementById('freshChatInput');if(chatInput)chatInput.disabled=true;
+     const chatSend=document.getElementById('freshChatSend');if(chatSend)chatSend.disabled=true;
+     if(resultStatus)resultStatus.textContent='Tu rival envió evidencia. Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.';
+     await loadFreshRankedChat();
+     return;
+   }
+   tick();freshRoomTimer=setInterval(tick,250);await loadFreshRankedChat();
+ }catch(e){console.error('Estado inicial sala:',e);tick();freshRoomTimer=setInterval(tick,250);loadFreshRankedChat()}})();
+ freshRoomChatPoll=setInterval(async()=>{if(!freshRoomMatchId)return;const checkingId=freshRoomMatchId;try{const {data:status,error}=await supabaseClient.rpc('get_ranked_match_live_status',{p_match_id:checkingId});if(error)throw error;
 const liveStatus=String(status||'');
 if(liveStatus==='review'){
  const abandon=document.getElementById('freshAbandonPending');if(abandon){abandon.hidden=true;abandon.disabled=true}
