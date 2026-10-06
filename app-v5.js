@@ -2286,6 +2286,33 @@ if(adminVsTab)adminVsTab.addEventListener('click',showAdminVs);
 if(adminPlayersTab)adminPlayersTab.addEventListener('click',showAdminPlayers);
 if(adminModerationTab)adminModerationTab.addEventListener('click',showAdminModeration);
 if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{
+  // A pending unanswered VS must be reopened directly, never sent through matchmaking.
+  try{
+    if(currentUser&&supabaseClient){
+      const {data:pendingId,error}=await supabaseClient.rpc('get_my_pending_ranked_room');
+      if(!error&&Number(pendingId)>0){
+        const matchId=Number(pendingId);
+        const {data:room,error:roomError}=await supabaseClient.rpc('get_fresh_ranked_room',{p_match_id:matchId});
+        if(roomError)throw roomError;
+        const m=Array.isArray(room)?room[0]:room;
+        if(m){
+          currentRankedMatchId=matchId;rankedSearchActive=false;
+          const modal=document.getElementById('freshMatchmakingModal'),search=document.getElementById('freshSearching'),vs=document.getElementById('freshVersus');
+          if(modal)modal.hidden=false;if(search)search.hidden=true;if(vs)vs.hidden=false;
+          document.getElementById('freshMe').textContent=String(m.my_name||'TÚ').toUpperCase();
+          document.getElementById('freshOpponent').textContent=String(m.opponent_name||'RIVAL').toUpperCase();
+          document.getElementById('freshMyElo').textContent='ELO '+m.my_elo;
+          document.getElementById('freshOpponentElo').textContent='ELO '+m.opponent_elo;
+          document.getElementById('freshMyId').textContent='ID: '+(m.my_game_id||'NO REGISTRADO');
+          document.getElementById('freshOpponentId').textContent='ID: '+(m.opponent_game_id||'NO REGISTRADO');
+          setFreshAvatar(document.getElementById('freshMyAvatar'),m.my_avatar_path,m.my_name);
+          setFreshAvatar(document.getElementById('freshOpponentAvatar'),m.opponent_avatar_path,m.opponent_name);
+          startFreshRankedRoom(matchId,Number(m.seconds_left)||60);
+          return;
+        }
+      }
+    }
+  }catch(e){console.error('Regresar a sala pendiente:',e);showToast('No se pudo recuperar la sala. Intenta nuevamente.');return}
   await startRankedMatchmaking();
 });
 if(matchmakingClose)matchmakingClose.addEventListener('click',()=>currentRankedMatchId?leaveRankedRoom():closeRankedMatchmaking());
