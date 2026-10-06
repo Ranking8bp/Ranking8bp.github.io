@@ -1438,12 +1438,14 @@ async function setPlayerUI(profile,user){
   Promise.allSettled([rankTask,avatarTask]).catch(()=>{});
   const spread=(fn,min,max)=>setTimeout(()=>{if(currentUser?.id===user?.id&&!document.hidden)Promise.resolve(fn()).catch(()=>{})},min+Math.floor(Math.random()*(max-min)));
   spread(()=>loadDashboardFollowStats(profile?.id||user?.id),2500,7000);
-  if(!isAdminDashboard)spread(()=>loadCompetitiveHub(profile?.id||user?.id),6000,14000);
+  // Los datos personales visibles deben estar correctos desde el primer render.
+  if(!isAdminDashboard)loadCompetitiveHub(profile?.id||user?.id).catch(e=>console.error('Carga inicial logros:',e));
   // La clasificación debe aparecer de inmediato; loadRanking pinta primero el caché local y refresca detrás.
   loadRanking().catch(()=>{});
   maybeOpenDirectMatchmaking();
-  // Contadores personales deben cargarse apenas la sesión queda restaurada.
+  // El punto rojo de mensajes debe restaurarse inmediatamente al recargar la página.
   refreshInboxBadge().catch(e=>console.error('Carga inicial contador mensajes:',e));
+  setTimeout(()=>{if(currentUser?.id===user?.id)refreshInboxBadge().catch(()=>{})},800);
   // Las dinámicas deben reconstruirse siempre al restaurar/refrescar la sesión.
   refreshDynamic().catch(e=>console.error('Carga inicial de dinámicas:',e));
   [500,1500,3000,6000].forEach(ms=>setTimeout(()=>{
