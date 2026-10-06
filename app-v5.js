@@ -1124,35 +1124,38 @@ async function refreshPlayersSearchingCount(){
  try{const {data,error}=await supabaseClient.rpc('get_matchmaking_search_count');if(error)throw error;const n=Math.max(0,Number(data)||0);playersSearchingCount.textContent=String(n);if(playersSearchingText)playersSearchingText.textContent=n===1?'JUGADOR ESTÁ BUSCANDO RIVAL':'JUGADORES ESTÁN BUSCANDO RIVAL'}catch(e){console.error('Contador buscando rival:',e)}finally{playersSearchingLoading=false}
 }
 setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),8000+Math.floor(Math.random()*12000));setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},180000);
+async function loadMatchmakingV2Match(matchId){
+ if(!matchId||!supabaseClient)return false;
+ const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');
+ if(error)throw error;
+ const match=Array.isArray(data)?data[0]:data;
+ if(!match||Number(match.match_id)!==Number(matchId))return false;
+ showRankedMatch(match);return true;
+}
+async function matchmakingV2Loop(token){
+ while(rankedSearchActive&&!currentRankedMatchId&&token===rankedSearchLoopToken){
+  try{
+   const {data,error}=await supabaseClient.rpc('matchmaking_v2_step');
+   if(error)throw error;
+   const st=Array.isArray(data)?data[0]:data;
+   if(st?.state==='matched'&&st?.out_match_id){
+    if(await loadMatchmakingV2Match(st.out_match_id))return;
+   }
+  }catch(e){console.error('Matchmaking V2:',e)}
+  await new Promise(resolve=>setTimeout(resolve,700));
+ }
+}
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient||matchmakingStartLoading)return;
  matchmakingStartLoading=true;
- rankedSearchActive=true;
- await updateRankedDailyStatus();
- matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true;renderSearchingPlayerProfile().catch(()=>{});
  try{
-  const {data,error}=await supabaseClient.rpc('join_ranked_matchmaking');
-  if(error){
-    
-    throw error;
-  }
-  const m=Array.isArray(data)?data[0]:data;
-  if(m?.status==='matched'){const {data:full}=await supabaseClient.rpc('get_my_active_ranked_match');const match=Array.isArray(full)?full[0]:full;if(match){showRankedMatch(match);return}}
-  // Realtime is the primary matchmaking signal. Slow timers are fallback/queue liveness only.
-  startMatchmakingRealtime();
-  clearInterval(matchmakingTimer);matchmakingTimer=null;startRankedSearchLoop();
-  clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},180000);
- }catch(e){
-   console.error('Error búsqueda ELO:',e);
-   const msg=String(e?.message||e?.error_description||'');
-    if(msg.includes('RANKED_EVIDENCE_PENDING')){if(matchmakingModal)matchmakingModal.hidden=true;showToast('⚠️ Tienes un VS con evidencia pendiente. Espera a que el administrador determine el ganador.');return}
-   if(msg.includes('PLAYER_ALREADY_HAS_ACTIVE_VS')){const {data:vid}=await supabaseClient.rpc('get_my_visible_active_ranked_match_id');if(vid){await restoreActiveRankedVs();showToast('Ya tienes un VS activo.');return}}
-   /* A temporary matchmaking/heartbeat error must never close BUSCANDO RIVAL. */
-   if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}
-   startMatchmakingRealtime();
-   clearInterval(matchmakingTimer);matchmakingTimer=null;startRankedSearchLoop();
-   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},180000);
-   showToast('Buscando rival…');
+  rankedSearchActive=true;stopRankedSearchLoop();const token=++rankedSearchLoopToken;
+  await updateRankedDailyStatus();
+  matchmakingModal.hidden=false;
+  matchmakingSearching.hidden=false;matchmakingSearching.style.removeProperty('display');
+  matchmakingVersus.hidden=true;
+  renderSearchingPlayerProfile().catch(()=>{});
+  matchmakingV2Loop(token);
  }finally{matchmakingStartLoading=false}
 }
 async function leaveRankedRoom(){
@@ -1177,7 +1180,7 @@ async function closeRankedMatchmaking(){
  if(currentRankedMatchId&&supabaseClient){try{const {data}=await supabaseClient.rpc('get_my_active_ranked_match');const m=Array.isArray(data)?data[0]:data;if(m?.admin_confirmed){showToast('Este VS está confirmado. Debes esperar el resultado.');return}}catch(e){console.error(e)}}
  clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;await stopMatchmakingRealtime();
  if(matchmakingModal)matchmakingModal.hidden=true;
- if(!currentRankedMatchId&&currentUser&&supabaseClient)await supabaseClient.rpc('cancel_ranked_matchmaking');
+ if(!currentRankedMatchId&&currentUser&&supabaseClient)await supabaseClient.rpc('matchmaking_v2_cancel');
 }
 
 
