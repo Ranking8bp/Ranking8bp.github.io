@@ -2418,8 +2418,8 @@ function startNotificationRefresh(){
     notificationRefreshTimer=setInterval(()=>{if(currentUser&&!document.hidden)loadNotifications().catch(()=>{})},180000);
   }
 }
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser){loadNotifications().catch(()=>{});updateRankedDailyStatus().catch(()=>{});restoreActiveRankedVs().catch(()=>{})}});
-window.addEventListener('pageshow',()=>{if(currentUser){updateRankedDailyStatus().catch(()=>{});restoreActiveRankedVs().catch(()=>{})}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser){loadNotifications().catch(()=>{});updateRankedDailyStatus().catch(()=>{})}});
+window.addEventListener('pageshow',()=>{if(currentUser){updateRankedDailyStatus().catch(()=>{})}});
 window.addEventListener('focus',()=>{if(currentUser)updateRankedDailyStatus().catch(()=>{})});
 async function restoreActiveRankedVs(){
  if(!currentUser||!supabaseClient)return;
