@@ -1046,7 +1046,14 @@ async function startRankedMatchmaking(){
     document.getElementById('freshMyElo').textContent='ELO '+m.my_elo;
     document.getElementById('freshOpponentElo').textContent='ELO '+m.opponent_elo;
     document.getElementById('freshMyId').textContent='ID: '+(m.my_game_id||'NO REGISTRADO');
-    document.getElementById('freshOpponentId').textContent='ID: '+(m.opponent_game_id||'NO REGISTRADO');
+    document.getElementById('freshOpponentId').textContent=(m.opponent_game_id||'NO REGISTRADO');
+    document.getElementById('freshMyId').textContent=(m.my_game_id||'NO REGISTRADO');
+    document.getElementById('freshMyRank').textContent=String(m.my_rank_name||'LATÓN').toUpperCase();
+    document.getElementById('freshOpponentRank').textContent=String(m.opponent_rank_name||'LATÓN').toUpperCase();
+    document.getElementById('freshMyPosition').textContent='RANKING #'+(m.my_position||'--');
+    document.getElementById('freshOpponentPosition').textContent='RANKING #'+(m.opponent_position||'--');
+    const setFreshAvatar=(id,path,name)=>{const el=document.getElementById(id);if(!el)return;el.replaceChildren();if(path){const img=document.createElement('img');const {data:u}=supabaseClient.storage.from('profile-photos').getPublicUrl(path);img.src=u?.publicUrl||'';img.alt='';el.appendChild(img)}else{const sp=document.createElement('span');sp.textContent=String(name||'?').charAt(0).toUpperCase();el.appendChild(sp)}};
+    setFreshAvatar('freshMyAvatar',m.my_avatar_path,m.my_name);setFreshAvatar('freshOpponentAvatar',m.opponent_avatar_path,m.opponent_name);
     search.hidden=true;vs.hidden=false;startFreshRankedRoom(Number(m.match_id));return;
    }
   }catch(e){console.error('Emparejamiento nuevo:',e)}
@@ -2586,3 +2593,5 @@ document.addEventListener('click',async e=>{
  }
 });
 document.addEventListener('keydown',e=>{if(e.target?.id==='freshChatInput'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendFreshRankedChat()}});
+
+document.addEventListener('click',e=>{if(e.target?.id==='freshCopyMyId'||e.target?.id==='freshCopyOpponentId'){const id=e.target.id==='freshCopyMyId'?'freshMyId':'freshOpponentId',v=document.getElementById(id)?.textContent?.trim();if(v&&navigator.clipboard)navigator.clipboard.writeText(v).then(()=>showToast('ID copiado.')).catch(()=>{})}});
