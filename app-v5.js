@@ -2562,12 +2562,13 @@ let freshRoomTimer=null,freshRoomChatPoll=null,freshRoomMatchId=null,freshRoomEx
 async function loadFreshRankedChat(){
  if(!freshRoomMatchId||!supabaseClient)return;
  try{
+  await supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:freshRoomMatchId});
   const {data,error}=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:freshRoomMatchId});if(error)throw error;
   const rows=Array.isArray(data)?data:[];
   const box=document.getElementById('freshChatMessages');if(!box)return;
   box.replaceChildren();
   const senders=new Set();
-  rows.forEach(m=>{if(m.sender_id)senders.add(String(m.sender_id));const d=document.createElement('div');d.className='ranked-vs-chat-message'+(String(m.sender_id)===String(currentUser?.id)?' mine':'');const n=document.createElement('strong');n.textContent=m.sender_name||'JUGADOR';const b=document.createElement('p');b.textContent=m.message||'';d.append(n,b);box.appendChild(d)});
+  rows.forEach(m=>{if(m.sender_id)senders.add(String(m.sender_id));const d=document.createElement('div');d.className='ranked-vs-chat-message'+(String(m.sender_id)===String(currentUser?.id)?' mine':'');const n=document.createElement('strong');n.textContent=m.sender_name||'JUGADOR';const b=document.createElement('p');b.textContent=m.message||'';d.append(n,b);if(String(m.sender_id)===String(currentUser?.id)){const seen=document.createElement('small');seen.className='fresh-chat-seen';seen.textContent=m.read_by_other?'✓✓ VISTO':'✓ ENVIADO';d.appendChild(seen)}box.appendChild(d)});
   box.scrollTop=box.scrollHeight;
   const {data:rs}=await supabaseClient.rpc('get_ranked_chat_response_status',{p_match_id:freshRoomMatchId});const state=Array.isArray(rs)?rs[0]:rs;const abandon=document.getElementById('freshAbandonPending');
   if(abandon)abandon.hidden=Boolean(state?.replied);
@@ -2640,7 +2641,7 @@ document.addEventListener('click',async e=>{
    showToast(claim==='WON'?'Ahora sube tu video de evidencia.':'Derrota confirmada.');
   }catch(x){
    console.error(x);
-   if(claim==='WON'){const ev=document.getElementById('freshEvidenceBox');if(ev)ev.hidden=true;btn.textContent='🏆 GANÉ';if(st)st.textContent=''}
+   if(claim==='WON'){const ev=document.getElementById('freshEvidenceBox');if(ev)ev.hidden=false;btn.textContent='🏆 GANÉ';if(st)st.textContent='El video sigue disponible para subir. Intenta marcar GANÉ nuevamente si fue necesario.'}
    btn.disabled=false;showToast('No se pudo registrar el resultado.');
   }return;
  }
