@@ -2263,17 +2263,7 @@ if(adminVsTab)adminVsTab.addEventListener('click',showAdminVs);
 if(adminPlayersTab)adminPlayersTab.addEventListener('click',showAdminPlayers);
 if(adminModerationTab)adminModerationTab.addEventListener('click',showAdminModeration);
 if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{
-  try{
-    const {data,error}=await supabaseClient.from('profiles').select('is_admin').eq('id',currentUser.id).single();
-    if(error)throw error;
-    if(data?.is_admin){
-      if(adminPanel)adminPanel.hidden=false;
-      if(settingsMenu)settingsMenu.hidden=true;
-      await loadAdminMatches();
-      return;
-    }
-  }catch(e){console.error('Comprobación admin:',e)}
-  await startRankedMatchmaking();refreshPlayersSearchingCount();
+  await startRankedMatchmaking();
 });
 if(matchmakingClose)matchmakingClose.addEventListener('click',()=>currentRankedMatchId?leaveRankedRoom():closeRankedMatchmaking());
 const leaveRankedRoomBtn=document.getElementById('leaveRankedRoomBtn');
