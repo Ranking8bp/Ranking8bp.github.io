@@ -1035,7 +1035,7 @@ async function renderSearchingPlayerProfile(){const n=document.getElementById('s
 async function refreshPlayersSearchingCount(){
  if(!supabaseClient||!playersSearchingCount||playersSearchingLoading)return;
  playersSearchingLoading=true;
- try{playersSearchingCount.textContent='0 BUSCANDO RIVAL'}finally{playersSearchingLoading=false}
+ try{const {data,error}=await supabaseClient.rpc('get_ranked_players_searching_count');if(error)throw error;const n=Math.max(0,Number(data)||0);playersSearchingCount.textContent=String(n)+' BUSCANDO RIVAL'}catch(e){console.error('Buscando rival:',e)}finally{playersSearchingLoading=false}
 }
 setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),8000+Math.floor(Math.random()*12000));setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},180000);
 async function startRankedMatchmaking(){
