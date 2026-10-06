@@ -1442,6 +1442,8 @@ async function setPlayerUI(profile,user){
   // La clasificación debe aparecer de inmediato; loadRanking pinta primero el caché local y refresca detrás.
   loadRanking().catch(()=>{});
   maybeOpenDirectMatchmaking();
+  // Contadores personales deben cargarse apenas la sesión queda restaurada.
+  refreshInboxBadge().catch(e=>console.error('Carga inicial contador mensajes:',e));
   // Las dinámicas deben reconstruirse siempre al restaurar/refrescar la sesión.
   refreshDynamic().catch(e=>console.error('Carga inicial de dinámicas:',e));
   [500,1500,3000,6000].forEach(ms=>setTimeout(()=>{
