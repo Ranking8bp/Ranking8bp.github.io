@@ -2675,7 +2675,17 @@ async function uploadFreshWinnerEvidence(file){
   else{const {error}=await supabaseClient.storage.from('ranked-match-videos').upload(path,file,{contentType:file.type||'video/mp4',upsert:false,cacheControl:'3600'});if(error)throw error}
   const {error:saveError}=await supabaseClient.rpc('save_ranked_match_video',{p_match_id:matchId,p_video_path:path});if(saveError)throw saveError;
   if(status)status.textContent='✅ VIDEO ENVIADO AL ADMINISTRADOR PARA REVISIÓN.';if(btn){btn.textContent='🎥 VIDEO ENVIADO';btn.disabled=true}
-  showToast('Video enviado al administrador.');
+  // La evidencia ya quedó guardada: liberar al jugador de esta sala para que pueda seguir jugando.
+  clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;
+  if(Number(freshRoomMatchId)===matchId)freshRoomMatchId=null;
+  if(Number(currentRankedMatchId)===matchId)currentRankedMatchId=null;
+  rankedSearchActive=false;rankedPlayingLockedLocally=false;
+  stopRankedPlayTimer();stopRankedChatResponseTimer();
+  const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;
+  const evidenceInput=document.getElementById('freshWinnerVideoInput');if(evidenceInput)evidenceInput.value='';
+  showToast('PARTIDO EN REVISIÓN, PUEDES SEGUIR JUGANDO MIENTRAS SE DEFINE QUIÉN GANÓ.');
+  setTimeout(()=>alert('PARTIDO EN REVISIÓN\n\nPUEDES SEGUIR JUGANDO MIENTRAS SE DEFINE QUIÉN GANÓ.'),120);
+  updateRankedDailyStatus().catch(()=>{});loadRanking().catch(()=>{});
  }catch(e){console.error('Evidencia VS:',e);if(status)status.textContent=e?.message||'No se pudo subir el video.';if(btn)btn.disabled=false}
 }
 document.addEventListener('click',e=>{if(e.target?.id==='freshWinnerVideoBtn'){document.getElementById('freshWinnerVideoInput')?.click()}});
