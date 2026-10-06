@@ -1001,14 +1001,18 @@ async function pollRankedMatch(){
  if(!currentUser||!supabaseClient||currentRankedMatchId||matchmakingPollLoading||!rankedSearchActive)return;
  matchmakingPollLoading=true;
  try{
-  const {data:active,error:activeError}=await supabaseClient.rpc('get_my_active_ranked_match');
-  if(activeError)throw activeError;
-  const existing=Array.isArray(active)?active[0]:active;
-  if(existing){
-   clearInterval(matchmakingTimer);matchmakingTimer=null;
-   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
-   await stopMatchmakingRealtime().catch(()=>{});
-   showRankedMatch(existing);return;
+  const {data:visibleId,error:visibleError}=await supabaseClient.rpc('get_my_visible_active_ranked_match_id');
+  if(visibleError)throw visibleError;
+  if(visibleId){
+   const {data:active,error:activeError}=await supabaseClient.rpc('get_my_active_ranked_match');
+   if(activeError)throw activeError;
+   const existing=Array.isArray(active)?active[0]:active;
+   if(existing&&Number(existing.match_id)===Number(visibleId)){
+    clearInterval(matchmakingTimer);matchmakingTimer=null;
+    clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
+    stopMatchmakingRealtime().catch(()=>{});
+    showRankedMatch(existing);return;
+   }
   }
   /* Keep the atomic matcher alive while this screen says BUSCANDO RIVAL.
      This also recovers mobile/WebView clients when Realtime misses the INSERT. */
@@ -1028,7 +1032,7 @@ async function pollRankedMatch(){
   }
  }catch(e){
   const msg=String(e?.message||'');
-  if(msg.includes('PLAYER_ALREADY_HAS_ACTIVE_VS')){try{await restoreActiveRankedVs()}catch(_){}}
+  if(msg.includes('PLAYER_ALREADY_HAS_ACTIVE_VS')){try{const {data:vid}=await supabaseClient.rpc('get_my_visible_active_ranked_match_id');if(vid)await restoreActiveRankedVs()}catch(_){}}
   else console.error('Error sondeo emparejamiento:',e);
  }finally{matchmakingPollLoading=false}
 }
@@ -1135,7 +1139,7 @@ async function startRankedMatchmaking(){
    console.error('Error búsqueda ELO:',e);
    const msg=String(e?.message||e?.error_description||'');
     if(msg.includes('RANKED_EVIDENCE_PENDING')){if(matchmakingModal)matchmakingModal.hidden=true;showToast('⚠️ Tienes un VS con evidencia pendiente. Espera a que el administrador determine el ganador.');return}
-   if(msg.includes('PLAYER_ALREADY_HAS_ACTIVE_VS')){await restoreActiveRankedVs();showToast('Ya tienes un VS activo.');return}
+   if(msg.includes('PLAYER_ALREADY_HAS_ACTIVE_VS')){const {data:vid}=await supabaseClient.rpc('get_my_visible_active_ranked_match_id');if(vid){await restoreActiveRankedVs();showToast('Ya tienes un VS activo.');return}}
    /* A temporary matchmaking/heartbeat error must never close BUSCANDO RIVAL. */
    if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}
    startMatchmakingRealtime();
