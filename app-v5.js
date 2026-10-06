@@ -2627,8 +2627,22 @@ document.addEventListener('click',async e=>{
  if(!freshRoomMatchId)return;
  const map={freshWon:'WON',freshLost:'LOST'};
  if(map[e.target?.id]){
-  const btn=e.target;btn.disabled=true;
-  try{const claim=map[btn.id];const {data,error}=await supabaseClient.rpc('submit_ranked_result_claim',{p_match_id:freshRoomMatchId,p_claim:claim});if(error)throw error;btn.textContent=claim==='WON'?'✓ MARCASTE GANÉ':'✓ MARCASTE PERDÍ';const st=document.getElementById('freshResultStatus');if(st)st.textContent=claim==='WON'?'Sube el video del tiro con la 8 que demuestre que ganaste. El video puede durar máximo 1 minuto.':'Derrota confirmada.';if(claim==='WON'){const ev=document.getElementById('freshEvidenceBox');if(ev)ev.hidden=false}showToast(claim==='WON'?'Ahora sube tu video de evidencia.':'Derrota confirmada.');}catch(x){console.error(x);btn.disabled=false;showToast('No se pudo registrar el resultado.')}return;
+  const btn=e.target,claim=map[btn.id],matchId=Number(freshRoomMatchId);btn.disabled=true;
+  const st=document.getElementById('freshResultStatus');
+  if(claim==='WON'){
+   const ev=document.getElementById('freshEvidenceBox');if(ev)ev.hidden=false;
+   if(st)st.textContent='Sube el video del tiro con la 8 que demuestre que ganaste. El video puede durar máximo 1 minuto.';
+   btn.textContent='✓ MARCASTE GANÉ';
+  }
+  try{
+   const {data,error}=await supabaseClient.rpc('submit_ranked_result_claim',{p_match_id:matchId,p_claim:claim});if(error)throw error;
+   if(claim==='LOST'){btn.textContent='✓ MARCASTE PERDÍ';if(st)st.textContent='Derrota confirmada.'}
+   showToast(claim==='WON'?'Ahora sube tu video de evidencia.':'Derrota confirmada.');
+  }catch(x){
+   console.error(x);
+   if(claim==='WON'){const ev=document.getElementById('freshEvidenceBox');if(ev)ev.hidden=true;btn.textContent='🏆 GANÉ';if(st)st.textContent=''}
+   btn.disabled=false;showToast('No se pudo registrar el resultado.');
+  }return;
  }
  if(e.target?.id==='freshNoTrick'){
   const btn=e.target,matchId=Number(freshRoomMatchId);
