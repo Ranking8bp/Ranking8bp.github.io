@@ -2646,8 +2646,8 @@ async function restorePersistentFreshRoom(id){
    const leave=document.getElementById('freshLeaveRoom');if(leave){leave.hidden=true;leave.disabled=true}
    const ready=document.getElementById('freshReadyActions');if(ready){ready.hidden=false;ready.classList.add('fresh-actions-chat-place')}
    const results=document.getElementById('freshResultActions');if(results)results.hidden=false;
-   const input=document.getElementById('freshChatInput');if(input)input.disabled=true;
-   const send=document.getElementById('freshChatSend');if(send)send.disabled=true;
+   const input=document.getElementById('freshChatInput');if(input)input.disabled=false;
+   const send=document.getElementById('freshChatSend');if(send)send.disabled=false;
    const rs=document.getElementById('freshResultStatus');if(rs)rs.textContent=String(st.status)==='review'?'Tu rival envió evidencia. Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.':'Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.';
   }
  }catch(e){console.error('Restaurar estado persistente VS:',e)}
