@@ -2628,7 +2628,7 @@ async function restorePersistentFreshRoom(id){
  try{
   const {data,error}=await supabaseClient.rpc('get_my_ranked_room_state');if(error)throw error;
   const st=Array.isArray(data)?data[0]:data;if(!st||Number(st.match_id)!==Number(id))return;
-  if(String(st.status)==='review'||st.both_messaged){
+  if(String(st.status)==='review'||st.both_messaged||st.opponent_claim){
    clearInterval(freshRoomTimer);freshRoomTimer=null;
    const warning=document.getElementById('freshResponseWarning');if(warning)warning.hidden=true;
    const abandon=document.getElementById('freshAbandonPending');if(abandon){abandon.hidden=true;abandon.disabled=true}
