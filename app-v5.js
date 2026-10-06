@@ -860,7 +860,8 @@ rankedVsChatSend?.addEventListener('click',e=>{e.preventDefault();e.stopPropagat
 
 rankedVsChatInput?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendRankedVsChat()}});
 function showRankedMatch(match){currentRankedMatchData=match;rankedVsBothMessaged=false;lastVsSafetyRpcAt=0;rankedPlayingLockedLocally=!!match?.players_playing;
- if(!matchmakingModal)return;
+ if(!matchmakingModal||!matchmakingSearching||!matchmakingVersus)return;
+ matchmakingModal.hidden=false;
  rankedSearchActive=false;stopRankedSearchLoop();
  currentRankedMatchId=match.match_id;
  startActiveVsRealtime(currentRankedMatchId);
@@ -972,10 +973,16 @@ async function openCreatedRankedVsNow(){
   const state=Array.isArray(stateRows)?stateRows[0]:stateRows;
   const activeId=state?.match_id;
   if(state?.state!=='matched'||!activeId)return false;
-  const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');
-  if(error)throw error;
-  const match=Array.isArray(data)?data[0]:data;
-  if(!match||Number(match.match_id)!==Number(activeId))return false;
+  let match=null;
+  for(let attempt=0;attempt<6&&!match;attempt++){
+   const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');
+   if(error)throw error;
+   const candidate=Array.isArray(data)?data[0]:data;
+   if(candidate&&Number(candidate.match_id)===Number(activeId))match=candidate;
+   else await new Promise(resolve=>setTimeout(resolve,150));
+  }
+  if(!match)return false;
+  if(!matchmakingModal||!matchmakingSearching||!matchmakingVersus)return false;
   rankedSearchActive=false;stopRankedSearchLoop();
   clearInterval(matchmakingTimer);matchmakingTimer=null;
   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
