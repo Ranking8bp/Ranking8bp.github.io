@@ -1126,11 +1126,14 @@ async function refreshPlayersSearchingCount(){
 setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),8000+Math.floor(Math.random()*12000));setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},180000);
 async function loadMatchmakingV2Match(matchId){
  if(!matchId||!supabaseClient)return false;
- const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');
+ const {data,error}=await supabaseClient.rpc('matchmaking_v2_room',{p_match_id:Number(matchId)});
  if(error)throw error;
  const match=Array.isArray(data)?data[0]:data;
  if(!match||Number(match.match_id)!==Number(matchId))return false;
- showRankedMatch(match);return true;
+ if(!matchmakingModal||!matchmakingSearching||!matchmakingVersus)return false;
+ matchmakingModal.hidden=false;
+ showRankedMatch(match);
+ return Boolean(currentRankedMatchId);
 }
 async function matchmakingV2Loop(token){
  while(rankedSearchActive&&!currentRankedMatchId&&token===rankedSearchLoopToken){
