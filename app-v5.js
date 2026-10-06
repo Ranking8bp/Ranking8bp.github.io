@@ -964,17 +964,21 @@ async function stopMatchmakingRealtime(){
  matchmakingRealtimeChannel=null;
 }
 async function openCreatedRankedVsNow(){
- if(!currentUser||!supabaseClient||currentRankedMatchId)return;
+ if(!currentUser||!supabaseClient||currentRankedMatchId)return false;
  try{
   const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');
   if(error)throw error;
   const match=Array.isArray(data)?data[0]:data;
-  if(!match)return;
+  if(!match)return false;
+  rankedSearchActive=false;stopRankedSearchLoop();
   clearInterval(matchmakingTimer);matchmakingTimer=null;
   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
+  if(matchmakingSearching){matchmakingSearching.hidden=true;matchmakingSearching.style.display='none'}
+  if(matchmakingVersus){matchmakingVersus.hidden=false;matchmakingVersus.style.display='block'}
   showRankedMatch(match);
   stopMatchmakingRealtime().catch(()=>{});
- }catch(e){console.error('Abrir VS recién creado:',e)}
+  return true;
+ }catch(e){console.error('Abrir VS recién creado:',e);return false}
 }
 function startMatchmakingRealtime(){
  if(!currentUser||!supabaseClient)return;
