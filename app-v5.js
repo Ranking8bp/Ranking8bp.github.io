@@ -963,16 +963,29 @@ async function stopMatchmakingRealtime(){
  }
  matchmakingRealtimeChannel=null;
 }
+async function openCreatedRankedVsNow(){
+ if(!currentUser||!supabaseClient||currentRankedMatchId)return;
+ try{
+  const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');
+  if(error)throw error;
+  const match=Array.isArray(data)?data[0]:data;
+  if(!match)return;
+  clearInterval(matchmakingTimer);matchmakingTimer=null;
+  clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
+  showRankedMatch(match);
+  stopMatchmakingRealtime().catch(()=>{});
+ }catch(e){console.error('Abrir VS recién creado:',e)}
+}
 function startMatchmakingRealtime(){
  if(!currentUser||!supabaseClient)return;
  stopMatchmakingRealtime().catch(()=>{});
  const uid=String(currentUser.id);
  matchmakingRealtimeChannel=supabaseClient
   .channel('ranked-match-'+uid)
-  .on('postgres_changes',{event:'INSERT',schema:'public',table:'ranked_matches',filter:'player1_id=eq.'+uid},()=>pollRankedMatch())
-  .on('postgres_changes',{event:'INSERT',schema:'public',table:'ranked_matches',filter:'player2_id=eq.'+uid},()=>pollRankedMatch())
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'ranked_matches',filter:'player1_id=eq.'+uid},()=>openCreatedRankedVsNow())
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'ranked_matches',filter:'player2_id=eq.'+uid},()=>openCreatedRankedVsNow())
   .subscribe((status)=>{
-   if(status==='SUBSCRIBED')pollRankedMatch().catch(()=>{});
+   if(status==='SUBSCRIBED')openCreatedRankedVsNow();
   });
 }
 
