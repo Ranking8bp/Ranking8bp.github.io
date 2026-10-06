@@ -2635,6 +2635,7 @@ document.addEventListener('click',async e=>{
   try{
    btn.disabled=true;
    const {data,error}=await supabaseClient.rpc('submit_ranked_no_trick',{p_match_id:matchId});if(error)throw error;
+   if(!['released','cancelled'].includes(String(data||'')))throw new Error('NO_TRICK_NOT_RELEASED');
    clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;
    if(Number(freshRoomMatchId)===matchId)freshRoomMatchId=null;
    currentRankedMatchId=null;rankedSearchActive=false;
