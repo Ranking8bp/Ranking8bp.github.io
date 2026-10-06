@@ -2199,3 +2199,11 @@ img,svg,video,canvas{max-width:100%}
 #freshReadyActions{order:6!important}
 #freshEvidenceBox{order:7!important}
 #freshResultActions{order:8!important}
+
+/* Stable VS result layout: chat/notice slot then evidence then result buttons */
+#freshRankedChat{order:4!important}
+#freshOpponentClaimNotice{order:4!important}
+#freshEvidenceBox{order:5!important}
+#freshReadyActions{order:6!important}
+#freshResultActions{order:7!important}
+#freshEvidenceBox[hidden],#freshOpponentClaimNotice[hidden]{display:none!important}
