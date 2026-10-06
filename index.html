@@ -919,11 +919,6 @@
         </section>
         <div class="elo-stakes"><span>GANADOR <b>+15 ELO</b></span><span>PERDEDOR <b>-15 ELO</b> · <b>-45 ELO</b> SI ADMIN/MOD DEFINE EL RESULTADO</span></div>
         <div class="ranked-match-countdown" id="rankedMatchCountdown" hidden style="display:none!important"><b id="rankedMatchCountdownValue" hidden>0</b><button type="button" id="rankedPlayerConfirmBtn" hidden></button><small id="rankedPlayerConfirmStatus" hidden></small></div>
-        <div class="player-vs-safety" id="playerVsSafety" hidden>
-          <p id="playerVsSafetyNotice">⚠️ <b>IMPORTANTE:</b> Toca <b>YA ESTAMOS JUGANDO</b> únicamente cuando tú y tu rival ya estén jugando. Al activarlo, <b>ninguno de los dos podrá anular el VS</b>. Hazlo para evitar que alguien haga trampa intentando anular el enfrentamiento después de haber comenzado la partida.</p>
-          <div class="player-vs-safety-actions"><button type="button" id="playerCancelVsBtn">ANULAR VS</button><button type="button" id="playerPlayingBtn">YA ESTAMOS JUGANDO</button></div><div id="playerPlayingConfirmBox" hidden style="position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:20px"><div style="width:min(92vw,620px);background:#081d2a;border:3px solid #f0c84b;border-radius:22px;padding:32px 24px;text-align:center;box-shadow:0 20px 70px rgba(0,0,0,.8)"><strong style="display:block;font-size:clamp(24px,5vw,38px);line-height:1.15;margin-bottom:28px;color:#fff">¿YA ESTÁN JUGANDO EN LA MESA DE 8 BALL POOL?</strong><div style="display:grid;grid-template-columns:1fr 1fr;gap:18px"><button type="button" id="playerPlayingYesBtn" style="min-height:76px;border:0;border-radius:14px;background:#10b956;color:#fff;font-size:28px;font-weight:900">SÍ</button><button type="button" id="playerPlayingNoBtn" style="min-height:76px;border:0;border-radius:14px;background:#d92323;color:#fff;font-size:28px;font-weight:900">NO</button></div></div></div>
-          <strong id="playerPlayingLocked" hidden>🔒 PARTIDA EN JUEGO · ESTE VS YA NO PUEDE SER ANULADO POR LOS JUGADORES</strong>
-        </div>
         <div class="ranked-play-timer" id="rankedPlayTimer" hidden style="display:none!important"><strong id="rankedPlayTimerValue" hidden>00:00</strong><small id="rankedPlayTimerNote" hidden></small></div>
         <section class="ranked-result-report" id="rankedResultReport" hidden>
           <strong>RESULTADO DEL PARTIDO</strong>
@@ -1001,7 +996,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261006-chat-unlocks-results-38"></script>
+  <script src="app-v5.js?v=20261006-remove-playing-controls-39"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
