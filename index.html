@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>RANKING IKAR8BP</title>
-  <link rel="stylesheet" href="styles-v5.css?v=20261006-original-room-61" />
+  <link rel="stylesheet" href="styles-v5.css?v=20261006-original-results-62" />
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest?v=1">
 <meta name="theme-color" content="#06121a">
@@ -915,9 +915,17 @@
 <div class="ranked-vs-chat-head"><strong>💬 CHAT DEL VS</strong><span>Solo jugadores de este VS y administrador</span></div>
 <div class="ranked-vs-chat-messages" id="freshChatMessages"></div>
 <div class="ranked-vs-chat-compose"><textarea id="freshChatInput" maxlength="1000" rows="2" placeholder="Escribe un mensaje..."></textarea><button type="button" id="freshChatSend">ENVIAR</button></div>
-<div id="freshResultActions" hidden>
-<button type="button" class="ranked-no-trick-btn" id="freshNoTrick">NADIE HIZO TRICKSHOT</button>
+</div>
+<div id="freshResultActions" class="fresh-results-section" hidden>
+<div class="fresh-elo-summary"><strong>GANADOR +15 ELO</strong><span>PERDEDOR -15 ELO · <b>-45 ELO SI ADMIN/MOD DEFINE EL RESULTADO</b></span></div>
+<div class="fresh-result-card">
+<strong>RESULTADO DEL PARTIDO</strong>
+<small>Cuando termine el VS, cada jugador debe indicar su resultado.</small>
 <div class="ranked-result-actions"><button type="button" id="freshWon">🏆 GANÉ</button><button type="button" id="freshLost">PERDÍ</button></div>
+<p id="freshResultStatus">Indica el resultado cuando termine el partido.</p>
+<div class="fresh-evidence-warning">📹 SI MARCAS GANÉ Y TU RIVAL NO MARCA PERDÍ, DEBES SUBIR EVIDENCIA DE TU VICTORIA.</div>
+<button type="button" class="ranked-no-trick-btn" id="freshNoTrick">NADIE HIZO TRICKSHOT CON LA 8</button>
+<div class="fresh-rule-warning">⚠️ <b>REGLA IMPORTANTE:</b> Si nadie ganó correctamente haciendo TRICKSHOT CON LA 8, debes tocar <b>NADIE HIZO TRICKSHOT CON LA 8</b>. Si marcas GANÉ y no presentas un video válido que demuestre tu trickshot ganador con la 8, recibirás una sanción de -100 ELO.</div>
 </div>
 </div>
 </div>
