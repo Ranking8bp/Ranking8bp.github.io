@@ -2179,3 +2179,14 @@ img,svg,video,canvas{max-width:100%}
 .fresh-chat-seen{display:block;margin-top:3px;text-align:right;font:800 9px/1 Arial,sans-serif;color:#62b8ff;letter-spacing:.3px;opacity:.95}
 
 .fresh-match-rules .rule-yellow{color:#ffd928!important;font-weight:1000}.fresh-match-rules .rule-red{color:#ff3b42!important;font-weight:1000;text-shadow:0 0 6px rgba(255,40,50,.2)}
+
+
+/* Winner evidence: keep it immediately above GANÉ/PERDÍ and make it prominent */
+#freshEvidenceBox{order:5!important;width:100%;max-width:650px;margin:18px auto 10px!important;padding:18px 14px!important;border:3px solid #ffd54a!important;border-radius:16px!important;background:linear-gradient(180deg,#3b2d05,#171004)!important;box-shadow:0 0 26px rgba(255,213,74,.42)!important;color:#fff!important;box-sizing:border-box!important}
+#freshEvidenceBox>strong{display:block!important;font:1000 20px/1.2 Arial,sans-serif!important;color:#ffe56d!important;margin-bottom:8px!important}
+#freshEvidenceBox>p{margin:0 0 12px!important;font:800 13px/1.35 Arial,sans-serif!important;color:#fff!important}
+#freshWinnerVideoBtn{width:100%!important;min-height:58px!important;border:2px solid #fff1a8!important;border-radius:12px!important;background:#d59b13!important;color:#111!important;font:1000 16px Arial,sans-serif!important;box-shadow:0 5px 16px rgba(0,0,0,.28)!important}
+#freshWinnerVideoStatus{margin-top:10px!important;font:900 13px/1.35 Arial,sans-serif!important;color:#fff!important;overflow-wrap:anywhere!important}
+#freshReadyActions{order:6!important}
+#freshResultActions{order:7!important}
+@media(max-width:600px){#freshEvidenceBox{padding:15px 10px!important}#freshEvidenceBox>strong{font-size:18px!important}#freshWinnerVideoBtn{font-size:15px!important}}
