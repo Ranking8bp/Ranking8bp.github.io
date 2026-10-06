@@ -921,6 +921,13 @@
 <div class="fresh-ready-main"><button type="button" id="freshWon">🏆 GANÉ</button><button type="button" id="freshLost">PERDÍ</button></div>
 <div class="fresh-ready-secondary"><button type="button" id="freshNoTrick">NADIE HIZO TRICKSHOT CON LA 8</button><button type="button" id="freshLeaveRoom">SALIR DE LA SALA</button></div>
 </div>
+<div id="freshEvidenceBox" class="fresh-results-section" hidden>
+  <strong>🎥 SUBIR VIDEO DE EVIDENCIA</strong>
+  <p>Sube el video que demuestra tu victoria. Máximo 1 minuto.</p>
+  <input id="freshWinnerVideoInput" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v,.mp4,.mov,.m4v,.webm" hidden>
+  <button type="button" id="freshWinnerVideoBtn">🎥 SELECCIONAR VIDEO</button>
+  <div id="freshWinnerVideoStatus"></div>
+</div>
 <div id="freshResultActions" class="fresh-results-section" hidden>
 <div class="fresh-elo-summary"><strong>GANADOR +15 ELO</strong><span>PERDEDOR -15 ELO · <b>-45 ELO SI ADMIN/MOD DEFINE EL RESULTADO</b></span></div>
 <div class="fresh-result-card">
@@ -975,7 +982,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261006-abandon-per-player-74"></script>
+  <script src="app-v5.js?v=20261006-fresh-evidence-75"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
