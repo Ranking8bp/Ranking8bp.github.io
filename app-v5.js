@@ -2566,7 +2566,7 @@ async function loadFreshRankedChat(){
   const senders=new Set();
   rows.forEach(m=>{if(m.sender_id)senders.add(String(m.sender_id));const d=document.createElement('div');d.className='ranked-vs-chat-message'+(String(m.sender_id)===String(currentUser?.id)?' mine':'');const n=document.createElement('strong');n.textContent=m.sender_name||'JUGADOR';const b=document.createElement('p');b.textContent=m.message||'';d.append(n,b);box.appendChild(d)});
   box.scrollTop=box.scrollHeight;
-  if(senders.size>=2){clearInterval(freshRoomTimer);freshRoomTimer=null;const w=document.getElementById('freshResponseWarning');if(w)w.hidden=true;const ready=document.getElementById('freshReadyActions');if(ready)ready.hidden=false;const a=document.getElementById('freshResultActions');if(a)a.hidden=false;}
+  if(senders.size>=2){clearInterval(freshRoomTimer);freshRoomTimer=null;const w=document.getElementById('freshResponseWarning');if(w)w.hidden=true;const chat=document.getElementById('freshRankedChat');if(chat)chat.classList.add('fresh-chat-top');const ready=document.getElementById('freshReadyActions');if(ready){ready.hidden=false;ready.classList.add('fresh-actions-chat-place')}const a=document.getElementById('freshResultActions');if(a)a.hidden=false;}
  }catch(e){console.error('Chat sala nueva:',e)}
 }
 async function sendFreshRankedChat(){
