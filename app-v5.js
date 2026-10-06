@@ -251,6 +251,7 @@ const profileCommentSubmit=document.getElementById('profileCommentSubmit');
 const profileCommentsList=document.getElementById('profileCommentsList');
 const profileCommentCount=document.getElementById('profileCommentCount');
 const inboxBtn=document.getElementById('inboxBtn');
+const inboxBadge=document.getElementById('inboxBadge');
 const inboxPanel=document.getElementById('inboxPanel');
 const inboxList=document.getElementById('inboxList');
 const refreshInboxBtn=document.getElementById('refreshInboxBtn');
@@ -2301,13 +2302,16 @@ async function sendConversationMessage(){
  const body=conversationInput?.value.trim();if(!body||!activeConversationUser||!currentUser||!supabaseClient)return;conversationSendBtn.disabled=true;
  try{const {data:sent,error}=await supabaseClient.from('private_messages').insert({sender_id:currentUser.id,recipient_id:activeConversationUser.id,body}).select('id').single();if(error)throw error;if(sent?.id)supabaseClient.functions.invoke('send-private-push',{body:{message_id:sent.id}}).catch(console.error);conversationInput.value='';await loadInbox();renderConversation()}catch(e){console.error(e);showToast('No se pudo enviar el mensaje.')}finally{conversationSendBtn.disabled=false}
 }
+function updateInboxBadge(count){if(!inboxBadge)return;const n=Number(count)||0;inboxBadge.textContent=n>99?'99+':String(n);inboxBadge.hidden=n<1}
+async function refreshInboxBadge(){if(!currentUser||!supabaseClient){updateInboxBadge(0);return}try{const {data,error}=await supabaseClient.rpc('get_my_private_messages');if(error)throw error;const items=Array.isArray(data)?data:[];updateInboxBadge(items.filter(m=>m.recipient_id===currentUser.id&&!m.is_read).length)}catch(e){console.error('Contador mensajes:',e)}}
 async function loadInbox(){
  if(!currentUser||!supabaseClient||!inboxList)return;
  try{
   const {data,error}=await supabaseClient.rpc('get_my_private_messages');if(error)throw error;
   const items=Array.isArray(data)?data:[];inboxMessagesCache=items;renderInbox(items);
   const unread=items.filter(m=>m.recipient_id===currentUser.id&&!m.is_read);
-  if(unread.length)await supabaseClient.from('private_messages').update({is_read:true}).eq('recipient_id',currentUser.id).eq('is_read',false);
+  updateInboxBadge(unread.length);
+  if(unread.length){await supabaseClient.from('private_messages').update({is_read:true}).eq('recipient_id',currentUser.id).eq('is_read',false);updateInboxBadge(0)}
  }catch(e){console.error(e);inboxList.innerHTML='<div class="notification-empty">No se pudo cargar la bandeja.</div>'}
 }
 async function toggleInbox(){
