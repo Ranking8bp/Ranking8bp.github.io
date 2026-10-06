@@ -2289,8 +2289,16 @@ function renderInbox(items){
   const t=document.createElement('time');t.textContent=formatCommentDate(c.last.created_at);box.append(p,t);item.append(icon,box);item.addEventListener('click',()=>openConversation(c.id,c.name));inboxList.appendChild(item);
  });
 }
-function openConversation(userId,userName){
+async function openConversation(userId,userName){
  activeConversationUser={id:userId,name:userName};if(inboxPanel)inboxPanel.hidden=true;if(conversationPanel)conversationPanel.hidden=false;if(conversationTitle)conversationTitle.textContent=String(userName||'Jugador').toUpperCase();renderConversation();
+ if(currentUser&&supabaseClient){
+  const unread=inboxMessagesCache.filter(m=>m.sender_id===userId&&m.recipient_id===currentUser.id&&!m.is_read);
+  if(unread.length){
+   const ids=unread.map(m=>m.message_id).filter(Boolean);
+   if(ids.length){const {error}=await supabaseClient.from('private_messages').update({is_read:true}).eq('recipient_id',currentUser.id).in('id',ids);if(error)console.error('Marcar conversación leída:',error)}
+   unread.forEach(m=>m.is_read=true);renderInbox(inboxMessagesCache);await refreshInboxBadge();
+  }
+ }
 }
 function renderConversation(){
  if(!conversationMessages||!activeConversationUser)return;conversationMessages.replaceChildren();
@@ -2311,7 +2319,6 @@ async function loadInbox(){
   const items=Array.isArray(data)?data:[];inboxMessagesCache=items;renderInbox(items);
   const unread=items.filter(m=>m.recipient_id===currentUser.id&&!m.is_read);
   updateInboxBadge(unread.length);
-  if(unread.length){await supabaseClient.from('private_messages').update({is_read:true}).eq('recipient_id',currentUser.id).eq('is_read',false);updateInboxBadge(0)}
  }catch(e){console.error(e);inboxList.innerHTML='<div class="notification-empty">No se pudo cargar la bandeja.</div>'}
 }
 async function toggleInbox(){
