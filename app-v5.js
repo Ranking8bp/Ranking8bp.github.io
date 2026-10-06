@@ -984,7 +984,20 @@ function showEloDailyLimit(resetAt){
  eloDailyCountdownTimer=setInterval(formatEloCountdown,1000);
 }
 async function updateRankedDailyStatus(){
- if(dashboardPlayBtn){dashboardPlayBtn.classList.remove('elo-daily-limited');dashboardPlayBtn.setAttribute('aria-label','Jugar por ELO')}
+ if(dashboardPlayBtn){
+  dashboardPlayBtn.classList.remove('elo-daily-limited');
+  dashboardPlayBtn.textContent='JUGAR';
+  dashboardPlayBtn.setAttribute('aria-label','Jugar por ELO');
+  try{
+   if(currentUser&&supabaseClient){
+    const {data:pendingId,error}=await supabaseClient.rpc('get_my_pending_ranked_room');
+    if(!error&&Number(pendingId)>0){
+     dashboardPlayBtn.textContent='REGRESAR A LA SALA';
+     dashboardPlayBtn.setAttribute('aria-label','Regresar a la sala del VS pendiente');
+    }
+   }
+  }catch(e){console.error('Comprobar sala pendiente:',e)}
+ }
  closeEloDailyLimit();
  return {games_today:0,games_remaining:null,reset_at:null};
 }
