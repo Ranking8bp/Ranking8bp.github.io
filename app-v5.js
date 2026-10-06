@@ -401,17 +401,19 @@ async function abandonRankedMatch(){
 
 let rankedVsBothMessaged=false,lastVsSafetyRpcAt=0,rankedPlayingLockedLocally=false;
 function paintPlayerVsSafety(st){
- if(!playerVsSafety||!st)return;
- const ready=!!st.both_messaged,mine=!!st.my_playing_confirmed,other=!!st.opponent_playing_confirmed,locked=rankedPlayingLockedLocally||!!st.players_playing;
- playerVsSafety.hidden=!ready;playerVsSafety.style.display=ready?'block':'none';
- if(!ready){if(abandonRankedBtn){abandonRankedBtn.hidden=locked;abandonRankedBtn.style.display=locked?'none':'block';abandonRankedBtn.disabled=locked;abandonRankedBtn.textContent='ABANDONAR VS'}return;}
- const resultPhase=locked;
- if(abandonRankedBtn){abandonRankedBtn.hidden=locked;abandonRankedBtn.style.display=locked?'none':'block';abandonRankedBtn.disabled=locked;abandonRankedBtn.textContent='ABANDONAR VS'}
- if(playerCancelVsBtn){playerCancelVsBtn.hidden=resultPhase;playerCancelVsBtn.disabled=resultPhase;playerCancelVsBtn.style.display=resultPhase?'none':''}
- if(playerPlayingBtn){playerPlayingBtn.hidden=resultPhase;playerPlayingBtn.disabled=resultPhase;playerPlayingBtn.style.display=resultPhase?'none':''}
- if(playerVsSafetyNotice){playerVsSafetyNotice.hidden=locked;if(!locked&&mine)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> El VS ya no puede ser anulado.';else if(!locked&&other)playerVsSafetyNotice.innerHTML='🔒 <b>PARTIDA EN JUEGO.</b> Tu rival confirmó que ya están jugando. El VS ya no puede ser anulado.'}
- if(playerPlayingLocked)playerPlayingLocked.hidden=!locked;
- if(rankedResultReport){rankedResultReport.hidden=!locked;rankedResultReport.style.display=locked?'block':'none'}
+ if(!st)return;
+ const ready=!!st.both_messaged;
+ /* New flow: once both players have written, result actions unlock immediately.
+    No "YA ESTAMOS JUGANDO" confirmation is required. */
+ if(playerVsSafety){playerVsSafety.hidden=true;playerVsSafety.style.display='none'}
+ if(playerPlayingBtn){playerPlayingBtn.hidden=true;playerPlayingBtn.disabled=true;playerPlayingBtn.style.display='none'}
+ if(playerCancelVsBtn){playerCancelVsBtn.hidden=ready;playerCancelVsBtn.disabled=ready;playerCancelVsBtn.style.display=ready?'none':''}
+ if(playerPlayingLocked)playerPlayingLocked.hidden=true;
+ if(ready){
+  stopRankedChatResponseTimer();
+  if(abandonRankedBtn){abandonRankedBtn.hidden=true;abandonRankedBtn.disabled=true;abandonRankedBtn.style.display='none'}
+  updateRankedResultReport(currentRankedMatchData);
+ }
 }
 function safetyFromRealtimeRow(row){
  if(!row||!currentUser)return null;
@@ -484,8 +486,7 @@ async function updatePendingMatchesCount(){
 
 function updateRankedResultReport(match){
  if(!rankedResultReport)return;
- const playing=rankedPlayingLockedLocally||!!match?.players_playing;
- const resultPhase=playing;
+ const resultPhase=rankedVsBothMessaged||rankedPlayingLockedLocally||!!match?.players_playing;
  rankedResultReport.hidden=!resultPhase;rankedResultReport.style.display=resultPhase?'block':'none';
  if(resultPhase){
    if(playerCancelVsBtn){playerCancelVsBtn.hidden=true;playerCancelVsBtn.disabled=true;playerCancelVsBtn.style.display='none'}
@@ -796,7 +797,7 @@ async function loadRankedVsChat(matchId){
   const {data,error}=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:Number(matchId)});
   if(error)throw error;
   const hasUnreadIncoming=Array.isArray(data)&&data.some(m=>m.sender_id!==currentUser?.id&&!m.is_admin&&!m.read_by_other);
-  const participantSenders=new Set((Array.isArray(data)?data:[]).filter(m=>!m.is_admin&&m.sender_id).map(m=>String(m.sender_id)));rankedVsBothMessaged=participantSenders.size>=2;if(rankedVsBothMessaged)stopRankedChatResponseTimer();const localSafety=safetyFromRealtimeRow(currentRankedMatchData);if(localSafety)paintPlayerVsSafety(localSafety);
+  const participantSenders=new Set((Array.isArray(data)?data:[]).filter(m=>!m.is_admin&&m.sender_id).map(m=>String(m.sender_id)));rankedVsBothMessaged=participantSenders.size>=2;if(rankedVsBothMessaged){stopRankedChatResponseTimer();updateRankedResultReport(currentRankedMatchData)}const localSafety=safetyFromRealtimeRow(currentRankedMatchData);if(localSafety)paintPlayerVsSafety(localSafety);
   if(hasUnreadIncoming){try{await supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:Number(matchId)})}catch(_){}}
   rankedVsChatMessages.replaceChildren();
   if(!data?.length){const e=document.createElement('div');e.className='ranked-vs-chat-empty';e.textContent='Todavía no hay mensajes. Escribe para coordinar el partido.';rankedVsChatMessages.appendChild(e);return}
