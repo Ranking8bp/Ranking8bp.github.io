@@ -2674,7 +2674,7 @@ function startFreshRankedRoom(id,secondsLeft=60){
  const abandon=document.getElementById('freshAbandonPending');if(abandon){abandon.hidden=false;abandon.disabled=false}
  const ready=document.getElementById('freshReadyActions');if(ready){ready.hidden=true;ready.classList.remove('fresh-actions-chat-place')}
  const results=document.getElementById('freshResultActions');if(results)results.hidden=true;
- const evidence=document.getElementById('freshEvidenceBox'); /* persistent renderer decides evidence visibility */
+ const evidence=document.getElementById('freshEvidenceBox');if(evidence)evidence.hidden=true; /* persistent renderer restores it only when WON is confirmed */
  const noTrick=document.getElementById('freshNoTrick');if(noTrick){noTrick.disabled=false;noTrick.textContent='NADIE HIZO TRICKSHOT CON LA 8'}
  const won=document.getElementById('freshWon');if(won){won.disabled=false;won.textContent='🏆 GANÉ'}
  const lost=document.getElementById('freshLost');if(lost){lost.disabled=false;lost.textContent='PERDÍ'}
@@ -2684,7 +2684,7 @@ function startFreshRankedRoom(id,secondsLeft=60){
  const videoBtn=document.getElementById('freshWinnerVideoBtn');if(videoBtn){videoBtn.disabled=false;videoBtn.textContent='🎥 SELECCIONAR VIDEO'}
  const videoInput=document.getElementById('freshWinnerVideoInput');if(videoInput)videoInput.value='';
  const chat=document.getElementById('freshRankedChat');if(chat)chat.classList.remove('fresh-chat-top');
- restorePersistentFreshRoom(id);
+ /* Render the persisted room state once before starting timers to avoid layout jumping after refresh. */
  const tick=()=>{const left=Math.max(0,Math.ceil((freshRoomExpiresAt-Date.now())/1000)),t=document.getElementById('freshChatTimer');if(t)t.textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');if(left<=0){clearInterval(freshRoomTimer);freshRoomTimer=null;(async()=>{try{const {data,error}=await supabaseClient.rpc('auto_cancel_unanswered_ranked_chat',{p_match_id:freshRoomMatchId,p_force:false});if(error)throw error;if(data==='cancelled'){clearInterval(freshRoomChatPoll);freshRoomChatPoll=null;freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS anulado: ambos jugadores debían enviar un mensaje antes de terminar el minuto.')}}catch(e){console.error('Auto cancelar VS:',e)}})()}};
  // If the room was restored while the match is already under REVIEW, the other
  // player must answer the result immediately; do not restart the 1-minute chat phase.
