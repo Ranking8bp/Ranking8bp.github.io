@@ -2194,3 +2194,8 @@ img,svg,video,canvas{max-width:100%}
 .fresh-opponent-claim-notice{width:100%;max-width:650px;margin:12px auto;padding:18px 14px;box-sizing:border-box;border:2px solid #ffd54a;border-radius:14px;background:#171004;color:#ffe56d;text-align:center;font:1000 17px/1.35 Arial,sans-serif;box-shadow:0 0 20px rgba(255,213,74,.25)}
 
 .fresh-forgot-video-btn{display:block;width:100%;margin-top:10px;padding:12px;border-radius:10px;border:1px solid #ff6262;background:#3b1111;color:#fff;font-weight:900}
+
+#freshOpponentClaimNotice{order:5!important;width:100%;max-width:650px;align-self:center}
+#freshReadyActions{order:6!important}
+#freshEvidenceBox{order:7!important}
+#freshResultActions{order:8!important}
