@@ -2684,8 +2684,8 @@ function startFreshRankedRoom(id,secondsLeft=60){
      if(chat)chat.classList.add('fresh-chat-top');
      if(ready){ready.hidden=false;ready.classList.add('fresh-actions-chat-place')}
      if(results)results.hidden=false;
-     const chatInput=document.getElementById('freshChatInput');if(chatInput)chatInput.disabled=true;
-     const chatSend=document.getElementById('freshChatSend');if(chatSend)chatSend.disabled=true;
+     const chatInput=document.getElementById('freshChatInput');if(chatInput)chatInput.disabled=false;
+     const chatSend=document.getElementById('freshChatSend');if(chatSend)chatSend.disabled=false;
      if(resultStatus)resultStatus.textContent='Tu rival envió evidencia. Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.';
      await loadFreshRankedChat();
      return;
@@ -2701,8 +2701,8 @@ if(liveStatus==='review'){
  const leave=document.getElementById('freshLeaveRoom');if(leave){leave.hidden=true;leave.disabled=true}
  const ready=document.getElementById('freshReadyActions');if(ready){ready.hidden=false;ready.classList.add('fresh-actions-chat-place')}
  const results=document.getElementById('freshResultActions');if(results)results.hidden=false;
- const chatInput=document.getElementById('freshChatInput');if(chatInput)chatInput.disabled=true;
- const chatSend=document.getElementById('freshChatSend');if(chatSend)chatSend.disabled=true;
+ const chatInput=document.getElementById('freshChatInput');if(chatInput)chatInput.disabled=false;
+ const chatSend=document.getElementById('freshChatSend');if(chatSend)chatSend.disabled=false;
  const resultStatus=document.getElementById('freshResultStatus');if(resultStatus&&!resultStatus.textContent)resultStatus.textContent='Tu rival envió evidencia. Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.';
 }
 if(!['matched','review'].includes(liveStatus)){clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;if(Number(freshRoomMatchId)===Number(checkingId))freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS ANULADO. Ambos jugadores quedaron libres.');return}if(!document.hidden)await loadFreshRankedChat()}catch(e){console.error('Estado sala:',e)}},500);
