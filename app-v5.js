@@ -969,17 +969,36 @@ async function pollRankedMatch(){
  if(!currentUser||!supabaseClient||currentRankedMatchId||matchmakingPollLoading||!rankedSearchActive)return;
  matchmakingPollLoading=true;
  try{
-  /* Read-only fallback: once searching has started, only check whether this
-     player already belongs to a VS. Never re-join the queue from the poll. */
   const {data:active,error:activeError}=await supabaseClient.rpc('get_my_active_ranked_match');
   if(activeError)throw activeError;
   const existing=Array.isArray(active)?active[0]:active;
   if(existing){
    clearInterval(matchmakingTimer);matchmakingTimer=null;
    clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
-   showRankedMatch(existing);
+   await stopMatchmakingRealtime().catch(()=>{});
+   showRankedMatch(existing);return;
   }
- }catch(e){console.error('Error sondeo emparejamiento:',e)}finally{matchmakingPollLoading=false}
+  /* Keep the atomic matcher alive while this screen says BUSCANDO RIVAL.
+     This also recovers mobile/WebView clients when Realtime misses the INSERT. */
+  const {data:joined,error:joinError}=await supabaseClient.rpc('join_ranked_matchmaking');
+  if(joinError)throw joinError;
+  const result=Array.isArray(joined)?joined[0]:joined;
+  if(result?.status==='matched'){
+   const {data:full,error:fullError}=await supabaseClient.rpc('get_my_active_ranked_match');
+   if(fullError)throw fullError;
+   const match=Array.isArray(full)?full[0]:full;
+   if(match){
+    clearInterval(matchmakingTimer);matchmakingTimer=null;
+    clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
+    await stopMatchmakingRealtime().catch(()=>{});
+    showRankedMatch(match);
+   }
+  }
+ }catch(e){
+  const msg=String(e?.message||'');
+  if(msg.includes('PLAYER_ALREADY_HAS_ACTIVE_VS')){try{await restoreActiveRankedVs()}catch(_){}}
+  else console.error('Error sondeo emparejamiento:',e);
+ }finally{matchmakingPollLoading=false}
 }
 async function heartbeatRankedSearch(){
  if(currentRankedMatchId||!currentUser||!supabaseClient||matchmakingHeartbeatLoading)return;
