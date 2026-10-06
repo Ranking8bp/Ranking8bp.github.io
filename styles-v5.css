@@ -2125,3 +2125,17 @@ img,svg,video,canvas{max-width:100%}
 #freshNoTrick{border:2px solid #d7a43a;background:#332a0e;color:#ffd95d}
 #freshLeaveRoom{border:2px solid #7b8791;background:#1b2730;color:#fff}
 @media(max-width:600px){.fresh-ready-actions{padding:14px 10px}.fresh-ready-main button{min-height:52px;font-size:14px}.fresh-ready-secondary{gap:8px}.fresh-ready-secondary button{font-size:9px;padding:7px 5px}}
+
+/* Swap visual positions after both players have replied */
+#freshVersus{display:flex;flex-direction:column}
+#freshVersus[hidden]{display:none!important}
+#freshVersus .matchmaking-mode{order:1}
+#freshVersus .fresh-old-vs-grid{order:2}
+#freshResponseWarning{order:3}
+#freshRankedChat{order:4}
+#freshReadyActions{order:5}
+#freshResultActions{order:6}
+#freshRankedChat.fresh-chat-top{order:3;margin-top:18px;margin-bottom:20px}
+#freshRankedChat.fresh-chat-top~#freshReadyActions{order:4}
+#freshResponseWarning[hidden]~#freshRankedChat.fresh-chat-top{margin-top:18px}
+.fresh-actions-chat-place{margin-top:0!important;margin-bottom:20px!important}
