@@ -2821,3 +2821,10 @@ document.addEventListener('change',e=>{if(e.target?.id==='freshWinnerVideoInput'
 document.addEventListener('keydown',e=>{if(e.target?.id==='freshChatInput'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendFreshRankedChat()}});
 
 document.addEventListener('click',e=>{if(e.target?.id==='freshCopyMyId'||e.target?.id==='freshCopyOpponentId'){const id=e.target.id==='freshCopyMyId'?'freshMyId':'freshOpponentId',v=document.getElementById(id)?.textContent?.trim();if(v&&navigator.clipboard)navigator.clipboard.writeText(v).then(()=>showToast('ID copiado.')).catch(()=>{})}});
+
+
+/* Ranking8BP PWA install */
+let rankingInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();rankingInstallPrompt=e;});
+window.addEventListener('appinstalled',()=>{rankingInstallPrompt=null;const b=document.getElementById('installRankingAppBtn');if(b)b.hidden=true;showToast('Ranking8BP instalado.');});
+document.addEventListener('click',async e=>{if(e.target?.id!=='installRankingAppBtn')return;const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;if(standalone){showToast('Ranking8BP ya está instalado.');return}const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);if(ios){alert('INSTALAR RANKING8BP EN IPHONE\n\n1. Abre este sitio en Safari.\n2. Toca el botón Compartir.\n3. Toca “Añadir a pantalla de inicio”.\n4. Toca “Añadir”.');return}if(rankingInstallPrompt){rankingInstallPrompt.prompt();await rankingInstallPrompt.userChoice;rankingInstallPrompt=null;return}alert('Para instalar Ranking8BP, abre el menú de tu navegador y toca “Instalar aplicación” o “Añadir a pantalla de inicio”.');});
