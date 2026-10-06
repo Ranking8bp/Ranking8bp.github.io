@@ -2177,3 +2177,5 @@ img,svg,video,canvas{max-width:100%}
 @media(max-width:600px){.fresh-match-rules{padding:15px 11px 12px!important}.fresh-match-rules-title{font-size:29px!important}.fresh-match-rules li{font-size:11.5px!important;padding-left:45px!important}.fresh-match-rules li:before{width:32px;height:32px;font-size:18px}}
 
 .fresh-chat-seen{display:block;margin-top:3px;text-align:right;font:800 9px/1 Arial,sans-serif;color:#62b8ff;letter-spacing:.3px;opacity:.95}
+
+.fresh-match-rules .rule-yellow{color:#ffd928!important;font-weight:1000}.fresh-match-rules .rule-red{color:#ff3b42!important;font-weight:1000;text-shadow:0 0 6px rgba(255,40,50,.2)}
