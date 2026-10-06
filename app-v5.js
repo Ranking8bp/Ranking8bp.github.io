@@ -587,6 +587,15 @@ async function getVideoDuration(file){
     video.src=url;
   });
 }
+async function uploadLargeRankedEvidence(file,path,onProgress){
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ if(!session?.access_token)throw new Error('Tu sesión caducó. Inicia sesión nuevamente.');
+ if(!window.tus?.Upload)throw new Error('No se pudo iniciar la subida de video grande. Actualiza la página e inténtalo otra vez.');
+ return await new Promise((resolve,reject)=>{
+  const upload=new window.tus.Upload(file,{endpoint:cloudConfig.url+'/storage/v1/upload/resumable',retryDelays:[0,1000,3000,5000,10000],headers:{authorization:'Bearer '+session.access_token,apikey:cloudConfig.key,'x-upsert':'false'},uploadDataDuringCreation:true,removeFingerprintOnSuccess:true,metadata:{bucketName:'ranked-match-videos',objectName:path,contentType:file.type||'video/mp4',cacheControl:'3600'},chunkSize:6*1024*1024,onError:reject,onProgress:(sent,total)=>{if(onProgress)onProgress(sent,total)},onSuccess:()=>resolve(path)});
+  upload.findPreviousUploads().then(prev=>{if(prev?.length)upload.resumeFromPreviousUpload(prev[0]);upload.start()}).catch(()=>upload.start());
+ })
+}
 let rankedReviewTransitionPending=false;
 async function uploadRankedWinnerVideo(){
   if(!currentUser||!supabaseClient||!currentRankedMatchId)return;
@@ -600,15 +609,19 @@ async function uploadRankedWinnerVideo(){
     rankedWinnerVideoBtn.disabled=true;
     rankedWinnerVideoStatus.textContent='Comprobando video...';
     if(!/^video\/(mp4|webm|quicktime|x-m4v)$/.test(String(file.type||'')))throw new Error('Formato no permitido. Usa MP4, WEBM o MOV.');
-    if(file.size>80*1024*1024)throw new Error('El video no puede superar 80 MB.');
+    if(file.size>500*1024*1024)throw new Error('El video no puede superar 500 MB.');
     const duration=await getVideoDuration(file);
     if(!Number.isFinite(duration)||duration>30.05)throw new Error('El video debe durar máximo 30 segundos.');
     if(duration<0.1)throw new Error('El video no es válido.');
     const ext=getVideoExtension(file);
     const path=String(currentRankedMatchId)+'/'+currentUser.id+'/winner-'+Date.now()+'.'+ext;
     rankedWinnerVideoStatus.textContent='Subiendo video...';
-    const {error:uploadError}=await supabaseClient.storage.from('ranked-match-videos').upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'});
-    if(uploadError)throw uploadError;
+    if(file.size>45*1024*1024){
+      await uploadLargeRankedEvidence(file,path,(sent,total)=>{const pct=total?Math.floor(sent*100/total):0;rankedWinnerVideoStatus.textContent='Subiendo video... '+pct+'%'});
+    }else{
+      const {error:uploadError}=await supabaseClient.storage.from('ranked-match-videos').upload(path,file,{contentType:file.type,upsert:false,cacheControl:'3600'});
+      if(uploadError)throw uploadError;
+    }
     rankedReviewTransitionPending=true;
     const {error:saveError}=await supabaseClient.rpc('save_ranked_match_video',{p_match_id:Number(currentRankedMatchId),p_video_path:path});if(saveError){rankedReviewTransitionPending=false;throw saveError;}
     rankedWinnerVideoStatus.textContent='✅ Video enviado correctamente. El administrador lo revisará.';
