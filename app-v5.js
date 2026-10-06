@@ -1026,11 +1026,32 @@ async function refreshPlayersSearchingCount(){
 }
 setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),8000+Math.floor(Math.random()*12000));setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},180000);
 async function startRankedMatchmaking(){
- rankedSearchActive=false;stopRankedSearchLoop();
- if(matchmakingModal)matchmakingModal.hidden=true;
- if(matchmakingSearching)matchmakingSearching.hidden=true;
- if(matchmakingVersus)matchmakingVersus.hidden=true;
- showToast('Emparejamiento temporalmente desactivado. Se está reconstruyendo desde cero.');
+ if(!currentUser||!supabaseClient||matchmakingStartLoading)return;
+ matchmakingStartLoading=true;
+ const modal=document.getElementById('freshMatchmakingModal'),search=document.getElementById('freshSearching'),vs=document.getElementById('freshVersus');
+ if(!modal||!search||!vs){matchmakingStartLoading=false;return}
+ modal.hidden=false;search.hidden=false;vs.hidden=true;rankedSearchActive=true;
+ const token=++rankedSearchLoopToken;
+ matchmakingStartLoading=false;
+ while(rankedSearchActive&&token===rankedSearchLoopToken){
+  try{
+   const {data,error}=await supabaseClient.rpc('find_ranked_opponent');if(error)throw error;
+   const st=Array.isArray(data)?data[0]:data;
+   if(st?.state==='matched'&&st?.out_match_id){
+    const {data:room,error:roomError}=await supabaseClient.rpc('get_fresh_ranked_room',{p_match_id:Number(st.out_match_id)});if(roomError)throw roomError;
+    const m=Array.isArray(room)?room[0]:room;if(!m)throw new Error('ROOM_NOT_READY');
+    currentRankedMatchId=Number(m.match_id);rankedSearchActive=false;
+    document.getElementById('freshMe').textContent=String(m.my_name||'TÚ').toUpperCase();
+    document.getElementById('freshOpponent').textContent=String(m.opponent_name||'RIVAL').toUpperCase();
+    document.getElementById('freshMyElo').textContent='ELO '+m.my_elo;
+    document.getElementById('freshOpponentElo').textContent='ELO '+m.opponent_elo;
+    document.getElementById('freshMyId').textContent='ID: '+(m.my_game_id||'NO REGISTRADO');
+    document.getElementById('freshOpponentId').textContent='ID: '+(m.opponent_game_id||'NO REGISTRADO');
+    search.hidden=true;vs.hidden=false;return;
+   }
+  }catch(e){console.error('Emparejamiento nuevo:',e)}
+  await new Promise(r=>setTimeout(r,800));
+ }
 }
 async function leaveRankedRoom(){
  if(!currentRankedMatchId)return closeRankedMatchmaking();
@@ -2533,3 +2554,6 @@ if(rankingSearchInput) rankingSearchInput.addEventListener('input',()=>{
 });
 
 if(guestRankingSearchInput)guestRankingSearchInput.addEventListener('input',renderGuestRanking);
+
+/* Fresh matchmaking room controls */
+document.addEventListener('click',e=>{if(e.target?.id==='freshMatchmakingClose'){rankedSearchActive=false;stopRankedSearchLoop();const m=document.getElementById('freshMatchmakingModal');if(m)m.hidden=true;}});
