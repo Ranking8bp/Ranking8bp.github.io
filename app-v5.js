@@ -2649,6 +2649,18 @@ async function restorePersistentFreshRoom(id){
    const input=document.getElementById('freshChatInput');if(input)input.disabled=false;
    const send=document.getElementById('freshChatSend');if(send)send.disabled=false;
    const rs=document.getElementById('freshResultStatus');if(rs)rs.textContent=String(st.status)==='review'?'Tu rival envió evidencia. Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.':'Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.';
+   if(st.opponent_claim){
+    const chat=document.getElementById('freshRankedChat');if(chat)chat.hidden=true;
+    const label=st.opponent_claim==='WON'?'GANÉ':st.opponent_claim==='LOST'?'PERDÍ':'NADIE HIZO TRICKSHOT CON LA 8';
+    let notice=document.getElementById('freshOpponentClaimNotice');
+    if(!notice){notice=document.createElement('div');notice.id='freshOpponentClaimNotice';notice.className='fresh-opponent-claim-notice';ready?.parentNode?.insertBefore(notice,ready)}
+    const rival=document.getElementById('freshOpponent')?.textContent||'TU RIVAL';
+    notice.textContent=rival+' TOCÓ '+label+' Y SALIÓ DEL CHAT';
+    notice.hidden=false;
+   }else{
+    const chat=document.getElementById('freshRankedChat');if(chat)chat.hidden=false;
+    const notice=document.getElementById('freshOpponentClaimNotice');if(notice)notice.hidden=true;
+   }
   }
  }catch(e){console.error('Restaurar estado persistente VS:',e)}
 }
