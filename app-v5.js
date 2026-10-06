@@ -2584,10 +2584,29 @@ function startFreshRankedRoom(id,secondsLeft=60){
  tick();freshRoomTimer=setInterval(tick,250);
  loadFreshRankedChat();freshRoomChatPoll=setInterval(async()=>{if(!freshRoomMatchId)return;const checkingId=freshRoomMatchId;try{const {data:status,error}=await supabaseClient.rpc('get_ranked_match_live_status',{p_match_id:checkingId});if(error)throw error;if(!['matched','review'].includes(String(status||''))){clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;if(Number(freshRoomMatchId)===Number(checkingId))freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS ANULADO. Ambos jugadores quedaron libres.');return}if(!document.hidden)await loadFreshRankedChat()}catch(e){console.error('Estado sala:',e)}},500);
 }
+async function abandonFreshVsNow(btn){
+ if(!freshRoomMatchId)return;
+ const matchId=Number(freshRoomMatchId);if(btn)btn.disabled=true;
+ try{
+  const {data,error}=await supabaseClient.rpc('abandon_unactivated_ranked_match',{p_match_id:matchId});
+  if(error)throw error;
+  if(data==='cancelled'||data==='missing'){
+   clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;
+   if(Number(freshRoomMatchId)===matchId)freshRoomMatchId=null;
+   const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;
+   showToast('VS ANULADO PARA AMBOS JUGADORES.');
+  }else if(data==='activated'){if(btn)btn.hidden=true;showToast('El VS ya está activo porque ambos enviaron un mensaje.')}
+  else{if(btn)btn.disabled=false;showToast('No se pudo anular el VS. Estado: '+String(data||''))}
+ }catch(x){console.error('Anular VS:',x);if(btn)btn.disabled=false;showToast('No se pudo anular el VS.')}
+}
+document.addEventListener('DOMContentLoaded',()=>{
+ const b=document.getElementById('freshAbandonPending');
+ if(b)b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();abandonFreshVsNow(b)});
+});
 document.addEventListener('click',async e=>{
  const clicked=e.target?.closest?.('button');
  if(clicked?.id==='freshChatSend')return sendFreshRankedChat();
- if(clicked?.id==='freshAbandonPending'){if(!freshRoomMatchId)return;const btn=clicked;btn.disabled=true;try{const {data,error}=await supabaseClient.rpc('abandon_unactivated_ranked_match',{p_match_id:freshRoomMatchId});if(error)throw error;if(data==='cancelled'){clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS anulado antes de activarse.');}else if(data==='activated'){btn.hidden=true;showToast('El VS ya está activo porque ambos enviaron un mensaje.');}else{btn.disabled=false;}}catch(x){console.error(x);btn.disabled=false;showToast('No se pudo abandonar el VS.')}return;}
+ if(clicked?.id==='freshAbandonPending')return;
  if(clicked?.id==='freshLeaveRoom'){if(!freshRoomMatchId)return;try{const {error}=await supabaseClient.rpc('leave_ranked_room',{p_match_id:freshRoomMatchId});if(error)throw error;clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('Saliste de la sala. El VS sigue activo.');}catch(x){console.error(x);showToast('No se pudo salir de la sala.')}return;}
  if(!freshRoomMatchId)return;
  const map={freshWon:'WON',freshLost:'LOST'};
