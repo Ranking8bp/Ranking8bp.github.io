@@ -2307,7 +2307,9 @@ if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{
           document.getElementById('freshOpponentId').textContent='ID: '+(m.opponent_game_id||'NO REGISTRADO');
           setFreshAvatar(document.getElementById('freshMyAvatar'),m.my_avatar_path,m.my_name);
           setFreshAvatar(document.getElementById('freshOpponentAvatar'),m.opponent_avatar_path,m.opponent_name);
+          await restorePersistentFreshRoom(matchId);
           startFreshRankedRoom(matchId,Number(m.seconds_left)||60);
+          setTimeout(()=>restorePersistentFreshRoom(matchId),50);
           return;
         }
       }
