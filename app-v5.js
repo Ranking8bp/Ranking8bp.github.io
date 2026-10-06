@@ -864,7 +864,8 @@ function showRankedMatch(match){currentRankedMatchData=match;rankedVsBothMessage
  rankedSearchActive=false;stopRankedSearchLoop();
  currentRankedMatchId=match.match_id;
  startActiveVsRealtime(currentRankedMatchId);
- matchmakingSearching.hidden=true;matchmakingVersus.hidden=false;
+ matchmakingSearching.hidden=true;matchmakingSearching.style.display='none';
+ matchmakingVersus.hidden=false;matchmakingVersus.style.removeProperty('display');
  /* The VS chat must be visible immediately on every device as soon as a match exists. */
  startRankedVsChat(match);
  versusMe.textContent=String(currentProfile?.account_name||currentProfile?.username||'TÚ').toUpperCase();
@@ -978,8 +979,6 @@ async function openCreatedRankedVsNow(){
   rankedSearchActive=false;stopRankedSearchLoop();
   clearInterval(matchmakingTimer);matchmakingTimer=null;
   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
-  if(matchmakingSearching){matchmakingSearching.hidden=true;matchmakingSearching.style.display='none'}
-  if(matchmakingVersus){matchmakingVersus.hidden=false;matchmakingVersus.style.display='block'}
   showRankedMatch(match);
   stopMatchmakingRealtime().catch(()=>{});
   return true;
