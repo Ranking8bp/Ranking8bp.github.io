@@ -2618,7 +2618,7 @@ async function loadFreshRankedChat(){
   let underReview=false;try{const lr=await supabaseClient.rpc('get_ranked_match_live_status',{p_match_id:freshRoomMatchId});underReview=String(lr.data||'')==='review'}catch(_){}
   if(abandon){abandon.hidden=underReview||Boolean(state?.replied);abandon.disabled=underReview}
   const leave=document.getElementById('freshLeaveRoom');if(leave){leave.hidden=underReview;leave.disabled=underReview}
-  if(state?.replied){clearInterval(freshRoomTimer);freshRoomTimer=null;const w=document.getElementById('freshResponseWarning');if(w)w.hidden=true;if(abandon)abandon.hidden=true;const chat=document.getElementById('freshRankedChat');if(chat)chat.classList.add('fresh-chat-top');const ready=document.getElementById('freshReadyActions');if(ready){ready.hidden=false;ready.classList.add('fresh-actions-chat-place')}const a=document.getElementById('freshResultActions');if(a)a.hidden=false;}
+  if(state?.replied){supabaseClient.rpc('mark_ranked_result_phase',{p_match_id:freshRoomMatchId}).catch(()=>{});clearInterval(freshRoomTimer);freshRoomTimer=null;const w=document.getElementById('freshResponseWarning');if(w)w.hidden=true;if(abandon)abandon.hidden=true;const chat=document.getElementById('freshRankedChat');if(chat)chat.classList.add('fresh-chat-top');const ready=document.getElementById('freshReadyActions');if(ready){ready.hidden=false;ready.classList.add('fresh-actions-chat-place')}const a=document.getElementById('freshResultActions');if(a)a.hidden=false;}
  }catch(e){console.error('Chat sala nueva:',e)}
 }
 async function sendFreshRankedChat(){
