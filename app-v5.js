@@ -1113,6 +1113,21 @@ async function startRankedMatchmaking(){
    showToast('Buscando rival…');
  }finally{matchmakingStartLoading=false}
 }
+async function leaveRankedRoom(){
+ if(!currentRankedMatchId)return closeRankedMatchmaking();
+ rankedSearchActive=false;
+ clearInterval(matchmakingTimer);matchmakingTimer=null;
+ clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
+ clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
+ stopRankedChatResponseTimer();
+ await stopActiveVsRealtime().catch(()=>{});
+ await stopMatchmakingRealtime().catch(()=>{});
+ /* Deliberately keep the match open in Supabase. Leaving the room is not
+    a cancellation, concession or protection from a later evidence decision. */
+ currentRankedMatchId=null;currentRankedMatchData=null;rankedVsChatMatchId=null;rankedVsBothMessaged=false;rankedPlayingLockedLocally=false;
+ if(matchmakingModal)matchmakingModal.hidden=true;
+ showToast('Saliste de la sala. El VS sigue activo y el resultado podrá aplicarse después.');
+}
 async function closeRankedMatchmaking(){
  rankedSearchActive=false;
  if(currentRankedMatchId&&supabaseClient){try{const {data}=await supabaseClient.rpc('get_my_active_ranked_match');const m=Array.isArray(data)?data[0]:data;if(m?.admin_confirmed){showToast('Este VS está confirmado. Debes esperar el resultado.');return}}catch(e){console.error(e)}}
@@ -2318,7 +2333,9 @@ if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{
   }catch(e){console.error('Comprobación admin:',e)}
   await startRankedMatchmaking();refreshPlayersSearchingCount();
 });
-if(matchmakingClose)matchmakingClose.addEventListener('click',closeRankedMatchmaking);
+if(matchmakingClose)matchmakingClose.addEventListener('click',()=>currentRankedMatchId?leaveRankedRoom():closeRankedMatchmaking());
+const leaveRankedRoomBtn=document.getElementById('leaveRankedRoomBtn');
+if(leaveRankedRoomBtn)leaveRankedRoomBtn.addEventListener('click',leaveRankedRoom);
 if(rankedWinnerVideoBtn)rankedWinnerVideoBtn.addEventListener('click',()=>rankedWinnerVideoInput?.click());
 if(rankedWinnerVideoInput)rankedWinnerVideoInput.addEventListener('change',uploadRankedWinnerVideo);
 if(rankedVideoClose)rankedVideoClose.addEventListener('click',closeAdminRankedVideo);
