@@ -771,8 +771,19 @@ async function updateRankedChatResponseCountdown(matchId){
    rankedChatResponseExpiring=true;
    const {data:result,error:expireError}=await supabaseClient.rpc('auto_cancel_unanswered_ranked_chat',{p_match_id:Number(matchId)});
    if(expireError)throw expireError;
-   if(result==='cancelled'){stopRankedChatResponseTimer();showToast('⏱️ El rival no respondió. El VS fue anulado sin afectar el ELO.');await watchCurrentRankedMatch()}
-   else rankedChatResponseExpiring=false;
+   if(result==='cancelled'){
+    stopRankedChatResponseTimer();
+    clearInterval(matchmakingTimer);matchmakingTimer=null;
+    clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
+    clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;
+    await stopActiveVsRealtime().catch(()=>{});
+    currentRankedMatchId=null;currentRankedMatchData=null;rankedVsChatMatchId=null;rankedVsBothMessaged=false;rankedPlayingLockedLocally=false;
+    if(matchmakingVersus){matchmakingVersus.hidden=true;matchmakingVersus.style.display='none'}
+    if(matchmakingSearching){matchmakingSearching.hidden=true;matchmakingSearching.style.display='none'}
+    if(matchmakingModal)matchmakingModal.hidden=true;
+    showToast('⏱️ No enviaron ambos mensajes a tiempo. El VS fue anulado sin afectar el ELO.');
+    await updateRankedDailyStatus().catch(()=>{});
+   } else rankedChatResponseExpiring=false;
   }
  }catch(e){console.error('Contador respuesta chat VS:',e);rankedChatResponseExpiring=false}finally{rankedChatStatusLoading=false}
 }
