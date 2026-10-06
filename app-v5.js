@@ -2826,5 +2826,22 @@ document.addEventListener('click',e=>{if(e.target?.id==='freshCopyMyId'||e.targe
 /* Ranking8BP PWA install */
 let rankingInstallPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();rankingInstallPrompt=e;});
-window.addEventListener('appinstalled',()=>{rankingInstallPrompt=null;const b=document.getElementById('installRankingAppBtn');if(b)b.hidden=true;showToast('Ranking8BP instalado.');});
-document.addEventListener('click',async e=>{if(e.target?.id!=='installRankingAppBtn')return;const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;if(standalone){showToast('Ranking8BP ya está instalado.');return}const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);if(ios){alert('INSTALAR RANKING8BP EN IPHONE\n\n1. Abre este sitio en Safari.\n2. Toca el botón Compartir.\n3. Toca “Añadir a pantalla de inicio”.\n4. Toca “Añadir”.');return}if(rankingInstallPrompt){rankingInstallPrompt.prompt();await rankingInstallPrompt.userChoice;rankingInstallPrompt=null;return}alert('Para instalar Ranking8BP, abre el menú de tu navegador y toca “Instalar aplicación” o “Añadir a pantalla de inicio”.');});
+window.addEventListener('appinstalled',()=>{rankingInstallPrompt=null;showToast('Ranking8BP instalado correctamente.');});
+document.addEventListener('click',async e=>{
+ if(e.target?.id!=='installRankingAppBtn')return;
+ const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+ if(ios){
+  if(window.navigator.standalone===true){showToast('Estás usando Ranking8BP desde el acceso de la pantalla de inicio.');return}
+  alert('INSTALAR RANKING8BP EN IPHONE\n\n1. Abre este sitio en Safari.\n2. Toca Compartir.\n3. Toca “Añadir a pantalla de inicio”.\n4. Toca “Añadir”.');return;
+ }
+ if(rankingInstallPrompt){
+  const prompt=rankingInstallPrompt;rankingInstallPrompt=null;
+  await prompt.prompt();
+  const choice=await prompt.userChoice;
+  if(choice?.outcome==='accepted')showToast('Instalando Ranking8BP...');
+  else showToast('Instalación cancelada.');
+  return;
+ }
+ /* No asumir que está instalado: Android puede conservar temporalmente display-mode tras desinstalar. */
+ alert('El navegador todavía no ofrece la instalación.\n\nEn Chrome toca ⋮ y busca “Instalar aplicación” o “Añadir a pantalla de inicio”. Si acabas de desinstalar Ranking8BP, cierra esta pestaña, vuelve a abrir ranking8bp.github.io y prueba otra vez.');
+});
