@@ -1025,31 +1025,13 @@ async function refreshPlayersSearchingCount(){
  try{playersSearchingCount.textContent='0 BUSCANDO RIVAL'}finally{playersSearchingLoading=false}
 }
 setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),8000+Math.floor(Math.random()*12000));setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},180000);
-async function loadMatchmakingV2Match(matchId){
- if(!matchId||!supabaseClient)return false;
- const {data,error}=await supabaseClient.rpc('matchmaking_v2_room',{p_match_id:Number(matchId)});
- if(error)throw error;
- const match=Array.isArray(data)?data[0]:data;
- if(!match||Number(match.match_id)!==Number(matchId))return false;
- if(!matchmakingModal||!matchmakingSearching||!matchmakingVersus)return false;
- matchmakingModal.hidden=false;
- showRankedMatch(match);
- return Boolean(currentRankedMatchId);
+async function startRankedMatchmaking(){
+ rankedSearchActive=false;stopRankedSearchLoop();
+ if(matchmakingModal)matchmakingModal.hidden=true;
+ if(matchmakingSearching)matchmakingSearching.hidden=true;
+ if(matchmakingVersus)matchmakingVersus.hidden=true;
+ showToast('Emparejamiento temporalmente desactivado. Se está reconstruyendo desde cero.');
 }
-async function matchmakingV2Loop(token){
- while(rankedSearchActive&&!currentRankedMatchId&&token===rankedSearchLoopToken){
-  try{
-   const {data,error}=await supabaseClient.rpc('matchmaking_v2_step');
-   if(error)throw error;
-   const st=Array.isArray(data)?data[0]:data;
-   if(st?.state==='matched'&&st?.out_match_id){
-    if(await loadMatchmakingV2Match(st.out_match_id))return;
-   }
-  }catch(e){console.error('Matchmaking V2:',e)}
-  await new Promise(resolve=>setTimeout(resolve,700));
- }
-}
-async function startRankedMatchmaking(){showToast('Emparejamiento temporalmente desactivado. Se está reconstruyendo desde cero.');}
 async function leaveRankedRoom(){
  if(!currentRankedMatchId)return closeRankedMatchmaking();
  const leavingMatchId=Number(currentRankedMatchId);
@@ -2364,8 +2346,8 @@ function startNotificationRefresh(){
     notificationRefreshTimer=setInterval(()=>{if(currentUser&&!document.hidden)loadNotifications().catch(()=>{})},180000);
   }
 }
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser){loadNotifications().catch(()=>{});if(rankedSearchActive){if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}pollRankedMatch().catch(()=>{})}else restoreActiveRankedVs().catch(()=>{})}});
-window.addEventListener('pageshow',()=>{if(currentUser){if(rankedSearchActive){if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}pollRankedMatch().catch(()=>{})}else restoreActiveRankedVs().catch(()=>{})}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser){loadNotifications().catch(()=>{});restoreActiveRankedVs().catch(()=>{})}});
+window.addEventListener('pageshow',()=>{if(currentUser)restoreActiveRankedVs().catch(()=>{})});
 async function restoreActiveRankedVs(){
  if(!currentUser||!supabaseClient)return;
  try{
