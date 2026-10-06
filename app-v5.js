@@ -1047,7 +1047,7 @@ async function startRankedMatchmaking(){
     document.getElementById('freshOpponentElo').textContent='ELO '+m.opponent_elo;
     document.getElementById('freshMyId').textContent='ID: '+(m.my_game_id||'NO REGISTRADO');
     document.getElementById('freshOpponentId').textContent='ID: '+(m.opponent_game_id||'NO REGISTRADO');
-    search.hidden=true;vs.hidden=false;return;
+    search.hidden=true;vs.hidden=false;startFreshRankedRoom(Number(m.match_id));return;
    }
   }catch(e){console.error('Emparejamiento nuevo:',e)}
   await new Promise(r=>setTimeout(r,800));
@@ -2547,3 +2547,42 @@ if(guestRankingSearchInput)guestRankingSearchInput.addEventListener('input',rend
 
 /* Fresh matchmaking room controls */
 document.addEventListener('click',e=>{if(e.target?.id==='freshMatchmakingClose'){rankedSearchActive=false;stopRankedSearchLoop();const m=document.getElementById('freshMatchmakingModal');if(m)m.hidden=true;}});
+
+let freshRoomTimer=null,freshRoomChatPoll=null,freshRoomMatchId=null,freshRoomExpiresAt=0;
+async function loadFreshRankedChat(){
+ if(!freshRoomMatchId||!supabaseClient)return;
+ try{
+  const {data,error}=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:freshRoomMatchId});if(error)throw error;
+  const rows=Array.isArray(data)?data:[];
+  const box=document.getElementById('freshChatMessages');if(!box)return;
+  box.replaceChildren();
+  const senders=new Set();
+  rows.forEach(m=>{if(m.sender_id)senders.add(String(m.sender_id));const d=document.createElement('div');d.className='ranked-vs-chat-message'+(String(m.sender_id)===String(currentUser?.id)?' mine':'');const n=document.createElement('strong');n.textContent=m.sender_name||'JUGADOR';const b=document.createElement('p');b.textContent=m.message||'';d.append(n,b);box.appendChild(d)});
+  box.scrollTop=box.scrollHeight;
+  if(senders.size>=2){clearInterval(freshRoomTimer);freshRoomTimer=null;const t=document.getElementById('freshChatTimer');if(t)t.textContent='00:00';const a=document.getElementById('freshResultActions');if(a)a.hidden=false;}
+ }catch(e){console.error('Chat sala nueva:',e)}
+}
+async function sendFreshRankedChat(){
+ const input=document.getElementById('freshChatInput'),btn=document.getElementById('freshChatSend'),msg=String(input?.value||'').trim();
+ if(!msg||!freshRoomMatchId)return;if(btn)btn.disabled=true;
+ try{const {error}=await supabaseClient.rpc('send_ranked_match_chat',{p_match_id:freshRoomMatchId,p_message:msg});if(error)throw error;input.value='';await loadFreshRankedChat()}catch(e){console.error(e);showToast('No se pudo enviar el mensaje.')}finally{if(btn)btn.disabled=false}
+}
+function startFreshRankedRoom(id){
+ freshRoomMatchId=id;freshRoomExpiresAt=Date.now()+60000;
+ clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);
+ const tick=()=>{const left=Math.max(0,Math.ceil((freshRoomExpiresAt-Date.now())/1000)),t=document.getElementById('freshChatTimer');if(t)t.textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');if(left<=0){clearInterval(freshRoomTimer);freshRoomTimer=null}};
+ tick();freshRoomTimer=setInterval(tick,250);
+ loadFreshRankedChat();freshRoomChatPoll=setInterval(()=>{if(!document.hidden)loadFreshRankedChat()},1000);
+}
+document.addEventListener('click',async e=>{
+ if(e.target?.id==='freshChatSend')return sendFreshRankedChat();
+ if(!freshRoomMatchId)return;
+ const map={freshWon:'WON',freshLost:'LOST'};
+ if(map[e.target?.id]){
+  try{const {data,error}=await supabaseClient.rpc('submit_ranked_result_claim',{p_match_id:freshRoomMatchId,p_claim:map[e.target.id]});if(error)throw error;showToast(map[e.target.id]==='WON'?'Resultado GANÉ enviado.':'Derrota confirmada.');}catch(x){console.error(x);showToast('No se pudo registrar el resultado.')}return;
+ }
+ if(e.target?.id==='freshNoTrick'){
+  try{e.target.disabled=true;const {error}=await supabaseClient.rpc('submit_ranked_no_trick',{p_match_id:freshRoomMatchId});if(error)throw error;showToast('NADIE HIZO TRICKSHOT enviado.');}catch(x){console.error(x);e.target.disabled=false;showToast('No se pudo registrar.')}
+ }
+});
+document.addEventListener('keydown',e=>{if(e.target?.id==='freshChatInput'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendFreshRankedChat()}});
