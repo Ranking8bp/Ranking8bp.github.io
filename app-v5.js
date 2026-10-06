@@ -1054,7 +1054,7 @@ async function startRankedMatchmaking(){
     document.getElementById('freshOpponentPosition').textContent='RANKING #'+(m.opponent_position||'--');
     const setFreshAvatar=(id,path,name)=>{const el=document.getElementById(id);if(!el)return;el.replaceChildren();if(path){const img=document.createElement('img');const {data:u}=supabaseClient.storage.from('profile-photos').getPublicUrl(path);img.src=u?.publicUrl||'';img.alt='';el.appendChild(img)}else{const sp=document.createElement('span');sp.textContent=String(name||'?').charAt(0).toUpperCase();el.appendChild(sp)}};
     setFreshAvatar('freshMyAvatar',m.my_avatar_path,m.my_name);setFreshAvatar('freshOpponentAvatar',m.opponent_avatar_path,m.opponent_name);
-    search.hidden=true;vs.hidden=false;startFreshRankedRoom(Number(m.match_id));return;
+    search.hidden=true;vs.hidden=false;startFreshRankedRoom(Number(m.match_id),Number(m.chat_seconds_left??60));return;
    }
   }catch(e){console.error('Emparejamiento nuevo:',e)}
   await new Promise(r=>setTimeout(r,800));
@@ -2574,10 +2574,10 @@ async function sendFreshRankedChat(){
  if(!msg||!freshRoomMatchId)return;if(btn)btn.disabled=true;
  try{const {error}=await supabaseClient.rpc('send_ranked_match_chat',{p_match_id:freshRoomMatchId,p_message:msg});if(error)throw error;input.value='';await loadFreshRankedChat()}catch(e){console.error(e);showToast('No se pudo enviar el mensaje.')}finally{if(btn)btn.disabled=false}
 }
-function startFreshRankedRoom(id){
- freshRoomMatchId=id;freshRoomExpiresAt=Date.now()+60000;
+function startFreshRankedRoom(id,secondsLeft=60){
+ freshRoomMatchId=id;freshRoomExpiresAt=Date.now()+Math.max(0,Number(secondsLeft)||0)*1000;
  clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);
- const tick=()=>{const left=Math.max(0,Math.ceil((freshRoomExpiresAt-Date.now())/1000)),t=document.getElementById('freshChatTimer');if(t)t.textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');if(left<=0){clearInterval(freshRoomTimer);freshRoomTimer=null}};
+ const tick=()=>{const left=Math.max(0,Math.ceil((freshRoomExpiresAt-Date.now())/1000)),t=document.getElementById('freshChatTimer');if(t)t.textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');if(left<=0){clearInterval(freshRoomTimer);freshRoomTimer=null;(async()=>{try{const {data,error}=await supabaseClient.rpc('auto_cancel_unanswered_ranked_chat',{p_match_id:freshRoomMatchId});if(error)throw error;if(data==='cancelled'){clearInterval(freshRoomChatPoll);freshRoomChatPoll=null;freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS anulado: ambos jugadores debían enviar un mensaje antes de terminar el minuto.')}}catch(e){console.error('Auto cancelar VS:',e)}})()}};
  tick();freshRoomTimer=setInterval(tick,250);
  loadFreshRankedChat();freshRoomChatPoll=setInterval(()=>{if(!document.hidden)loadFreshRankedChat()},1000);
 }
