@@ -447,11 +447,11 @@ async function confirmVsPlayingYes(){
  try{
   const matchId=Number(currentRankedMatchId);
   const {error}=await supabaseClient.rpc('mark_ranked_match_playing',{p_match_id:matchId});if(error)throw error;
-  const {data:fresh,error:freshError}=await supabaseClient.rpc('get_my_active_ranked_match');if(freshError)throw freshError;
-  const freshMatch=(Array.isArray(fresh)?fresh[0]:fresh);
-  if(!freshMatch||Number(freshMatch.match_id)!==matchId||!freshMatch.players_playing)throw new Error('PLAYING_STATE_NOT_SAVED');
-  currentRankedMatchData=freshMatch;
+  /* The successful write is authoritative. Do not undo the UI just because a
+     second read is slow on mobile. Realtime/watch will reconcile the full row. */
+  currentRankedMatchData={...(currentRankedMatchData||{}),match_id:matchId,players_playing:true,admin_confirmed:true,players_playing_at:currentRankedMatchData?.players_playing_at||new Date().toISOString()};
   rankedVsBothMessaged=true;
+  stopRankedChatResponseTimer();
   updateRankedResultReport(currentRankedMatchData);
   updateRankedVideoProof(currentRankedMatchData);
   paintPlayerVsSafety(safetyFromRealtimeRow(currentRankedMatchData));
