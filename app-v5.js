@@ -1032,6 +1032,22 @@ function maybeOpenDirectMatchmaking(){
 async function renderSearchingPlayerProfile(){const n=document.getElementById('searchingPlayerName'),e=document.getElementById('searchingPlayerElo'),r=document.getElementById('searchingPlayerRank'),av=document.getElementById('searchingPlayerAvatar');if(!n||!currentProfile)return;const name=String(currentProfile.account_name||currentProfile.username||'JUGADOR').toUpperCase();const elo=Number(currentProfile.elo_points)||0;n.textContent=name;if(e)e.textContent='ELO '+elo;if(r)r.textContent=getRankByElo(elo).name.toUpperCase();if(av){av.replaceChildren();const f=document.createElement('span');f.textContent=name.charAt(0)||'J';av.appendChild(f);if(currentProfile.avatar_path&&supabaseClient){try{const url=await getCachedAvatarUrl(currentProfile.avatar_path);if(url){const img=document.createElement('img');img.loading='lazy';img.decoding='async';img.src=url;img.alt='Foto de '+name;img.onload=()=>av.replaceChildren(img)}}catch(x){}}}}
 
 
+async function renderLiveSearchingPlayers(){
+ const box=document.getElementById('liveSearchingPlayers');if(!box||!supabaseClient)return;
+ try{
+  const {data,error}=await supabaseClient.rpc('get_ranked_searching_players_v2');if(error)throw error;
+  const rows=Array.isArray(data)?data:[];box.replaceChildren();box.hidden=!rows.length;
+  for(const p of rows){
+   const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:10px;padding:7px 10px;margin:5px 0;border-radius:14px;background:rgba(8,22,34,.78);border:1px solid rgba(255,255,255,.08)';
+   const av=document.createElement('div');av.style.cssText='width:38px;height:38px;min-width:38px;border-radius:50%;overflow:hidden;background:#172a3a;display:grid;place-items:center;font-weight:900';
+   if(p.avatar_path){const raw=String(p.avatar_path);const clean=raw.replace(/^profile-photos\//,'').replace(/^\/+/, '');const src=/^https?:\/\//i.test(raw)?raw:supabaseClient.storage.from('profile-photos').getPublicUrl(clean).data?.publicUrl;if(src){const img=document.createElement('img');img.src=src;img.alt='';img.style.cssText='width:100%;height:100%;object-fit:cover';img.onerror=()=>{av.textContent=String(p.player_name||'?').charAt(0).toUpperCase()};av.appendChild(img)}}else av.textContent=String(p.player_name||'?').charAt(0).toUpperCase();
+   const txt=document.createElement('span');txt.textContent='Buscando...';txt.style.cssText='font-weight:800;color:#fff';
+   row.append(av,txt);box.appendChild(row);
+  }
+ }catch(e){console.error('Lista buscando:',e)}
+}
+setInterval(()=>{if(!document.hidden)renderLiveSearchingPlayers().catch(()=>{})},5000);
+setTimeout(()=>renderLiveSearchingPlayers().catch(()=>{}),800);
 async function refreshPlayersSearchingCount(){
  if(!supabaseClient||!playersSearchingCount||playersSearchingLoading)return;
  playersSearchingLoading=true;
@@ -1039,7 +1055,7 @@ async function refreshPlayersSearchingCount(){
 }
 async function syncRankedSearchPresence(active){
  if(!supabaseClient||!currentUser)return;
- try{await supabaseClient.rpc('set_ranked_search_presence',{p_searching:!!active});refreshPlayersSearchingCount().catch(()=>{})}catch(e){console.error('Presencia búsqueda:',e)}
+ try{await supabaseClient.rpc('set_ranked_search_presence',{p_searching:!!active});refreshPlayersSearchingCount().catch(()=>{});renderLiveSearchingPlayers().catch(()=>{})}catch(e){console.error('Presencia búsqueda:',e)}
 }
 setInterval(()=>{if(!document.hidden){if(rankedSearchActive)syncRankedSearchPresence(true);else refreshPlayersSearchingCount().catch(()=>{})}},10000);
 setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),1000);
