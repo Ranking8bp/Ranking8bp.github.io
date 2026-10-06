@@ -2624,8 +2624,26 @@ async function sendFreshRankedChat(){
  if(!msg||!freshRoomMatchId)return;if(btn)btn.disabled=true;
  try{const {error}=await supabaseClient.rpc('send_ranked_match_chat',{p_match_id:freshRoomMatchId,p_message:msg});if(error)throw error;input.value='';input.focus({preventScroll:true});await loadFreshRankedChat();requestAnimationFrame(()=>input.focus({preventScroll:true}))}catch(e){console.error(e);showToast('No se pudo enviar el mensaje.')}finally{if(btn)btn.disabled=false}
 }
+async function restorePersistentFreshRoom(id){
+ try{
+  const {data,error}=await supabaseClient.rpc('get_my_ranked_room_state');if(error)throw error;
+  const st=Array.isArray(data)?data[0]:data;if(!st||Number(st.match_id)!==Number(id))return;
+  if(String(st.status)==='review'||st.both_messaged){
+   clearInterval(freshRoomTimer);freshRoomTimer=null;
+   const warning=document.getElementById('freshResponseWarning');if(warning)warning.hidden=true;
+   const abandon=document.getElementById('freshAbandonPending');if(abandon){abandon.hidden=true;abandon.disabled=true}
+   const leave=document.getElementById('freshLeaveRoom');if(leave){leave.hidden=true;leave.disabled=true}
+   const ready=document.getElementById('freshReadyActions');if(ready){ready.hidden=false;ready.classList.add('fresh-actions-chat-place')}
+   const results=document.getElementById('freshResultActions');if(results)results.hidden=false;
+   const input=document.getElementById('freshChatInput');if(input)input.disabled=true;
+   const send=document.getElementById('freshChatSend');if(send)send.disabled=true;
+   const rs=document.getElementById('freshResultStatus');if(rs)rs.textContent=String(st.status)==='review'?'Tu rival envió evidencia. Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.':'Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.';
+  }
+ }catch(e){console.error('Restaurar estado persistente VS:',e)}
+}
 function startFreshRankedRoom(id,secondsLeft=60){
  freshRoomMatchId=id;freshRoomExpiresAt=Date.now()+Math.max(0,Number(secondsLeft)||0)*1000;
+ setTimeout(()=>restorePersistentFreshRoom(id),0);
  clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);
  const warning=document.getElementById('freshResponseWarning');if(warning)warning.hidden=false;
  const abandon=document.getElementById('freshAbandonPending');if(abandon){abandon.hidden=false;abandon.disabled=false}
@@ -2663,7 +2681,7 @@ function startFreshRankedRoom(id,secondsLeft=60){
    }
    tick();freshRoomTimer=setInterval(tick,250);await loadFreshRankedChat();
  }catch(e){console.error('Estado inicial sala:',e);tick();freshRoomTimer=setInterval(tick,250);loadFreshRankedChat()}})();
- freshRoomChatPoll=setInterval(async()=>{if(!freshRoomMatchId)return;const checkingId=freshRoomMatchId;try{const {data:status,error}=await supabaseClient.rpc('get_ranked_match_live_status',{p_match_id:checkingId});if(error)throw error;
+ freshRoomChatPoll=setInterval(async()=>{if(!freshRoomMatchId)return;await restorePersistentFreshRoom(freshRoomMatchId);const checkingId=freshRoomMatchId;try{const {data:status,error}=await supabaseClient.rpc('get_ranked_match_live_status',{p_match_id:checkingId});if(error)throw error;
 const liveStatus=String(status||'');
 if(liveStatus==='review'){
  clearInterval(freshRoomTimer);freshRoomTimer=null;
