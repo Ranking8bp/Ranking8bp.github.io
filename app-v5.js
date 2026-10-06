@@ -1059,7 +1059,7 @@ async function startRankedMatchmaking(){
     setFreshRankBadge('freshMyRankBadge',m.my_rank_name);setFreshRankBadge('freshOpponentRankBadge',m.opponent_rank_name);
     search.hidden=true;vs.hidden=false;startFreshRankedRoom(Number(m.match_id),Number(m.chat_seconds_left??60));return;
    }
-  }catch(e){console.error('Emparejamiento nuevo:',e)}
+  }catch(e){console.error('Emparejamiento nuevo:',e);rankedSearchActive=false;search.hidden=true;modal.hidden=true;showToast('No se pudo entrar a la cola: '+String(e?.message||'ERROR DE CONEXIÓN'));return}
   await new Promise(r=>setTimeout(r,800));
  }
 }
