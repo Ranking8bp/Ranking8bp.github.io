@@ -2656,7 +2656,7 @@ async function restorePersistentFreshRoom(id){
     let notice=document.getElementById('freshOpponentClaimNotice');
     if(!notice){notice=document.createElement('div');notice.id='freshOpponentClaimNotice';notice.className='fresh-opponent-claim-notice'} if(ready?.parentNode)ready.parentNode.insertBefore(notice,ready);
     const rival=document.getElementById('freshOpponent')?.textContent||'TU RIVAL';
-    notice.textContent=(st.opponent_claim==='WON'&&st.opponent_left&&String(st.status)!=='review') ? rival+' TOCÓ GANÉ Y LUEGO SALIR, OLVIDÉ GRABAR. SALIÓ DE LA SALA SIN ENVIAR EVIDENCIA.' : rival+' TOCÓ '+label+' Y SALIÓ DEL CHAT';
+    notice.textContent=(st.opponent_claim==='WON'&&String(st.status)==='review') ? rival+' TOCÓ GANÉ, ENVIÓ VIDEO DE PRUEBA Y SALIÓ DEL CHAT' : (st.opponent_claim==='WON'&&st.opponent_left) ? rival+' TOCÓ GANÉ Y LUEGO SALIR, OLVIDÉ GRABAR. SALIÓ DE LA SALA SIN ENVIAR EVIDENCIA.' : rival+' TOCÓ '+label+' Y SALIÓ DEL CHAT';
     notice.hidden=false;
    }else{
     const chat=document.getElementById('freshRankedChat');if(chat)chat.hidden=false;
