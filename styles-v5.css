@@ -2006,3 +2006,39 @@ img,svg,video,canvas{max-width:100%}
 /* Sent videos stay clean while active; strike-through is reserved for a finished dynamic. */
 .dynamic-btn.dynamic-sent:not(.dynamic-sent-finished){text-decoration:none!important}
 .dynamic-btn.dynamic-sent-finished{text-decoration-line:line-through!important;text-decoration-color:currentColor!important;text-decoration-thickness:3px!important;text-decoration-skip-ink:none!important}
+
+/* Fresh room: restore the original Ranking8BP visual language */
+#freshMatchmakingModal .matchmaking-card{background:linear-gradient(180deg,#061321 0%,#020b13 100%);border:1px solid #9a6d1c;border-radius:26px;box-shadow:0 20px 70px #000;padding:58px 18px 28px}
+#freshMatchmakingModal .matchmaking-mode{text-align:center;color:#c9972b;font:1000 22px Arial,sans-serif;letter-spacing:4px;margin:8px 0 34px}
+#freshMatchmakingModal .versus-grid{display:grid;grid-template-columns:minmax(0,1fr) 72px minmax(0,1fr);gap:12px;align-items:center;width:100%;max-width:650px;margin:0 auto 18px}
+#freshMatchmakingModal .versus-player{min-height:150px;border:1px solid #31495d;border-radius:20px;background:#06111d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:16px 8px;text-align:center}
+#freshMatchmakingModal .versus-player strong{color:#fff;font:1000 18px Arial,sans-serif}
+#freshMatchmakingModal .versus-player span{display:block;color:#c9972b;font:900 17px Arial,sans-serif}
+#freshMatchmakingModal .versus-center{height:72px;border:1px solid #31495d;border-radius:20px;background:#06111d;display:flex;align-items:center;justify-content:center;color:#fff;font:1000 18px Arial,sans-serif}
+#freshRankedChat{width:100%;max-width:650px;margin:0 auto;border:1px solid rgba(67,179,255,.4);border-radius:16px;background:#08141d;overflow:hidden;padding:0;text-align:left}
+#freshRankedChat>strong{display:block;padding:12px 14px 4px;color:#70c9ff;font:900 13px Arial,sans-serif}
+#freshChatTimer{padding:0 14px;color:#ffd54a;font:1000 34px Arial,sans-serif;font-variant-numeric:tabular-nums}
+#freshChatTimerNote{display:block;padding:2px 14px 12px;color:#94a9b7;font:700 10px/1.35 Arial,sans-serif;border-bottom:1px solid rgba(67,179,255,.2)}
+#freshChatMessages{height:190px;padding:11px;overflow:auto;box-sizing:border-box}
+#freshChatMessages .ranked-vs-chat-message{max-width:82%;margin:0 0 9px;padding:8px 10px;border-radius:10px;background:#132632;color:#fff;font:700 11px/1.4 Arial,sans-serif;word-break:break-word}
+#freshChatMessages .ranked-vs-chat-message.mine{margin-left:auto;background:#173a50}
+#freshChatMessages .ranked-vs-chat-message strong{display:block;margin-bottom:3px;color:#70c9ff;font:900 9px Arial,sans-serif}
+#freshChatMessages .ranked-vs-chat-message p{margin:0;color:#fff;font:700 11px/1.4 Arial,sans-serif}
+#freshResultActions{padding:12px;border-top:1px solid rgba(67,179,255,.2);text-align:center}
+#freshNoTrick{width:100%;min-height:44px;border:1px solid #d4a632;border-radius:10px;background:#34270b;color:#ffd65b;font:1000 12px Arial,sans-serif;margin-bottom:9px}
+#freshResultActions .ranked-result-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#freshWon,#freshLost{min-height:48px;border:0;border-radius:10px;color:#fff;font:1000 14px Arial,sans-serif}
+#freshWon{background:#128149}#freshLost{background:#a72d35}
+@media(max-width:600px){
+ #freshMatchmakingModal{padding:8px}
+ #freshMatchmakingModal .matchmaking-card{min-height:calc(100vh - 16px);padding:48px 10px 22px}
+ #freshMatchmakingModal .matchmaking-mode{font-size:18px;letter-spacing:3px;margin-bottom:24px}
+ #freshMatchmakingModal .versus-grid{grid-template-columns:minmax(0,1fr) 58px minmax(0,1fr);gap:8px}
+ #freshMatchmakingModal .versus-player{min-height:120px;border-radius:15px;gap:9px;padding:10px 5px}
+ #freshMatchmakingModal .versus-player strong{font-size:13px}
+ #freshMatchmakingModal .versus-player span{font-size:12px}
+ #freshMatchmakingModal .versus-center{height:58px;border-radius:15px;font-size:14px}
+ #freshChatMessages{height:180px}
+ #freshChatTimer{font-size:30px}
+ #freshResultActions{padding:10px}
+}
