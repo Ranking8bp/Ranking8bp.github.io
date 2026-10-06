@@ -2113,3 +2113,15 @@ img,svg,video,canvas{max-width:100%}
 .fresh-result-card #freshNoTrick{display:block;width:100%;min-height:46px;margin:10px 0;border:1px solid #d7a43a;border-radius:10px;background:#2e260d;color:#ffd95d;font:1000 11px Arial,sans-serif}
 .fresh-rule-warning{margin-top:13px;padding:12px 10px;border:2px solid #d63d52;border-radius:11px;background:#431018;color:#fff;font:800 10px/1.35 Arial,sans-serif;box-shadow:0 0 14px rgba(214,61,82,.2)}
 @media(max-width:600px){.fresh-results-section{margin-top:16px}.fresh-result-card{padding:14px 10px}.fresh-elo-summary strong,.fresh-elo-summary span{font-size:11px}.fresh-result-card #freshWon,.fresh-result-card #freshLost{min-height:50px;font-size:12px}}
+
+/* After both players chat, replace response warning with match controls */
+#freshResponseWarning[hidden],#freshReadyActions[hidden]{display:none!important}
+.fresh-ready-actions{width:100%;max-width:650px;box-sizing:border-box;margin:18px auto 20px;padding:18px 14px;border:2px solid #b88b32;border-radius:18px;background:#09131c;text-align:center}
+.fresh-ready-main{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fresh-ready-main button{min-height:58px;border:0;border-radius:12px;color:#fff;font:1000 16px Arial,sans-serif}
+#freshWon{background:#35a75b!important}#freshLost{background:#bd3149!important}
+.fresh-ready-secondary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.fresh-ready-secondary button{min-height:48px;border-radius:10px;font:1000 10px/1.2 Arial,sans-serif;padding:8px}
+#freshNoTrick{border:2px solid #d7a43a;background:#332a0e;color:#ffd95d}
+#freshLeaveRoom{border:2px solid #7b8791;background:#1b2730;color:#fff}
+@media(max-width:600px){.fresh-ready-actions{padding:14px 10px}.fresh-ready-main button{min-height:52px;font-size:14px}.fresh-ready-secondary{gap:8px}.fresh-ready-secondary button{font-size:9px;padding:7px 5px}}
