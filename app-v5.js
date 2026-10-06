@@ -2587,10 +2587,11 @@ document.addEventListener('click',async e=>{
  if(!freshRoomMatchId)return;
  const map={freshWon:'WON',freshLost:'LOST'};
  if(map[e.target?.id]){
-  try{const {data,error}=await supabaseClient.rpc('submit_ranked_result_claim',{p_match_id:freshRoomMatchId,p_claim:map[e.target.id]});if(error)throw error;showToast(map[e.target.id]==='WON'?'Resultado GANÉ enviado.':'Derrota confirmada.');}catch(x){console.error(x);showToast('No se pudo registrar el resultado.')}return;
+  const btn=e.target;btn.disabled=true;
+  try{const claim=map[btn.id];const {data,error}=await supabaseClient.rpc('submit_ranked_result_claim',{p_match_id:freshRoomMatchId,p_claim:claim});if(error)throw error;btn.textContent=claim==='WON'?'✓ MARCASTE GANÉ':'✓ MARCASTE PERDÍ';const st=document.getElementById('freshResultStatus');if(st)st.textContent=claim==='WON'?'Resultado enviado. Esperando el resultado de tu rival.':'Derrota confirmada.';showToast(claim==='WON'?'Resultado GANÉ enviado.':'Derrota confirmada.');}catch(x){console.error(x);btn.disabled=false;showToast('No se pudo registrar el resultado.')}return;
  }
  if(e.target?.id==='freshNoTrick'){
-  try{e.target.disabled=true;const {error}=await supabaseClient.rpc('submit_ranked_no_trick',{p_match_id:freshRoomMatchId});if(error)throw error;showToast('NADIE HIZO TRICKSHOT enviado.');}catch(x){console.error(x);e.target.disabled=false;showToast('No se pudo registrar.')}
+  try{e.target.disabled=true;const {data,error}=await supabaseClient.rpc('submit_ranked_no_trick',{p_match_id:freshRoomMatchId});if(error)throw error;e.target.textContent='✓ NADIE HIZO TRICKSHOT';showToast('NADIE HIZO TRICKSHOT enviado.');}catch(x){console.error(x);e.target.disabled=false;showToast('No se pudo registrar.')}
  }
 });
 document.addEventListener('keydown',e=>{if(e.target?.id==='freshChatInput'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendFreshRankedChat()}});
