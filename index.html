@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>RANKING IKAR8BP</title>
-  <link rel="stylesheet" href="styles-v5.css?v=20261006-ready-actions-63" />
+  <link rel="stylesheet" href="styles-v5.css?v=20261006-chat-actions-swap-64" />
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest?v=1">
 <meta name="theme-color" content="#06121a">
@@ -911,14 +911,15 @@
 <div class="versus-player fresh-player-card"><div class="fresh-avatar" id="freshOpponentAvatar"><span>?</span></div><strong id="freshOpponent">RIVAL</strong><div class="fresh-rank-badge" id="freshOpponentRankBadge"></div><span class="fresh-rank" id="freshOpponentRank">LATÓN</span><small id="freshOpponentPosition">RANKING #--</small><span class="fresh-elo" id="freshOpponentElo"></span><div class="fresh-id-box"><small>ID 8 BALL POOL</small><b id="freshOpponentId"></b><button type="button" id="freshCopyOpponentId">📋 COPIAR</button></div></div>
 </div>
 <div class="fresh-response-warning" id="freshResponseWarning"><strong>⏱ TIEMPO DE<br>RESPUESTA</strong><div id="freshChatTimer">01:00</div><p id="freshChatTimerNote">Tienen 1 minuto desde que se arma el VS para enviar sus mensajes.</p></div>
-<div class="fresh-ready-actions" id="freshReadyActions" hidden>
-<div class="fresh-ready-main"><button type="button" id="freshWon">🏆 GANÉ</button><button type="button" id="freshLost">PERDÍ</button></div>
-<div class="fresh-ready-secondary"><button type="button" id="freshNoTrick">NADIE HIZO TRICKSHOT CON LA 8</button><button type="button" id="freshLeaveRoom">SALIR DE LA SALA</button></div>
-</div>
-<div class="ranked-vs-chat" id="freshRankedChat">
+<div class="ranked-vs-chat fresh-chat-swap" id="freshRankedChat">
+
 <div class="ranked-vs-chat-head"><strong>💬 CHAT DEL VS</strong><span>Solo jugadores de este VS y administrador</span></div>
 <div class="ranked-vs-chat-messages" id="freshChatMessages"></div>
 <div class="ranked-vs-chat-compose"><textarea id="freshChatInput" maxlength="1000" rows="2" placeholder="Escribe un mensaje..."></textarea><button type="button" id="freshChatSend">ENVIAR</button></div>
+</div>
+<div class="fresh-ready-actions fresh-actions-swap" id="freshReadyActions" hidden>
+<div class="fresh-ready-main"><button type="button" id="freshWon">🏆 GANÉ</button><button type="button" id="freshLost">PERDÍ</button></div>
+<div class="fresh-ready-secondary"><button type="button" id="freshNoTrick">NADIE HIZO TRICKSHOT CON LA 8</button><button type="button" id="freshLeaveRoom">SALIR DE LA SALA</button></div>
 </div>
 <div id="freshResultActions" class="fresh-results-section" hidden>
 <div class="fresh-elo-summary"><strong>GANADOR +15 ELO</strong><span>PERDEDOR -15 ELO · <b>-45 ELO SI ADMIN/MOD DEFINE EL RESULTADO</b></span></div>
@@ -974,7 +975,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261006-ready-actions-63"></script>
+  <script src="app-v5.js?v=20261006-chat-actions-swap-64"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
