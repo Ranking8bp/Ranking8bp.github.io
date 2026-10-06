@@ -2095,3 +2095,21 @@ img,svg,video,canvas{max-width:100%}
  .fresh-response-warning #freshChatTimer{font-size:52px!important}
  .fresh-response-warning p{font-size:14px}
 }
+
+/* Legacy result section below fresh VS chat */
+.fresh-results-section{width:100%;max-width:650px;margin:20px auto 0;box-sizing:border-box;text-align:center;font-family:Arial,sans-serif}
+.fresh-results-section[hidden]{display:none!important}
+.fresh-elo-summary{padding:5px 8px 15px;color:#fff}
+.fresh-elo-summary strong,.fresh-elo-summary span{display:block;font:1000 13px/1.35 Arial,sans-serif}
+.fresh-elo-summary span{margin-top:7px}.fresh-elo-summary b{color:#ff8a96}
+.fresh-result-card{padding:17px 14px;border:1px solid #b88b32;border-radius:15px;background:#09131c;box-shadow:0 0 20px rgba(184,139,50,.1)}
+.fresh-result-card>strong{display:block;color:#f3d16d;font:1000 15px Arial,sans-serif}
+.fresh-result-card>small{display:block;margin:7px 0 14px;color:#fff;font:800 10px Arial,sans-serif}
+.fresh-result-card .ranked-result-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fresh-result-card #freshWon,.fresh-result-card #freshLost{min-height:55px;border-radius:11px;font:1000 14px Arial,sans-serif;color:#fff;border:0}
+.fresh-result-card #freshWon{background:#3da75e}.fresh-result-card #freshLost{background:#bd3149}
+#freshResultStatus{margin:9px 0;color:#fff;font:800 10px Arial,sans-serif}
+.fresh-evidence-warning{margin:14px 0;padding:12px 10px;border:2px solid #d7a43a;border-radius:11px;background:#50451e;color:#fff5bd;font:1000 10px/1.3 Arial,sans-serif}
+.fresh-result-card #freshNoTrick{display:block;width:100%;min-height:46px;margin:10px 0;border:1px solid #d7a43a;border-radius:10px;background:#2e260d;color:#ffd95d;font:1000 11px Arial,sans-serif}
+.fresh-rule-warning{margin-top:13px;padding:12px 10px;border:2px solid #d63d52;border-radius:11px;background:#431018;color:#fff;font:800 10px/1.35 Arial,sans-serif;box-shadow:0 0 14px rgba(214,61,82,.2)}
+@media(max-width:600px){.fresh-results-section{margin-top:16px}.fresh-result-card{padding:14px 10px}.fresh-elo-summary strong,.fresh-elo-summary span{font-size:11px}.fresh-result-card #freshWon,.fresh-result-card #freshLost{min-height:50px;font-size:12px}}
