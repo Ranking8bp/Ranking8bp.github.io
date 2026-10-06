@@ -966,9 +966,11 @@ async function stopMatchmakingRealtime(){
 async function openCreatedRankedVsNow(){
  if(!currentUser||!supabaseClient||currentRankedMatchId)return false;
  try{
-  const {data:activeId,error:idError}=await supabaseClient.rpc('get_my_active_ranked_match_id');
-  if(idError)throw idError;
-  if(!activeId)return false;
+  const {data:stateRows,error:stateError}=await supabaseClient.rpc('get_my_matchmaking_state');
+  if(stateError)throw stateError;
+  const state=Array.isArray(stateRows)?stateRows[0]:stateRows;
+  const activeId=state?.match_id;
+  if(state?.state!=='matched'||!activeId)return false;
   const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');
   if(error)throw error;
   const match=Array.isArray(data)?data[0]:data;
