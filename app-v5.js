@@ -1000,6 +1000,15 @@ async function pollRankedMatch(){
   else console.error('Error sondeo emparejamiento:',e);
  }finally{matchmakingPollLoading=false}
 }
+/* Mobile/WebView can throttle setInterval. Whenever the user returns to or
+   interacts with the search screen, immediately reconcile an already-created VS. */
+function syncRankedSearchNow(){
+ if(rankedSearchActive&&!currentRankedMatchId&&!matchmakingPollLoading)pollRankedMatch().catch(()=>{});
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncRankedSearchNow()});
+window.addEventListener('focus',syncRankedSearchNow);
+document.addEventListener('pointerdown',()=>{if(rankedSearchActive&&!currentRankedMatchId)syncRankedSearchNow()},{passive:true});
+
 async function heartbeatRankedSearch(){
  if(currentRankedMatchId||!currentUser||!supabaseClient||matchmakingHeartbeatLoading)return;
  matchmakingHeartbeatLoading=true;
