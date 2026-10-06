@@ -899,62 +899,7 @@
   </div>
 
   <div class="admin-backdrop" id="adminPanel" hidden><section class="admin-card"><div class="admin-head"><div><small>CONTROL DEL RANKING</small><h2>MODO ADMINISTRADOR</h2></div><button id="adminCloseBtn" type="button">×</button></div><div class="admin-tabs"><button id="adminVsTab" type="button">SALA VS</button><button id="adminPlayersTab" type="button">JUGADORES</button><button id="adminModerationTab" type="button">MODERACIÓN</button></div><div class="admin-quick-actions"><button class="admin-refresh" id="adminRefreshBtn" type="button">ACTUALIZAR</button><button class="admin-refresh admin-proofs-btn" id="adminProofsBtn" type="button" hidden>PRUEBAS <span id="adminProofsCount">0</span></button><button class="admin-refresh" id="adminCorrectionsBtn" type="button">CORREGIR ÚLTIMOS 5</button><button class="admin-refresh" id="adminDynamicsBtn" type="button">DINÁMICAS</button></div><div class="admin-player-search" id="adminVsSearch"><span aria-hidden="true">🔍</span><input id="adminVsSearchInput" type="search" placeholder="Buscar VS por nombre" autocomplete="off" /></div><div class="admin-player-search" id="adminPlayerSearch" hidden><span aria-hidden="true">🔍</span><input id="adminPlayerSearchInput" type="search" placeholder="Buscar jugador por nombre" autocomplete="off" /></div><div class="admin-match-list" id="adminMatchList"></div><div class="admin-player-list" id="adminPlayerList" hidden></div><div class="admin-moderation" id="adminModeration" hidden><div class="admin-mod-section"><h3>MENSAJES PRIVADOS</h3><div id="adminPrivateMessages"></div></div></div></section></div>
-  <div class="matchmaking-backdrop" id="matchmakingModal" hidden>
-    <section class="matchmaking-card">
-      <button type="button" class="matchmaking-close" id="matchmakingClose">×</button>
-      <div id="matchmakingSearching">
-        <div class="matchmaking-spinner"></div><h2>BUSCANDO RIVAL</h2><div class="searching-player-profile"><div class="searching-player-avatar" id="searchingPlayerAvatar"><span>?</span></div><strong id="searchingPlayerName">JUGADOR</strong><span id="searchingPlayerRank">LATÓN</span><span id="searchingPlayerElo">ELO 200</span></div><p>Buscando un jugador para partida por ranking...</p>
-      </div>
-      <div id="matchmakingVersus" hidden>
-        <div class="matchmaking-mode">RANKING ARMADO</div>
-        <div class="versus-grid"><div class="versus-player"><div class="versus-avatar" id="versusMyAvatar"><span>?</span></div><strong id="versusMe">TÚ</strong><div class="versus-rank-badge" id="versusMyRankBadge"></div><span id="versusMyRank">LATÓN</span><span id="versusMyPosition">RANKING #--</span><span id="versusMyElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusMyGameId">--</strong><button type="button" id="copyMyGameId" title="Copiar ID">📋 COPIAR</button></div></div><b>VS</b><div class="versus-player"><div class="versus-avatar" id="versusOpponentAvatar"><span>?</span></div><strong id="versusOpponent">RIVAL</strong><div class="versus-rank-badge" id="versusOpponentRankBadge"></div><span id="versusOpponentRank">LATÓN</span><span id="versusOpponentPosition">RANKING #--</span><span id="versusOpponentElo">ELO 200</span><div class="versus-game-id"><span>ID 8 BALL POOL</span><strong id="versusOpponentGameId">--</strong><button type="button" id="copyOpponentGameId" title="Copiar ID">📋 COPIAR</button></div></div></div>
-        <section class="ranked-vs-chat" id="rankedVsChat" hidden>
-          <div class="ranked-vs-chat-head"><strong>💬 CHAT DEL VS</strong><span>Solo jugadores de este VS y administrador</span></div>
-          <div style="margin:10px 0;padding:10px 12px;border:1px solid #ffb300;border-radius:10px;background:rgba(255,179,0,.10);font-size:12px;line-height:1.45"><b>⚠️ REGLA DE ELO:</b> Si pierdes y aceptas tu derrota tocando <b>PERDÍ</b>, pierdes <b>-15 ELO</b>. Si no aceptas la derrota y el ganador se define mediante <b>revisión de video por ADMINISTRADOR/MODERADOR</b>, el perdedor recibe <b>-45 ELO</b>. El ganador recibe <b>+15 ELO</b>.</div>
-          <div class="ranked-vs-chat-messages" id="rankedVsChatMessages"><div class="ranked-vs-chat-empty">Todavía no hay mensajes.</div></div>
-          <div class="ranked-vs-chat-compose">
-            <textarea id="rankedVsChatInput" maxlength="1000" rows="2" placeholder="Escribe un mensaje para coordinar el partido..."></textarea>
-            <button type="button" id="rankedVsChatSend">ENVIAR</button>
-          </div>
-        </section>
-        <div class="elo-stakes"><span>GANADOR <b>+15 ELO</b></span><span>PERDEDOR <b>-15 ELO</b> · <b>-45 ELO</b> SI ADMIN/MOD DEFINE EL RESULTADO</span></div>
-        <div class="ranked-match-countdown" id="rankedMatchCountdown" hidden style="display:none!important"><b id="rankedMatchCountdownValue" hidden>0</b><button type="button" id="rankedPlayerConfirmBtn" hidden></button><small id="rankedPlayerConfirmStatus" hidden></small></div>
-        <div class="ranked-play-timer" id="rankedPlayTimer" hidden style="display:none!important"><strong id="rankedPlayTimerValue" hidden>00:00</strong><small id="rankedPlayTimerNote" hidden></small></div>
-        <section class="ranked-result-report" id="rankedResultReport" hidden>
-          <strong>RESULTADO DEL PARTIDO</strong>
-          <span>Cuando termine el VS, cada jugador debe indicar su resultado.</span>
-          <button type="button" id="rankedNoTrickBtn" style="display:block;width:100%;min-height:64px;margin:12px 0 14px;border:2px solid #111;border-radius:12px;background:#ffd633;color:#080808;font-size:clamp(17px,4vw,24px);font-weight:1000;line-height:1.1;padding:12px 10px;box-shadow:0 4px 14px rgba(0,0,0,.35)">⚠️ NADIE HIZO TRICK CON LA 8 · SALIR</button>
-          <div class="ranked-result-buttons">
-            <button type="button" id="rankedClaimWon">🏆 GANÉ</button>
-            <button type="button" id="rankedClaimLost">PERDÍ</button>
-          </div>
-          <small id="rankedResultStatus">Esperando tu resultado.</small>
-          <div class="ranked-video-proof" id="rankedVideoProof" hidden>
-            <strong>📹 SUBE TU VIDEO GANADOR</strong>
-            <span>Sube el video de tu tiro ganador para que el administrador lo revise.</span>
-            <input id="rankedWinnerVideoInput" type="file" accept="video/mp4,video/webm,video/quicktime,video/x-m4v" hidden>
-            <button type="button" id="rankedForgotRecordingBtn" style="display:block;width:100%;min-height:58px;margin:12px 0 10px;border:2px solid #ff5a5a;border-radius:12px;background:#c91515;color:#fff;font-size:clamp(16px,4vw,22px);font-weight:1000;padding:10px">SALIR, OLVIDÉ GRABAR</button>\n            <button type="button" id="rankedWinnerVideoBtn">🎥 SUBIR VIDEO DEL TIRO GANADOR</button>
-            <small id="rankedWinnerVideoStatus">El administrador revisará el video antes de confirmar el ganador.</small>
-          </div>
-          <div class="ranked-evidence-reminder">📹 SI MARCAS <b>GANÉ</b> Y TU RIVAL NO MARCA <b>PERDÍ</b>, DEBES SUBIR EVIDENCIA DE TU VICTORIA.</div>
-          <div class="ranked-false-win-warning">⚠️ <b>REGLA IMPORTANTE:</b> Si nadie ganó correctamente haciendo <b>TRICKSHOT CON LA 8</b>, debes tocar <b>NADIE HIZO TRICK CON LA 8 · SALIR</b>. Si marcas <b>GANÉ</b> y no presentas un video válido que demuestre tu trickshot ganador con la 8, recibirás una sanción de <b>-100 ELO</b>.</div>
-        </section>
-        <section class="ranked-match-rules" id="rankedMatchRules" hidden>
-          <h3>REGLAS DEL PARTIDO</h3>
-          <p>• GANA METIENDO LA 8 CON TRICKSHOT.</p>
-          <p>• PIERDES SOLO SI EL RIVAL TE HACE TRICKSHOT CON LA 8.</p>
-          <p>• LAS OTRAS BOLAS SE PUEDEN METER DIRECTAS Y LA 8 DEBE SER A TRICKSHOT.</p>
-          <p>• SI PIERDES, TOCA <b>PERDÍ</b>.</p>
-          <p>• SI GANAS, TOCA <b>GANÉ</b>.</p>
-          <p>• SI EL RIVAL NO TOCA <b>PERDÍ</b>, SUBE EL VIDEO DE TU TRICKSHOT CON LA 8.</p>
-          <p>• CUANDO JUEGAS EN UNA MESA DONDE NO SE ANUNCIA EL TIRO CON LA 8, DEBES SEÑALAR CON LA GUÍA DEL TACO A DÓNDE LA VAS A METER. SI HACES EL TRICKSHOT SIN INDICAR DÓNDE LA VAS A METER, NO CUENTA COMO VICTORIA.</p>
-        </section>
-
-        <button type="button" class="abandon-ranked-btn" id="leaveRankedRoomBtn">SALIR DE LA SALA</button>
-        <button type="button" class="abandon-ranked-btn" id="abandonRankedBtn" hidden>ABANDONAR VS</button>
-      </div>
-    </section>
-  </div>
+  <!-- Matchmaking UI removed completely. Rebuild will be added from zero. -->
   <div class="elo-daily-limit-backdrop" id="eloDailyLimitModal" hidden>
     <section class="elo-daily-limit-card" role="dialog" aria-modal="true">
       <button type="button" class="elo-daily-limit-close" id="eloDailyLimitClose">×</button>
@@ -997,7 +942,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261006-matchmaking-clean-55"></script>
+  <script src="app-v5.js?v=20261006-matchmaking-zero-56"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
