@@ -2305,10 +2305,19 @@ if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{
           document.getElementById('freshOpponentElo').textContent='ELO '+m.opponent_elo;
           document.getElementById('freshMyId').textContent='ID: '+(m.my_game_id||'NO REGISTRADO');
           document.getElementById('freshOpponentId').textContent='ID: '+(m.opponent_game_id||'NO REGISTRADO');
-          setFreshAvatar(document.getElementById('freshMyAvatar'),m.my_avatar_path,m.my_name);
-          setFreshAvatar(document.getElementById('freshOpponentAvatar'),m.opponent_avatar_path,m.opponent_name);
+          const paintAvatar=(el,path,name)=>{if(!el)return;el.replaceChildren();const fallback=()=>{el.replaceChildren();const s=document.createElement('span');s.textContent=String(name||'?').charAt(0).toUpperCase();el.appendChild(s)};if(!path)return fallback();const img=document.createElement('img');let src=String(path).trim();if(!/^https?:\/\//i.test(src)){const clean=src.replace(/^profile-photos\//,'').replace(/^\/+/, '');src=supabaseClient.storage.from('profile-photos').getPublicUrl(clean).data?.publicUrl||''}img.src=src;img.alt=String(name||'Jugador');img.onerror=fallback;el.appendChild(img)};
+          const rankFile=(rank)=>{const k=String(rank||'LATÓN').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,'_');const a=['LATON','BRONCE_I','BRONCE_II','BRONCE_III','PLATA_I','PLATA_II','PLATA_III','ORO_I','ORO_II','ORO_III','AMATISTA_I','AMATISTA_II','AMATISTA_III','ESMERALDA_I','ESMERALDA_II','ESMERALDA_III','DIAMANTE_I','DIAMANTE_II','DIAMANTE_III','DIAMANTE_NEGRO'];const files=['01_Laton.png','02_Bronce_I.png','03_Bronce_II.png','04_Bronce_III.png','05_Plata_I.png','06_Plata_II.png','07_Plata_III.png','08_Oro_I.png','09_Oro_II.png','10_Oro_III.png','11_Amatista_I.png','12_Amatista_II.png','13_Amatista_III.png','14_Esmeralda_I.png','15_Esmeralda_II.png','16_Esmeralda_III.png','17_Diamante_I.png','18_Diamante_II.png','19_Diamante_III.png','20_Diamante_Negro.png'];return files[Math.max(0,a.indexOf(k))]};
+          const paintRank=(el,rank)=>{if(!el)return;el.replaceChildren();const img=document.createElement('img');img.src='assets/ranks/'+rankFile(rank);img.alt=String(rank||'LATÓN');el.appendChild(img)};
+          paintAvatar(document.getElementById('freshMyAvatar'),m.my_avatar_path,m.my_name);
+          paintAvatar(document.getElementById('freshOpponentAvatar'),m.opponent_avatar_path,m.opponent_name);
+          paintRank(document.getElementById('freshMyRankBadge'),m.my_rank_name);
+          paintRank(document.getElementById('freshOpponentRankBadge'),m.opponent_rank_name);
+          document.getElementById('freshMyRank').textContent=String(m.my_rank_name||'LATÓN').toUpperCase();
+          document.getElementById('freshOpponentRank').textContent=String(m.opponent_rank_name||'LATÓN').toUpperCase();
+          document.getElementById('freshMyPosition').textContent='RANKING #'+(m.my_position||'--');
+          document.getElementById('freshOpponentPosition').textContent='RANKING #'+(m.opponent_position||'--');
           await restorePersistentFreshRoom(matchId);
-          startFreshRankedRoom(matchId,Number(m.seconds_left)||60);
+          startFreshRankedRoom(matchId,Number(m.chat_seconds_left??0));
           setTimeout(()=>restorePersistentFreshRoom(matchId),50);
           return;
         }
