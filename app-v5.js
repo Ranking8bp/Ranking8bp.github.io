@@ -2650,7 +2650,7 @@ async function restorePersistentFreshRoom(id){
    const input=document.getElementById('freshChatInput');if(input)input.disabled=false;
    const send=document.getElementById('freshChatSend');if(send)send.disabled=false;
    const rs=document.getElementById('freshResultStatus');if(rs)rs.textContent=String(st.status)==='review'?'Tu rival envió evidencia. Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.':'Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.';
-   if(st.opponent_claim){
+   if(st.opponent_claim && (String(st.status)==='review' || st.opponent_claim!=='WON')){
     const chat=document.getElementById('freshRankedChat');if(chat)chat.hidden=true;
     const label=st.opponent_claim==='WON'?'GANÉ':st.opponent_claim==='LOST'?'PERDÍ':'NADIE HIZO TRICKSHOT CON LA 8';
     let notice=document.getElementById('freshOpponentClaimNotice');
@@ -2808,6 +2808,11 @@ async function uploadFreshWinnerEvidence(file){
  }catch(e){console.error('Evidencia VS:',e);if(status)status.textContent=e?.message||'No se pudo subir el video.';if(btn)btn.disabled=false}
 }
 document.addEventListener('click',e=>{if(e.target?.id==='freshWinnerVideoBtn'){document.getElementById('freshWinnerVideoInput')?.click()}});
+document.addEventListener('click',async e=>{if(e.target?.id==='freshForgotVideoBtn'){
+ if(!freshRoomMatchId||!confirm('¿Salir de la sala sin enviar evidencia?'))return;
+ try{const matchId=Number(freshRoomMatchId);const {error}=await supabaseClient.rpc('leave_winner_without_evidence',{p_match_id:matchId});if(error)throw error;clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;await updateRankedDailyStatus();showToast('Saliste de la sala sin enviar evidencia.')}catch(err){console.error(err);showToast('No se pudo salir de la sala.')}
+}});
+
 document.addEventListener('change',e=>{if(e.target?.id==='freshWinnerVideoInput'){const file=e.target.files?.[0];if(file)uploadFreshWinnerEvidence(file)}});
 document.addEventListener('keydown',e=>{if(e.target?.id==='freshChatInput'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendFreshRankedChat()}});
 
