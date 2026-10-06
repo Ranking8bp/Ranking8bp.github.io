@@ -862,7 +862,7 @@ rankedVsChatInput?.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKe
 function showRankedMatch(match){currentRankedMatchData=match;rankedVsBothMessaged=false;lastVsSafetyRpcAt=0;rankedPlayingLockedLocally=!!match?.players_playing;
  if(!matchmakingModal||!matchmakingSearching||!matchmakingVersus)return;
  matchmakingModal.hidden=false;
- rankedSearchActive=false;stopRankedSearchLoop();
+ rankedSearchActive=false;syncRankedSearchPresence(false);stopRankedSearchLoop();
  currentRankedMatchId=match.match_id;
  startActiveVsRealtime(currentRankedMatchId);
  matchmakingSearching.hidden=true;matchmakingSearching.style.display='none';
@@ -1035,15 +1035,20 @@ async function renderSearchingPlayerProfile(){const n=document.getElementById('s
 async function refreshPlayersSearchingCount(){
  if(!supabaseClient||!playersSearchingCount||playersSearchingLoading)return;
  playersSearchingLoading=true;
- try{const {data,error}=await supabaseClient.rpc('get_ranked_players_searching_count');if(error)throw error;const n=Math.max(0,Number(data)||0);playersSearchingCount.textContent=String(n)+' BUSCANDO RIVAL'}catch(e){console.error('Buscando rival:',e)}finally{playersSearchingLoading=false}
+ try{const {data,error}=await supabaseClient.rpc('get_ranked_searching_count_v2');if(error)throw error;const n=Math.max(0,Number(data)||0);playersSearchingCount.textContent=String(n)+' BUSCANDO RIVAL'}catch(e){console.error('Buscando rival v2:',e)}finally{playersSearchingLoading=false}
 }
-setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),8000+Math.floor(Math.random()*12000));setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},180000);
+async function syncRankedSearchPresence(active){
+ if(!supabaseClient||!currentUser)return;
+ try{await supabaseClient.rpc('set_ranked_search_presence',{p_searching:!!active});refreshPlayersSearchingCount().catch(()=>{})}catch(e){console.error('Presencia búsqueda:',e)}
+}
+setInterval(()=>{if(!document.hidden){if(rankedSearchActive)syncRankedSearchPresence(true);else refreshPlayersSearchingCount().catch(()=>{})}},10000);
+setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),1000);
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient||matchmakingStartLoading)return;
  matchmakingStartLoading=true;
  const modal=document.getElementById('freshMatchmakingModal'),search=document.getElementById('freshSearching'),vs=document.getElementById('freshVersus');
  if(!modal||!search||!vs){matchmakingStartLoading=false;return}
- modal.hidden=false;search.hidden=false;vs.hidden=true;rankedSearchActive=true;
+ modal.hidden=false;search.hidden=false;vs.hidden=true;rankedSearchActive=true;syncRankedSearchPresence(true);
  const token=++rankedSearchLoopToken;
  matchmakingStartLoading=false;
  while(rankedSearchActive&&token===rankedSearchLoopToken){
@@ -1053,7 +1058,7 @@ async function startRankedMatchmaking(){
    if(st?.state==='matched'&&st?.out_match_id){
     const {data:room,error:roomError}=await supabaseClient.rpc('get_fresh_ranked_room',{p_match_id:Number(st.out_match_id)});if(roomError)throw roomError;
     const m=Array.isArray(room)?room[0]:room;if(!m)throw new Error('ROOM_NOT_READY');
-    currentRankedMatchId=Number(m.match_id);rankedSearchActive=false;
+    currentRankedMatchId=Number(m.match_id);rankedSearchActive=false;syncRankedSearchPresence(false);
     document.getElementById('freshMe').textContent=String(m.my_name||'TÚ').toUpperCase();
     document.getElementById('freshOpponent').textContent=String(m.opponent_name||'RIVAL').toUpperCase();
     document.getElementById('freshMyElo').textContent='ELO '+m.my_elo;
