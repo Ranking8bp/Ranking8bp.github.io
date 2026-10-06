@@ -2042,3 +2042,22 @@ img,svg,video,canvas{max-width:100%}
  #freshChatTimer{font-size:30px}
  #freshResultActions{padding:10px}
 }
+
+/* Fresh ranked room mobile polish */
+#freshRankedChat,#freshRankedChat *{font-family:Arial,sans-serif}
+#freshRankedChat>strong{font-size:13px!important;line-height:1.2!important;letter-spacing:.5px!important;color:#70c9ff!important}
+#freshChatTimer{font-family:Arial,sans-serif!important;font-size:30px!important;font-weight:1000!important;line-height:1!important;color:#ffd54a!important;padding:4px 14px 2px!important}
+#freshChatTimerNote{font-family:Arial,sans-serif!important;font-size:10px!important;font-weight:800!important;line-height:1.35!important;color:#d7e0e5!important;padding:5px 14px 11px!important}
+#freshChatMessages{height:165px!important;min-height:165px!important}
+#freshRankedChat .ranked-vs-chat-compose{padding:9px!important;gap:8px!important}
+#freshRankedChat .ranked-vs-chat-compose textarea{height:62px!important;min-height:62px!important;padding:11px!important;border-radius:10px!important;font-family:Arial,sans-serif!important;font-size:16px!important;font-weight:700!important}
+#freshRankedChat .ranked-vs-chat-compose button{min-width:86px!important;border-radius:10px!important;font-size:11px!important;font-weight:1000!important}
+#freshResultActions button{font-family:Arial,sans-serif!important}
+@media(max-width:600px){
+ #freshMatchmakingModal .matchmaking-card{min-height:0!important;height:auto!important;padding-bottom:18px!important}
+ #freshMatchmakingModal #freshVersus{padding-bottom:0!important}
+ #freshMatchmakingModal .versus-grid{margin-bottom:12px!important}
+ #freshRankedChat{margin-bottom:0!important}
+ #freshRankedChatMessages{height:150px!important}
+ #freshChatMessages{height:150px!important;min-height:150px!important}
+}
