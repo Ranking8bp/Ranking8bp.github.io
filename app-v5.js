@@ -228,6 +228,7 @@ const playerDetailPosition=document.getElementById('playerDetailPosition');
 const playerDetailPositionStat=document.getElementById('playerDetailPositionStat');
 const playerDetailWins=document.getElementById('playerDetailWins');
 const playerDetailLosses=document.getElementById('playerDetailLosses');
+const playerDetailDynamicWins=document.getElementById('playerDetailDynamicWins');
 const playerDetailRank=document.getElementById('playerDetailRank');
 const playerDetailRankBadge=document.getElementById('playerDetailRankBadge');
 const playerHeartBtn=document.getElementById('playerHeartBtn');
@@ -1961,6 +1962,7 @@ async function openRankingPlayer(player){
   const gameId=String(player?.game_id||'—');
   const rank=getRankByElo(elo);
   const isAdminProfile=String(player?.username||'').toLowerCase()==='ikar8bp'||player?.is_admin===true;
+  const profileIdForDynamicWins=player?.player_id||player?.id;let dynamicWins=0;if(profileIdForDynamicWins&&supabaseClient){try{const {data,error}=await supabaseClient.rpc('get_dynamic_wins',{p_profile_id:profileIdForDynamicWins});if(!error)dynamicWins=Number(data)||0}catch(_){}}if(playerDetailDynamicWins)playerDetailDynamicWins.textContent=String(dynamicWins);
 
   if(playerDetailPositionStat)playerDetailPositionStat.hidden=isAdminProfile;
   if(playerDetailPosition&&!isAdminProfile){
