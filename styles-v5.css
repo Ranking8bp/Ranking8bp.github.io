@@ -2153,3 +2153,8 @@ img,svg,video,canvas{max-width:100%}
 .fresh-ready-secondary{grid-template-columns:1fr!important;margin-top:7px!important}
 #freshNoTrick{width:100%;min-height:62px!important;border:3px solid #ffd54a!important;border-radius:13px!important;background:#765500!important;color:#fff3a0!important;font:1000 14px/1.25 Arial,sans-serif!important;letter-spacing:.15px;box-shadow:0 0 20px rgba(255,213,74,.42),inset 0 0 14px rgba(255,213,74,.12)}
 @media(max-width:600px){.fresh-no-trick-priority strong{font-size:12px}.fresh-no-trick-priority span{font-size:10px}#freshNoTrick{min-height:60px!important;font-size:13px!important;padding:10px!important}}
+
+/* Invite-to-tap animation for the single NO TRICK action */
+#freshNoTrick{animation:freshNoTrickInvite 1.35s ease-in-out infinite;transform-origin:center;will-change:transform,box-shadow,filter}
+@keyframes freshNoTrickInvite{0%,100%{transform:scale(1);filter:brightness(1);box-shadow:0 0 14px rgba(255,213,74,.30),inset 0 0 12px rgba(255,213,74,.10)}50%{transform:scale(1.035);filter:brightness(1.22);box-shadow:0 0 30px rgba(255,213,74,.72),inset 0 0 18px rgba(255,213,74,.20)}}
+#freshNoTrick:active{animation:none;transform:scale(.97)}
