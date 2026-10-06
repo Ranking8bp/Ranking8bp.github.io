@@ -2631,7 +2631,17 @@ document.addEventListener('click',async e=>{
   try{const claim=map[btn.id];const {data,error}=await supabaseClient.rpc('submit_ranked_result_claim',{p_match_id:freshRoomMatchId,p_claim:claim});if(error)throw error;btn.textContent=claim==='WON'?'✓ MARCASTE GANÉ':'✓ MARCASTE PERDÍ';const st=document.getElementById('freshResultStatus');if(st)st.textContent=claim==='WON'?'Sube el video del tiro con la 8 que demuestre que ganaste. El video puede durar máximo 1 minuto.':'Derrota confirmada.';if(claim==='WON'){const ev=document.getElementById('freshEvidenceBox');if(ev)ev.hidden=false}showToast(claim==='WON'?'Ahora sube tu video de evidencia.':'Derrota confirmada.');}catch(x){console.error(x);btn.disabled=false;showToast('No se pudo registrar el resultado.')}return;
  }
  if(e.target?.id==='freshNoTrick'){
-  try{e.target.disabled=true;const {data,error}=await supabaseClient.rpc('submit_ranked_no_trick',{p_match_id:freshRoomMatchId});if(error)throw error;e.target.textContent='✓ NADIE HIZO TRICKSHOT';showToast('NADIE HIZO TRICKSHOT enviado.');}catch(x){console.error(x);e.target.disabled=false;showToast('No se pudo registrar.')}
+  const btn=e.target,matchId=Number(freshRoomMatchId);
+  try{
+   btn.disabled=true;
+   const {data,error}=await supabaseClient.rpc('submit_ranked_no_trick',{p_match_id:matchId});if(error)throw error;
+   clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;
+   if(Number(freshRoomMatchId)===matchId)freshRoomMatchId=null;
+   currentRankedMatchId=null;rankedSearchActive=false;
+   const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;
+   showToast(data==='cancelled'?'VS ANULADO: ambos indicaron que nadie hizo trickshot.':'Saliste de esta sala. Ya puedes buscar otro rival.');
+  }catch(x){console.error(x);btn.disabled=false;showToast('No se pudo registrar.')}
+  return;
  }
 });
 async function uploadFreshWinnerEvidence(file){
