@@ -2614,12 +2614,32 @@ document.addEventListener('click',async e=>{
  const map={freshWon:'WON',freshLost:'LOST'};
  if(map[e.target?.id]){
   const btn=e.target;btn.disabled=true;
-  try{const claim=map[btn.id];const {data,error}=await supabaseClient.rpc('submit_ranked_result_claim',{p_match_id:freshRoomMatchId,p_claim:claim});if(error)throw error;btn.textContent=claim==='WON'?'✓ MARCASTE GANÉ':'✓ MARCASTE PERDÍ';const st=document.getElementById('freshResultStatus');if(st)st.textContent=claim==='WON'?'Resultado enviado. Esperando el resultado de tu rival.':'Derrota confirmada.';showToast(claim==='WON'?'Resultado GANÉ enviado.':'Derrota confirmada.');}catch(x){console.error(x);btn.disabled=false;showToast('No se pudo registrar el resultado.')}return;
+  try{const claim=map[btn.id];const {data,error}=await supabaseClient.rpc('submit_ranked_result_claim',{p_match_id:freshRoomMatchId,p_claim:claim});if(error)throw error;btn.textContent=claim==='WON'?'✓ MARCASTE GANÉ':'✓ MARCASTE PERDÍ';const st=document.getElementById('freshResultStatus');if(st)st.textContent=claim==='WON'?'Sube el video que demuestra tu victoria. Máximo 1 minuto.':'Derrota confirmada.';if(claim==='WON'){const ev=document.getElementById('freshEvidenceBox');if(ev)ev.hidden=false}showToast(claim==='WON'?'Ahora sube tu video de evidencia.':'Derrota confirmada.');}catch(x){console.error(x);btn.disabled=false;showToast('No se pudo registrar el resultado.')}return;
  }
  if(e.target?.id==='freshNoTrick'){
   try{e.target.disabled=true;const {data,error}=await supabaseClient.rpc('submit_ranked_no_trick',{p_match_id:freshRoomMatchId});if(error)throw error;e.target.textContent='✓ NADIE HIZO TRICKSHOT';showToast('NADIE HIZO TRICKSHOT enviado.');}catch(x){console.error(x);e.target.disabled=false;showToast('No se pudo registrar.')}
  }
 });
+async function uploadFreshWinnerEvidence(file){
+ if(!file||!freshRoomMatchId||!currentUser)return;
+ const box=document.getElementById('freshEvidenceBox'),status=document.getElementById('freshWinnerVideoStatus'),btn=document.getElementById('freshWinnerVideoBtn');
+ try{
+  if(btn)btn.disabled=true;if(status)status.textContent='Comprobando video...';
+  const mime=String(file.type||'').toLowerCase(),name=String(file.name||'').toLowerCase();
+  if(!(/^video\/(mp4|webm|quicktime|x-m4v)$/.test(mime)||/\.(mp4|mov|m4v|webm)$/i.test(name)))throw new Error('Formato no permitido. Usa MP4, WEBM o MOV.');
+  if(file.size>500*1024*1024)throw new Error('El video no puede superar 500 MB.');
+  const duration=await getVideoDuration(file);if(!Number.isFinite(duration)||duration>60.05)throw new Error('El video debe durar máximo 1 minuto.');
+  const matchId=Number(freshRoomMatchId),ext=getVideoExtension(file),path=matchId+'/'+currentUser.id+'/winner-'+Date.now()+'.'+ext;
+  if(status)status.textContent='Subiendo video...';
+  if(file.size>45*1024*1024)await uploadLargeRankedEvidence(file,path,(sent,total)=>{if(status)status.textContent='Subiendo video... '+(total?Math.floor(sent*100/total):0)+'%'});
+  else{const {error}=await supabaseClient.storage.from('ranked-match-videos').upload(path,file,{contentType:file.type||'video/mp4',upsert:false,cacheControl:'3600'});if(error)throw error}
+  const {error:saveError}=await supabaseClient.rpc('save_ranked_match_video',{p_match_id:matchId,p_video_path:path});if(saveError)throw saveError;
+  if(status)status.textContent='✅ VIDEO ENVIADO AL ADMINISTRADOR PARA REVISIÓN.';if(btn){btn.textContent='🎥 VIDEO ENVIADO';btn.disabled=true}
+  showToast('Video enviado al administrador.');
+ }catch(e){console.error('Evidencia VS:',e);if(status)status.textContent=e?.message||'No se pudo subir el video.';if(btn)btn.disabled=false}
+}
+document.addEventListener('click',e=>{if(e.target?.id==='freshWinnerVideoBtn'){document.getElementById('freshWinnerVideoInput')?.click()}});
+document.addEventListener('change',e=>{if(e.target?.id==='freshWinnerVideoInput'){const file=e.target.files?.[0];if(file)uploadFreshWinnerEvidence(file)}});
 document.addEventListener('keydown',e=>{if(e.target?.id==='freshChatInput'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendFreshRankedChat()}});
 
 document.addEventListener('click',e=>{if(e.target?.id==='freshCopyMyId'||e.target?.id==='freshCopyOpponentId'){const id=e.target.id==='freshCopyMyId'?'freshMyId':'freshOpponentId',v=document.getElementById(id)?.textContent?.trim();if(v&&navigator.clipboard)navigator.clipboard.writeText(v).then(()=>showToast('ID copiado.')).catch(()=>{})}});
