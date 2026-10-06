@@ -1057,7 +1057,7 @@ async function startRankedMatchmaking(){
     document.getElementById('freshMe').textContent=String(m.my_name||'TÚ').toUpperCase();
     document.getElementById('freshOpponent').textContent=String(m.opponent_name||'RIVAL').toUpperCase();
     document.getElementById('freshMyElo').textContent='ELO '+m.my_elo;
-    document.getElementById('freshOpponentElo').textContent='ELO '+m.opponent_elo;
+    document.getElementById('freshOpponentElo').textContent='ELO '+m.opponent_elo;const ms=document.getElementById('freshMyStreak'),os=document.getElementById('freshOpponentStreak');if(ms){ms.textContent='🔥 RACHA +'+Number(m.my_streak||0);ms.hidden=Number(m.my_streak||0)<=0}if(os){os.textContent='🔥 RACHA +'+Number(m.opponent_streak||0);os.hidden=Number(m.opponent_streak||0)<=0}
     document.getElementById('freshMyId').textContent='ID: '+(m.my_game_id||'NO REGISTRADO');
     document.getElementById('freshOpponentId').textContent=(m.opponent_game_id||'NO REGISTRADO');
     document.getElementById('freshMyId').textContent=(m.my_game_id||'NO REGISTRADO');
@@ -2302,7 +2302,7 @@ if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{
           document.getElementById('freshMe').textContent=String(m.my_name||'TÚ').toUpperCase();
           document.getElementById('freshOpponent').textContent=String(m.opponent_name||'RIVAL').toUpperCase();
           document.getElementById('freshMyElo').textContent='ELO '+m.my_elo;
-          document.getElementById('freshOpponentElo').textContent='ELO '+m.opponent_elo;
+          document.getElementById('freshOpponentElo').textContent='ELO '+m.opponent_elo;const ms=document.getElementById('freshMyStreak'),os=document.getElementById('freshOpponentStreak');if(ms){ms.textContent='🔥 RACHA +'+Number(m.my_streak||0);ms.hidden=Number(m.my_streak||0)<=0}if(os){os.textContent='🔥 RACHA +'+Number(m.opponent_streak||0);os.hidden=Number(m.opponent_streak||0)<=0}
           document.getElementById('freshMyId').textContent='ID: '+(m.my_game_id||'NO REGISTRADO');
           document.getElementById('freshOpponentId').textContent='ID: '+(m.opponent_game_id||'NO REGISTRADO');
           const paintAvatar=(el,path,name)=>{if(!el)return;el.replaceChildren();const fallback=()=>{el.replaceChildren();const s=document.createElement('span');s.textContent=String(name||'?').charAt(0).toUpperCase();el.appendChild(s)};if(!path)return fallback();const img=document.createElement('img');let src=String(path).trim();if(!/^https?:\/\//i.test(src)){const clean=src.replace(/^profile-photos\//,'').replace(/^\/+/, '');src=supabaseClient.storage.from('profile-photos').getPublicUrl(clean).data?.publicUrl||''}img.src=src;img.alt=String(name||'Jugador');img.onerror=fallback;el.appendChild(img)};
