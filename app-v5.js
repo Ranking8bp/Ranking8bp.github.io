@@ -1440,6 +1440,9 @@ async function setPlayerUI(profile,user){
   // La clasificación debe aparecer de inmediato; loadRanking pinta primero el caché local y refresca detrás.
   loadRanking().catch(()=>{});
   maybeOpenDirectMatchmaking();
+  // Las dinámicas deben reconstruirse siempre al restaurar/refrescar la sesión.
+  refreshDynamic().catch(e=>console.error('Carga inicial de dinámicas:',e));
+  setTimeout(()=>refreshDynamic().catch(()=>{}),500);
   playerUiReadyFor=uiUserId;playerUiLoadingFor=null;
 }
 
