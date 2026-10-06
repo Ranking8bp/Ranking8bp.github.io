@@ -572,8 +572,10 @@ rankedForgotRecordingBtn?.addEventListener('click',async()=>{
 });
 
 function getVideoExtension(file){
-  const t=String(file?.type||'').toLowerCase();
-  return t.includes('webm')?'webm':t.includes('quicktime')?'mov':t.includes('x-m4v')?'m4v':'mp4';
+  const t=String(file?.type||'').toLowerCase(),n=String(file?.name||'').toLowerCase();
+  const m=n.match(/\.([a-z0-9]{2,5})$/i),ext=m?.[1];
+  if(['mp4','mov','m4v','webm','3gp','3g2','mkv','avi'].includes(ext))return ext;
+  return t.includes('webm')?'webm':t.includes('quicktime')?'mov':t.includes('x-m4v')?'m4v':t.includes('3gpp')?'3gp':'mp4';
 }
 async function getVideoDuration(file){
   return await new Promise((resolve,reject)=>{
