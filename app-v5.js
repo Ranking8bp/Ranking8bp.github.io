@@ -965,22 +965,18 @@ function startMatchmakingRealtime(){
 }
 
 async function pollRankedMatch(){
- if(!currentUser||!supabaseClient||currentRankedMatchId||matchmakingPollLoading)return;
+ if(!currentUser||!supabaseClient||currentRankedMatchId||matchmakingPollLoading||!rankedSearchActive)return;
  matchmakingPollLoading=true;
  try{
+  /* Read-only fallback: once searching has started, only check whether this
+     player already belongs to a VS. Never re-join the queue from the poll. */
   const {data:active,error:activeError}=await supabaseClient.rpc('get_my_active_ranked_match');
   if(activeError)throw activeError;
   const existing=Array.isArray(active)?active[0]:active;
-  if(existing){clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;showRankedMatch(existing);return}
-  if(!rankedSearchActive)return;
-  const {data,error}=await supabaseClient.rpc('join_ranked_matchmaking');
-  if(error)throw error;
-  const m=Array.isArray(data)?data[0]:data;
-  if(m&&m.status==='matched'){
-   const {data:full,error:fullError}=await supabaseClient.rpc('get_my_active_ranked_match');
-   if(fullError)throw fullError;
-   const match=Array.isArray(full)?full[0]:full;
-   if(match){clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;showRankedMatch(match)}
+  if(existing){
+   clearInterval(matchmakingTimer);matchmakingTimer=null;
+   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
+   showRankedMatch(existing);
   }
  }catch(e){console.error('Error sondeo emparejamiento:',e)}finally{matchmakingPollLoading=false}
 }
@@ -1062,7 +1058,7 @@ async function startRankedMatchmaking(){
   if(m?.status==='matched'){const {data:full}=await supabaseClient.rpc('get_my_active_ranked_match');const match=Array.isArray(full)?full[0]:full;if(match){showRankedMatch(match);return}}
   // Realtime is the primary matchmaking signal. Slow timers are fallback/queue liveness only.
   startMatchmakingRealtime();
-  clearInterval(matchmakingTimer);matchmakingTimer=setInterval(()=>{if(!document.hidden&&rankedSearchActive&&!currentRankedMatchId)pollRankedMatch()},3000);
+  clearInterval(matchmakingTimer);matchmakingTimer=setInterval(()=>{if(rankedSearchActive&&!currentRankedMatchId)pollRankedMatch()},2000);
   clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},180000);
  }catch(e){
    console.error('Error búsqueda ELO:',e);
@@ -1072,7 +1068,7 @@ async function startRankedMatchmaking(){
    /* A temporary matchmaking/heartbeat error must never close BUSCANDO RIVAL. */
    if(matchmakingModal){matchmakingModal.hidden=false;matchmakingSearching.hidden=false;matchmakingVersus.hidden=true}
    startMatchmakingRealtime();
-   clearInterval(matchmakingTimer);matchmakingTimer=setInterval(()=>{if(!document.hidden&&rankedSearchActive&&!currentRankedMatchId)pollRankedMatch()},3000);
+   clearInterval(matchmakingTimer);matchmakingTimer=setInterval(()=>{if(rankedSearchActive&&!currentRankedMatchId)pollRankedMatch()},2000);
    clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=setInterval(()=>{if(!document.hidden)heartbeatRankedSearch()},180000);
    showToast('Buscando rival…');
  }finally{matchmakingStartLoading=false}
