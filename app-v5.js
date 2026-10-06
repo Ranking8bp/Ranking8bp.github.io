@@ -2669,6 +2669,8 @@ function startFreshRankedRoom(id,secondsLeft=60){
  freshRoomMatchId=id;freshRoomExpiresAt=Date.now()+Math.max(0,Number(secondsLeft)||0)*1000;
  clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);
  const warning=document.getElementById('freshResponseWarning');if(warning)warning.hidden=false;
+ const oldNotice=document.getElementById('freshOpponentClaimNotice');if(oldNotice){oldNotice.hidden=true;oldNotice.textContent=''}
+ const freshChat=document.getElementById('freshRankedChat');if(freshChat)freshChat.hidden=false;
  const abandon=document.getElementById('freshAbandonPending');if(abandon){abandon.hidden=false;abandon.disabled=false}
  const ready=document.getElementById('freshReadyActions');if(ready){ready.hidden=true;ready.classList.remove('fresh-actions-chat-place')}
  const results=document.getElementById('freshResultActions');if(results)results.hidden=true;
