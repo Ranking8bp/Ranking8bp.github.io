@@ -910,7 +910,17 @@
 <div class="versus-center"><strong>VS</strong></div>
 <div class="versus-player"><strong id="freshOpponent">RIVAL</strong><span id="freshOpponentElo"></span><span id="freshOpponentId"></span></div>
 </div>
-<div class="ranked-vs-chat"><strong>SALA DE PARTIDA</strong><p>Ya están emparejados en el mismo VS.</p></div>
+<div class="ranked-vs-chat" id="freshRankedChat">
+<strong>SALA DE PARTIDA</strong>
+<div class="ranked-chat-response-timer" id="freshChatTimer">01:00</div>
+<small id="freshChatTimerNote">Ambos deben enviar al menos un mensaje antes de que termine el minuto.</small>
+<div class="ranked-vs-chat-messages" id="freshChatMessages"></div>
+<div class="ranked-vs-chat-compose"><textarea id="freshChatInput" maxlength="1000" rows="2" placeholder="Escribe un mensaje..."></textarea><button type="button" id="freshChatSend">ENVIAR</button></div>
+<div id="freshResultActions" hidden>
+<button type="button" class="ranked-no-trick-btn" id="freshNoTrick">NADIE HIZO TRICKSHOT</button>
+<div class="ranked-result-actions"><button type="button" id="freshWon">🏆 GANÉ</button><button type="button" id="freshLost">PERDÍ</button></div>
+</div>
+</div>
 </div>
 </section></div>
   <div class="elo-daily-limit-backdrop" id="eloDailyLimitModal" hidden>
@@ -955,7 +965,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261006-fresh-matchmaking-58"></script>
+  <script src="app-v5.js?v=20261006-fresh-room-chat-59"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
