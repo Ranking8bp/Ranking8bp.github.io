@@ -2000,3 +2000,5 @@ img,svg,video,canvas{max-width:100%}
 .dynamic-btn.dynamic-sent{opacity:1!important;filter:none!important;background:#087d36!important;border-color:#20c866!important;color:#fff!important;box-shadow:0 0 18px rgba(32,200,102,.25)!important;}
 
 .dynamic-btn.dynamic-finished{text-decoration-line:line-through!important;text-decoration-color:currentColor!important;text-decoration-thickness:3px!important;text-decoration-skip-ink:none!important;}
+
+.inbox-btn{position:relative!important}.inbox-badge{position:absolute;top:-4px;right:-5px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:#e00000;color:#fff;font:900 11px/18px Arial,sans-serif;text-align:center;border:2px solid #071018;box-shadow:0 1px 5px rgba(0,0,0,.45);z-index:3}.inbox-badge[hidden]{display:none!important}
