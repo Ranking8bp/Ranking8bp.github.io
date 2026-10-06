@@ -2824,9 +2824,16 @@ document.addEventListener('click',e=>{if(e.target?.id==='freshCopyMyId'||e.targe
 
 
 /* Ranking8BP PWA install */
+function syncRankingInstallButton(){
+ const area=document.getElementById('rankingInstallArea');
+ const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+ if(area)area.style.setProperty('display',standalone?'none':'block','important');
+}
+document.addEventListener('DOMContentLoaded',syncRankingInstallButton);
+window.matchMedia('(display-mode: standalone)').addEventListener?.('change',syncRankingInstallButton);
 let rankingInstallPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();rankingInstallPrompt=e;});
-window.addEventListener('appinstalled',()=>{rankingInstallPrompt=null;showToast('Ranking8BP instalado correctamente.');});
+window.addEventListener('appinstalled',()=>{rankingInstallPrompt=null;syncRankingInstallButton();showToast('Ranking8BP instalado correctamente.');});
 document.addEventListener('click',async e=>{
  if(e.target?.id!=='installRankingAppBtn')return;
  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
