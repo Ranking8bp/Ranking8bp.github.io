@@ -2577,7 +2577,7 @@ async function loadFreshRankedChat(){
 async function sendFreshRankedChat(){
  const input=document.getElementById('freshChatInput'),btn=document.getElementById('freshChatSend'),msg=String(input?.value||'').trim();
  if(!msg||!freshRoomMatchId)return;if(btn)btn.disabled=true;
- try{const {error}=await supabaseClient.rpc('send_ranked_match_chat',{p_match_id:freshRoomMatchId,p_message:msg});if(error)throw error;input.value='';await loadFreshRankedChat()}catch(e){console.error(e);showToast('No se pudo enviar el mensaje.')}finally{if(btn)btn.disabled=false}
+ try{const {error}=await supabaseClient.rpc('send_ranked_match_chat',{p_match_id:freshRoomMatchId,p_message:msg});if(error)throw error;input.value='';input.focus({preventScroll:true});await loadFreshRankedChat();requestAnimationFrame(()=>input.focus({preventScroll:true}))}catch(e){console.error(e);showToast('No se pudo enviar el mensaje.')}finally{if(btn)btn.disabled=false}
 }
 function startFreshRankedRoom(id,secondsLeft=60){
  freshRoomMatchId=id;freshRoomExpiresAt=Date.now()+Math.max(0,Number(secondsLeft)||0)*1000;
