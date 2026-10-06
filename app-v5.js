@@ -1442,7 +1442,9 @@ async function setPlayerUI(profile,user){
   maybeOpenDirectMatchmaking();
   // Las dinámicas deben reconstruirse siempre al restaurar/refrescar la sesión.
   refreshDynamic().catch(e=>console.error('Carga inicial de dinámicas:',e));
-  setTimeout(()=>refreshDynamic().catch(()=>{}),500);
+  [500,1500,3000,6000].forEach(ms=>setTimeout(()=>{
+    if(currentUser&&playerDashboard&&!playerDashboard.hidden)refreshDynamic().catch(()=>{});
+  },ms));
   playerUiReadyFor=uiUserId;playerUiLoadingFor=null;
 }
 
