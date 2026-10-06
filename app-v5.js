@@ -2646,6 +2646,7 @@ async function restorePersistentFreshRoom(id){
    const leave=document.getElementById('freshLeaveRoom');if(leave){leave.hidden=true;leave.disabled=true}
    const ready=document.getElementById('freshReadyActions');if(ready){ready.hidden=false;ready.classList.add('fresh-actions-chat-place')}
    const results=document.getElementById('freshResultActions');if(results)results.hidden=false;
+   if(st.my_claim==='WON'){const evidence=document.getElementById('freshEvidenceBox');if(evidence)evidence.hidden=false;const readyBox=document.getElementById('freshReadyActions');if(readyBox)readyBox.hidden=true;}
    const input=document.getElementById('freshChatInput');if(input)input.disabled=false;
    const send=document.getElementById('freshChatSend');if(send)send.disabled=false;
    const rs=document.getElementById('freshResultStatus');if(rs)rs.textContent=String(st.status)==='review'?'Tu rival envió evidencia. Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.':'Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.';
