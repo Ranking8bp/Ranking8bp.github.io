@@ -2643,7 +2643,6 @@ async function restorePersistentFreshRoom(id){
 }
 function startFreshRankedRoom(id,secondsLeft=60){
  freshRoomMatchId=id;freshRoomExpiresAt=Date.now()+Math.max(0,Number(secondsLeft)||0)*1000;
- setTimeout(()=>restorePersistentFreshRoom(id),0);
  clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);
  const warning=document.getElementById('freshResponseWarning');if(warning)warning.hidden=false;
  const abandon=document.getElementById('freshAbandonPending');if(abandon){abandon.hidden=false;abandon.disabled=false}
@@ -2659,6 +2658,7 @@ function startFreshRankedRoom(id,secondsLeft=60){
  const videoBtn=document.getElementById('freshWinnerVideoBtn');if(videoBtn){videoBtn.disabled=false;videoBtn.textContent='🎥 SELECCIONAR VIDEO'}
  const videoInput=document.getElementById('freshWinnerVideoInput');if(videoInput)videoInput.value='';
  const chat=document.getElementById('freshRankedChat');if(chat)chat.classList.remove('fresh-chat-top');
+ setTimeout(()=>restorePersistentFreshRoom(id),0);
  const tick=()=>{const left=Math.max(0,Math.ceil((freshRoomExpiresAt-Date.now())/1000)),t=document.getElementById('freshChatTimer');if(t)t.textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');if(left<=0){clearInterval(freshRoomTimer);freshRoomTimer=null;(async()=>{try{const {data,error}=await supabaseClient.rpc('auto_cancel_unanswered_ranked_chat',{p_match_id:freshRoomMatchId,p_force:false});if(error)throw error;if(data==='cancelled'){clearInterval(freshRoomChatPoll);freshRoomChatPoll=null;freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS anulado: ambos jugadores debían enviar un mensaje antes de terminar el minuto.')}}catch(e){console.error('Auto cancelar VS:',e)}})()}};
  // If the room was restored while the match is already under REVIEW, the other
  // player must answer the result immediately; do not restart the 1-minute chat phase.
