@@ -2584,7 +2584,7 @@ function startFreshRankedRoom(id,secondsLeft=60){
  tick();freshRoomTimer=setInterval(tick,250);
  loadFreshRankedChat();freshRoomChatPoll=setInterval(async()=>{if(!freshRoomMatchId)return;const checkingId=freshRoomMatchId;try{const {data:status,error}=await supabaseClient.rpc('get_ranked_match_live_status',{p_match_id:checkingId});if(error)throw error;if(!['matched','review'].includes(String(status||''))){clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;if(Number(freshRoomMatchId)===Number(checkingId))freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS ANULADO. Ambos jugadores quedaron libres.');return}if(!document.hidden)await loadFreshRankedChat()}catch(e){console.error('Estado sala:',e)}},500);
 }
-async function abandonFreshVsNow(btn){
+window.abandonFreshVsNow=async function(btn){
  if(!freshRoomMatchId)return;
  const matchId=Number(freshRoomMatchId);if(btn)btn.disabled=true;
  try{
