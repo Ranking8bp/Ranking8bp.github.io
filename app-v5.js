@@ -1142,6 +1142,8 @@ async function startRankedMatchmaking(){
 }
 async function leaveRankedRoom(){
  if(!currentRankedMatchId)return closeRankedMatchmaking();
+ const leavingMatchId=Number(currentRankedMatchId);
+ try{const {error}=await supabaseClient.rpc('leave_ranked_room',{p_match_id:leavingMatchId});if(error)throw error}catch(e){console.error('Guardar salida de sala:',e);showToast('No se pudo guardar la salida. Intenta otra vez.');return}
  rankedSearchActive=false;stopRankedSearchLoop();
  clearInterval(matchmakingTimer);matchmakingTimer=null;
  clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
@@ -2461,6 +2463,8 @@ async function restoreActiveRankedVs(){
    if(error)throw error;
    const m=Array.isArray(data)?data[0]:data;
    if(!m?.match_id)return;
+   const {data:leftRoom}=await supabaseClient.rpc('has_left_ranked_room',{p_match_id:Number(m.match_id)});
+   if(leftRoom===true)return;
    if(matchmakingModal)matchmakingModal.hidden=false;
    showRankedMatch(m);
    startRankedVsChat(m);
