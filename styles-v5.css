@@ -2139,3 +2139,6 @@ img,svg,video,canvas{max-width:100%}
 #freshRankedChat.fresh-chat-top~#freshReadyActions{order:4}
 #freshResponseWarning[hidden]~#freshRankedChat.fresh-chat-top{margin-top:18px}
 .fresh-actions-chat-place{margin-top:0!important;margin-bottom:20px!important}
+
+.fresh-abandon-pending{order:3;display:block;width:min(330px,88%);margin:10px auto 18px;padding:13px 18px;border:1px solid #ff6b6b;border-radius:12px;background:#8f1f2b;color:#fff;font-weight:900;font-size:15px;letter-spacing:.4px}
+.fresh-abandon-pending[hidden]{display:none!important}
