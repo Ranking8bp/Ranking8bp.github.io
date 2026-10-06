@@ -965,108 +965,9 @@ async function stopMatchmakingRealtime(){
  }
  matchmakingRealtimeChannel=null;
 }
-async function openCreatedRankedVsNow(){
- if(!currentUser||!supabaseClient||currentRankedMatchId)return false;
- try{
-  const {data:stateRows,error:stateError}=await supabaseClient.rpc('get_my_matchmaking_state');
-  if(stateError)throw stateError;
-  const state=Array.isArray(stateRows)?stateRows[0]:stateRows;
-  const activeId=state?.match_id;
-  if(state?.state!=='matched'||!activeId)return false;
-  let match=null;
-  for(let attempt=0;attempt<6&&!match;attempt++){
-   const {data,error}=await supabaseClient.rpc('get_my_active_ranked_match');
-   if(error)throw error;
-   const candidate=Array.isArray(data)?data[0]:data;
-   if(candidate&&Number(candidate.match_id)===Number(activeId))match=candidate;
-   else await new Promise(resolve=>setTimeout(resolve,150));
-  }
-  if(!match)return false;
-  if(!matchmakingModal||!matchmakingSearching||!matchmakingVersus)return false;
-  rankedSearchActive=false;stopRankedSearchLoop();
-  clearInterval(matchmakingTimer);matchmakingTimer=null;
-  clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
-  showRankedMatch(match);
-  stopMatchmakingRealtime().catch(()=>{});
-  return true;
- }catch(e){console.error('Abrir VS recién creado:',e);return false}
-}
-function startMatchmakingRealtime(){
- if(!currentUser||!supabaseClient)return;
- stopMatchmakingRealtime().catch(()=>{});
- const uid=String(currentUser.id);
- matchmakingRealtimeChannel=supabaseClient
-  .channel('ranked-match-'+uid)
-  .on('postgres_changes',{event:'INSERT',schema:'public',table:'ranked_matches',filter:'player1_id=eq.'+uid},()=>openCreatedRankedVsNow())
-  .on('postgres_changes',{event:'INSERT',schema:'public',table:'ranked_matches',filter:'player2_id=eq.'+uid},()=>openCreatedRankedVsNow())
-  .subscribe((status)=>{
-   if(status==='SUBSCRIBED')openCreatedRankedVsNow();
-  });
-}
-
-async function pollRankedMatch(){
- if(!currentUser||!supabaseClient||currentRankedMatchId||matchmakingPollLoading||!rankedSearchActive)return;
- matchmakingPollLoading=true;
- try{
-  const {data:visibleId,error:visibleError}=await supabaseClient.rpc('get_my_visible_active_ranked_match_id');
-  if(visibleError)throw visibleError;
-  if(visibleId){
-   const {data:active,error:activeError}=await supabaseClient.rpc('get_my_active_ranked_match');
-   if(activeError)throw activeError;
-   const existing=Array.isArray(active)?active[0]:active;
-   if(existing&&Number(existing.match_id)===Number(visibleId)){
-    clearInterval(matchmakingTimer);matchmakingTimer=null;
-    clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
-    stopMatchmakingRealtime().catch(()=>{});
-    showRankedMatch(existing);return;
-   }
-  }
-  /* Keep the atomic matcher alive while this screen says BUSCANDO RIVAL.
-     This also recovers mobile/WebView clients when Realtime misses the INSERT. */
-  const {data:joined,error:joinError}=await supabaseClient.rpc('join_ranked_matchmaking');
-  if(joinError)throw joinError;
-  const result=Array.isArray(joined)?joined[0]:joined;
-  if(result?.status==='matched'){
-   const {data:full,error:fullError}=await supabaseClient.rpc('get_my_active_ranked_match');
-   if(fullError)throw fullError;
-   const match=Array.isArray(full)?full[0]:full;
-   if(match){
-    clearInterval(matchmakingTimer);matchmakingTimer=null;
-    clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;
-    await stopMatchmakingRealtime().catch(()=>{});
-    showRankedMatch(match);
-   }
-  }
- }catch(e){
-  const msg=String(e?.message||'');
-  if(msg.includes('PLAYER_ALREADY_HAS_ACTIVE_VS')){try{const {data:vid}=await supabaseClient.rpc('get_my_visible_active_ranked_match_id');if(vid)await restoreActiveRankedVs()}catch(_){}}
-  else console.error('Error sondeo emparejamiento:',e);
- }finally{matchmakingPollLoading=false}
-}
-/* Mobile/WebView can throttle setInterval. Whenever the user returns to or
-   interacts with the search screen, immediately reconcile an already-created VS. */
-function syncRankedSearchNow(){
- if(rankedSearchActive&&!currentRankedMatchId&&!matchmakingPollLoading)pollRankedMatch().catch(()=>{});
-}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncRankedSearchNow()});
-window.addEventListener('focus',syncRankedSearchNow);
-document.addEventListener('pointerdown',()=>{if(rankedSearchActive&&!currentRankedMatchId)syncRankedSearchNow()},{passive:true});
-
-function startRankedSearchLoop(){
- const token=++rankedSearchLoopToken;
- const tick=async()=>{
-  if(token!==rankedSearchLoopToken||!rankedSearchActive||currentRankedMatchId)return;
-  try{await openCreatedRankedVsNow();if(!currentRankedMatchId)await pollRankedMatch()}catch(_){}
-  if(token===rankedSearchLoopToken&&rankedSearchActive&&!currentRankedMatchId)setTimeout(tick,500);
- };
- setTimeout(tick,300);
-}
+/* MATCHMAKING REMOVED COMPLETELY — rebuilding from zero. */
 function stopRankedSearchLoop(){rankedSearchLoopToken++}
-async function heartbeatRankedSearch(){
- if(currentRankedMatchId||!currentUser||!supabaseClient||matchmakingHeartbeatLoading)return;
- matchmakingHeartbeatLoading=true;
- try{await supabaseClient.rpc('heartbeat_ranked_matchmaking')}catch(e){console.error(e)}finally{matchmakingHeartbeatLoading=false}
-}
+
 function closeEloDailyLimit(){if(eloDailyCountdownTimer){clearInterval(eloDailyCountdownTimer);eloDailyCountdownTimer=null}if(eloDailyLimitModal)eloDailyLimitModal.hidden=true}
 function formatEloCountdown(){
  if(!eloDailyResetAt)return;
@@ -1112,7 +1013,7 @@ function maybeOpenDirectMatchmaking(){
     return;
   }
   try{sessionStorage.removeItem('ranking_direct_matchmaking')}catch(e){}
-  setTimeout(()=>startRankedMatchmaking().catch(e=>console.error('Acceso directo a rival:',e)),120);
+  showToast('Emparejamiento temporalmente desactivado.');
 }
 
 async function renderSearchingPlayerProfile(){const n=document.getElementById('searchingPlayerName'),e=document.getElementById('searchingPlayerElo'),r=document.getElementById('searchingPlayerRank'),av=document.getElementById('searchingPlayerAvatar');if(!n||!currentProfile)return;const name=String(currentProfile.account_name||currentProfile.username||'JUGADOR').toUpperCase();const elo=Number(currentProfile.elo_points)||0;n.textContent=name;if(e)e.textContent='ELO '+elo;if(r)r.textContent=getRankByElo(elo).name.toUpperCase();if(av){av.replaceChildren();const f=document.createElement('span');f.textContent=name.charAt(0)||'J';av.appendChild(f);if(currentProfile.avatar_path&&supabaseClient){try{const url=await getCachedAvatarUrl(currentProfile.avatar_path);if(url){const img=document.createElement('img');img.loading='lazy';img.decoding='async';img.src=url;img.alt='Foto de '+name;img.onload=()=>av.replaceChildren(img)}}catch(x){}}}}
@@ -1121,7 +1022,7 @@ async function renderSearchingPlayerProfile(){const n=document.getElementById('s
 async function refreshPlayersSearchingCount(){
  if(!supabaseClient||!playersSearchingCount||playersSearchingLoading)return;
  playersSearchingLoading=true;
- try{const {data,error}=await supabaseClient.rpc('get_matchmaking_search_count');if(error)throw error;const n=Math.max(0,Number(data)||0);playersSearchingCount.textContent=String(n);if(playersSearchingText)playersSearchingText.textContent=n===1?'JUGADOR ESTÁ BUSCANDO RIVAL':'JUGADORES ESTÁN BUSCANDO RIVAL'}catch(e){console.error('Contador buscando rival:',e)}finally{playersSearchingLoading=false}
+ try{playersSearchingCount.textContent='0 BUSCANDO RIVAL'}finally{playersSearchingLoading=false}
 }
 setTimeout(()=>refreshPlayersSearchingCount().catch(()=>{}),8000+Math.floor(Math.random()*12000));setInterval(()=>{if(!document.hidden)refreshPlayersSearchingCount().catch(()=>{})},180000);
 async function loadMatchmakingV2Match(matchId){
@@ -1148,19 +1049,7 @@ async function matchmakingV2Loop(token){
   await new Promise(resolve=>setTimeout(resolve,700));
  }
 }
-async function startRankedMatchmaking(){
- if(!currentUser||!supabaseClient||matchmakingStartLoading)return;
- matchmakingStartLoading=true;
- try{
-  rankedSearchActive=true;stopRankedSearchLoop();const token=++rankedSearchLoopToken;
-  await updateRankedDailyStatus();
-  matchmakingModal.hidden=false;
-  matchmakingSearching.hidden=false;matchmakingSearching.style.removeProperty('display');
-  matchmakingVersus.hidden=true;
-  renderSearchingPlayerProfile().catch(()=>{});
-  matchmakingV2Loop(token);
- }finally{matchmakingStartLoading=false}
-}
+async function startRankedMatchmaking(){showToast('Emparejamiento temporalmente desactivado. Se está reconstruyendo desde cero.');}
 async function leaveRankedRoom(){
  if(!currentRankedMatchId)return closeRankedMatchmaking();
  const leavingMatchId=Number(currentRankedMatchId);
