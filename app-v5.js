@@ -2805,6 +2805,18 @@ function queueFreshRoomRealtimeRefresh(kind){
   }catch(e){console.error('Realtime sala VS:',e)}
  },100);
 }
+let freshLastIncomingSoundId=null;
+function playFreshIncomingChatSound(row){
+ if(!row||String(row.sender_id)===String(currentUser?.id)||row.is_admin)return;
+ const id=String(row.id??'');if(id&&freshLastIncomingSoundId===id)return;if(id)freshLastIncomingSoundId=id;
+ try{
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
+  const ctx=new AudioCtx(),gain=ctx.createGain(),osc=ctx.createOscillator();
+  osc.type='sine';osc.frequency.setValueAtTime(880,ctx.currentTime);osc.frequency.exponentialRampToValueAtTime(1174,ctx.currentTime+.12);
+  gain.gain.setValueAtTime(.0001,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.16,ctx.currentTime+.015);gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.24);
+  osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.25);osc.onended=()=>ctx.close().catch(()=>{});
+ }catch(_){}
+}
 async function startFreshRoomRealtime(matchId){
  const id=Number(matchId||0);if(!id||!supabaseClient)return;
  await stopFreshRoomRealtime();
@@ -2814,6 +2826,7 @@ async function startFreshRoomRealtime(matchId){
   .on('postgres_changes',{event:'INSERT',schema:'public',table:'ranked_match_messages',filter:'match_id=eq.'+id},payload=>{
    const row=payload?.new;
    if(row&&Number(row.match_id)===id){
+    playFreshIncomingChatSound(row);
     const box=document.getElementById('freshChatMessages');
     if(box&&!box.querySelector('[data-chat-id="'+String(row.id)+'"]')){
      const d=document.createElement('div');d.dataset.chatId=String(row.id);d.className='ranked-vs-chat-message'+(String(row.sender_id)===String(currentUser?.id)?' mine':'');
