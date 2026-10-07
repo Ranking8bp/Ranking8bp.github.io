@@ -2207,3 +2207,21 @@ img,svg,video,canvas{max-width:100%}
 #freshReadyActions{order:6!important}
 #freshResultActions{order:7!important}
 #freshEvidenceBox[hidden],#freshOpponentClaimNotice[hidden]{display:none!important}
+
+/* Botón JUGAR PNG: conservar brillo y colores originales */
+#playerDashboard #dashboardPlayBtn{
+  position:relative!important;display:block!important;width:94%!important;max-width:690px!important;
+  height:auto!important;min-height:0!important;padding:0!important;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;filter:none!important;opacity:1!important;
+  overflow:hidden!important;line-height:0!important;
+}
+#playerDashboard #dashboardPlayBtn:hover,
+#playerDashboard #dashboardPlayBtn:active{
+  background:transparent!important;filter:none!important;opacity:1!important;transform:none!important;
+}
+#playerDashboard #dashboardPlayBtn .dashboard-play-image{
+  display:block!important;width:100%!important;height:auto!important;opacity:1!important;filter:none!important;
+  mix-blend-mode:normal!important;visibility:visible!important;
+}
+#playerDashboard #dashboardPlayBtn::before,
+#playerDashboard #dashboardPlayBtn::after{display:none!important;content:none!important;}
