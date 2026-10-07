@@ -2429,3 +2429,6 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 #freshVersus .fresh-old-vs-grid{display:flex!important;justify-content:center!important;align-items:center!important;grid-template-columns:none!important}
 #freshVersus .fresh-old-vs-grid>.fresh-player-card:first-child,#freshVersus .fresh-old-vs-grid>.fresh-vs-center{display:none!important}
 #freshVersus .fresh-old-vs-grid>.fresh-player-card:last-child{display:flex!important;width:min(100%,320px)!important;max-width:320px!important;margin:0 auto!important}
+
+/* VS opponent card: hide redundant ID 8 BALL POOL label */
+#freshVersus .fresh-old-vs-grid>.fresh-player-card:last-child .fresh-id-box>small{display:none!important}
