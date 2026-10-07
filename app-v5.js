@@ -2832,27 +2832,43 @@ async function startFreshRoomRealtime(matchId){
 async function loadFreshRankedChat(){
  if(!freshRoomMatchId||!supabaseClient)return;
  try{
-  const {data,error}=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:freshRoomMatchId});if(error)throw error;
+  const {data,error}=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:Number(freshRoomMatchId)});if(error)throw error;
   const rows=Array.isArray(data)?data:[];
-  // Marcar como leídos por una llamada separada: nunca bloquea la carga/entrega del chat.
-  if(rows.some(m=>String(m.sender_id)!==String(currentUser?.id)))supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:freshRoomMatchId}).catch(()=>{});
-  const box=document.getElementById('freshChatMessages');if(!box)return;
-  box.replaceChildren();
+  const hasUnreadIncoming=rows.some(m=>String(m.sender_id)!==String(currentUser?.id)&&!m.is_admin&&!m.read_by_other);
+  if(hasUnreadIncoming){try{await supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:Number(freshRoomMatchId)})}catch(_){}}
+  const box=document.getElementById('freshChatMessages');if(!box)return;box.replaceChildren();
   const senders=new Set();
-  rows.forEach(m=>{if(m.sender_id)senders.add(String(m.sender_id));const d=document.createElement('div');d.dataset.chatId=String(m.id||'');d.className='ranked-vs-chat-message'+(String(m.sender_id)===String(currentUser?.id)?' mine':'');const n=document.createElement('strong');n.textContent=m.sender_name||'JUGADOR';const b=document.createElement('p');b.textContent=m.message||'';d.append(n,b);if(String(m.sender_id)===String(currentUser?.id)){const seen=document.createElement('small');seen.className='fresh-chat-seen';seen.textContent=m.read_by_other?'✓✓ VISTO':'✓ ENVIADO';d.appendChild(seen)}box.appendChild(d)});
+  rows.forEach(m=>{
+   if(m.sender_id&&!m.is_admin)senders.add(String(m.sender_id));
+   const d=document.createElement('div');d.className='ranked-vs-chat-message'+(String(m.sender_id)===String(currentUser?.id)?' mine':'')+(m.is_admin?' admin':'');
+   const n=document.createElement('strong');n.textContent=(m.is_admin?'ADMIN · ':'')+String(m.sender_name||'Jugador');
+   const body=document.createElement('p');body.textContent=m.message||'';
+   d.append(n,body);
+   if(String(m.sender_id)===String(currentUser?.id)||m.is_admin){const seen=document.createElement('small');seen.className='fresh-chat-seen';seen.textContent=m.read_by_other?'✓✓ LEÍDO':'✓ ENVIADO';d.appendChild(seen)}
+   box.appendChild(d);
+  });
   box.scrollTop=box.scrollHeight;
-  const {data:rs}=await supabaseClient.rpc('get_ranked_chat_response_status',{p_match_id:freshRoomMatchId});const state=Array.isArray(rs)?rs[0]:rs;const abandon=document.getElementById('freshAbandonPending');
-  // El estado REVIEW lo controla el sondeo principal de la sala; no duplicar RPC aquí.
-  const underReview=false;
-  if(abandon){abandon.hidden=Boolean(state?.replied)}
-  const leave=document.getElementById('freshLeaveRoom');
-  if(state?.replied){supabaseClient.rpc('mark_ranked_result_phase',{p_match_id:freshRoomMatchId}).catch(()=>{});clearInterval(freshRoomTimer);freshRoomTimer=null;const w=document.getElementById('freshResponseWarning');if(w)w.hidden=true;if(abandon)abandon.hidden=true;const chat=document.getElementById('freshRankedChat');if(chat)chat.classList.add('fresh-chat-top');const ready=document.getElementById('freshReadyActions');if(ready){ready.hidden=false;ready.classList.add('fresh-actions-chat-place')}const a=document.getElementById('freshResultActions');if(a)a.hidden=false;}
+  const bothMessaged=senders.size>=2;
+  const abandon=document.getElementById('freshAbandonPending');if(abandon)abandon.hidden=bothMessaged;
+  if(bothMessaged){
+   clearInterval(freshRoomTimer);freshRoomTimer=null;
+   const w=document.getElementById('freshResponseWarning');if(w)w.hidden=true;
+   const chat=document.getElementById('freshRankedChat');if(chat)chat.classList.add('fresh-chat-top');
+   const ready=document.getElementById('freshReadyActions');if(ready){ready.hidden=false;ready.classList.add('fresh-actions-chat-place')}
+   const results=document.getElementById('freshResultActions');if(results)results.hidden=false;
+  }
  }catch(e){console.error('Chat sala nueva:',e)}
 }
 async function sendFreshRankedChat(){
  const input=document.getElementById('freshChatInput'),btn=document.getElementById('freshChatSend'),msg=String(input?.value||'').trim();
- if(!msg||!freshRoomMatchId)return;if(btn)btn.disabled=true;
- try{const {error}=await supabaseClient.rpc('send_ranked_match_chat',{p_match_id:freshRoomMatchId,p_message:msg});if(error)throw error;input.value='';input.focus({preventScroll:true});await loadFreshRankedChat();requestAnimationFrame(()=>input.focus({preventScroll:true}))}catch(e){console.error(e);showToast('No se pudo enviar el mensaje.')}finally{if(btn)btn.disabled=false}
+ if(!msg||!freshRoomMatchId||!supabaseClient)return;
+ if(btn)btn.disabled=true;
+ try{
+  const {error}=await supabaseClient.rpc('send_ranked_match_chat',{p_match_id:Number(freshRoomMatchId),p_message:msg});if(error)throw error;
+  input.value='';
+  await loadFreshRankedChat();
+ }catch(e){console.error('Enviar chat sala:',e);showToast('No se pudo enviar el mensaje.')}
+ finally{if(btn)btn.disabled=false;if(input){input.focus({preventScroll:true})}}
 }
 async function restorePersistentFreshRoom(id){
  try{
