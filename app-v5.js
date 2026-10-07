@@ -2806,7 +2806,7 @@ async function startFreshRoomRealtime(matchId){
    }
    queueFreshRoomRealtimeRefresh('chat');
   })
-  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'ranked_match_messages',filter:'match_id=eq.'+id},()=>queueFreshRoomRealtimeRefresh('chat'));
+;
  freshRoomRealtimeChannel=channel;
  channel.subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.error('Realtime sala VS:',status)});
 }
