@@ -2871,10 +2871,16 @@ async function loadFreshRankedChat(){
   const senders=new Set();
   rows.forEach(m=>{
    if(m.sender_id&&!m.is_admin)senders.add(String(m.sender_id));
-   const d=document.createElement('div');d.className='ranked-vs-chat-message'+(String(m.sender_id)===String(currentUser?.id)?' mine':'')+(m.is_admin?' admin':'');
+   const mine=String(m.sender_id)===String(currentUser?.id);
+   const d=document.createElement('div');d.className='ranked-vs-chat-message'+(mine?' mine':'')+(m.is_admin?' admin':'');
+   const avatar=document.createElement('span');avatar.className='fresh-chat-avatar';
+   const sourceAvatar=mine?document.querySelector('#freshMyAvatar img'):document.querySelector('#freshOpponentAvatar img');
+   if(sourceAvatar?.src){const ai=document.createElement('img');ai.src=sourceAvatar.src;ai.alt=String(m.sender_name||'Jugador');avatar.appendChild(ai)}
+   else{avatar.textContent=String(m.sender_name||'J').charAt(0).toUpperCase()}
+   const content=document.createElement('div');content.className='fresh-chat-message-content';
    const n=document.createElement('strong');n.textContent=(m.is_admin?'ADMIN · ':'')+String(m.sender_name||'Jugador');
    const body=document.createElement('p');body.textContent=m.message||'';
-   d.append(n,body);
+   content.append(n,body);d.append(avatar,content);
    if(String(m.sender_id)===String(currentUser?.id)||m.is_admin){const seen=document.createElement('small');seen.className='fresh-chat-seen';seen.textContent=m.read_by_other?'✓✓ LEÍDO':'✓ ENVIADO';d.appendChild(seen)}
    box.appendChild(d);
   });
