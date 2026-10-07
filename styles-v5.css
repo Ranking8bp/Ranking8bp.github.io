@@ -2261,3 +2261,21 @@ img,svg,video,canvas{max-width:100%}
  object-fit:contain!important;z-index:10!important;filter:none!important;
 }
 @keyframes jugarPulsoVisible{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+
+/* Rescate visual botón JUGAR normal: relleno verde */
+#playerDashboard #dashboardPlayBtn,
+#playerDashboard #dashboardPlayBtn:hover{
+ display:block!important;visibility:visible!important;opacity:1!important;
+ background:#22a447!important;background-image:none!important;
+ color:#fff!important;-webkit-text-fill-color:#fff!important;
+ border:2px solid #35c65f!important;border-radius:16px!important;
+ box-shadow:0 8px 24px rgba(34,164,71,.28)!important;
+ font-size:25px!important;font-weight:900!important;line-height:1!important;
+ padding:24px 30px!important;height:auto!important;min-height:72px!important;
+ overflow:hidden!important;
+}
+#playerDashboard #dashboardPlayBtn:active{
+ background:#1b8d3d!important;transform:scale(.98)!important;
+}
+#playerDashboard #dashboardPlayBtn::before,
+#playerDashboard #dashboardPlayBtn::after{display:none!important;content:none!important;}
