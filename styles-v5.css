@@ -2399,3 +2399,11 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 #freshMatchmakingModal button{touch-action:manipulation}
 #freshMatchmakingModal button:active{transform:scale(.97)!important;filter:brightness(1.12)}
 #freshMatchmakingModal .fresh-action-pending{opacity:.82!important;transform:scale(.98)!important}
+
+
+/* VS layout: chat above response countdown */
+#freshVersus #freshRankedChat{order:3!important;margin-top:18px!important;margin-bottom:14px!important}
+#freshVersus #freshResponseWarning{order:4!important;margin-top:0!important;margin-bottom:20px!important}
+#freshVersus #freshAbandonPending{order:5!important}
+#freshVersus #freshReadyActions{order:4!important}
+#freshVersus #freshResultActions{order:6!important}
