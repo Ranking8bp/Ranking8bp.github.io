@@ -2310,3 +2310,20 @@ img,svg,video,canvas{max-width:100%}
 .dashboard-menu-tile img{display:block;width:100%;height:100%;object-fit:contain}
 .dashboard-menu-tile:active{transform:scale(.97)}
 @media(max-width:600px){.dashboard-menu-grid{gap:10px 8px;margin-top:14px}.dashboard-menu-tile{min-width:0}}
+
+/* Evitar resaltado celeste al tocar los botones del menú en móvil */
+.dashboard-menu-tile,
+.dashboard-menu-tile img{
+ -webkit-tap-highlight-color:transparent!important;
+ -webkit-touch-callout:none!important;
+ user-select:none!important;
+ -webkit-user-select:none!important;
+ outline:none!important;
+}
+.dashboard-menu-tile:focus,
+.dashboard-menu-tile:focus-visible,
+.dashboard-menu-tile:active{
+ outline:none!important;
+ box-shadow:none!important;
+ background:transparent!important;
+}
