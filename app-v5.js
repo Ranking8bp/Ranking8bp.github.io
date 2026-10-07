@@ -2950,8 +2950,9 @@ document.addEventListener('click',async e=>{
  if(clicked?.id==='freshLeaveRoom'){if(!freshRoomMatchId)return;try{const {error}=await supabaseClient.rpc('leave_ranked_room',{p_match_id:freshRoomMatchId});if(error)throw error;clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('Saliste de la sala. El VS sigue activo.');}catch(x){console.error(x);showToast('No se pudo salir de la sala.')}return;}
  if(!freshRoomMatchId)return;
  const map={freshWon:'WON',freshLost:'LOST'};
- if(map[e.target?.id]){
-  const btn=e.target,claim=map[btn.id],matchId=Number(freshRoomMatchId);btn.disabled=true;
+ if(clicked&&map[clicked.id]){
+  const btn=clicked,claim=map[btn.id],matchId=Number(freshRoomMatchId);btn.disabled=true;btn.classList.add('fresh-action-pending');
+  await new Promise(requestAnimationFrame);
   const st=document.getElementById('freshResultStatus');
   if(claim==='WON'){
    const ev=document.getElementById('freshEvidenceBox');if(ev)ev.hidden=false;
@@ -2965,11 +2966,12 @@ document.addEventListener('click',async e=>{
   }catch(x){
    console.error(x);
    if(claim==='WON'){const ev=document.getElementById('freshEvidenceBox');if(ev)ev.hidden=false;btn.textContent='🏆 GANÉ';if(st)st.textContent='El video sigue disponible para subir. Intenta marcar GANÉ nuevamente si fue necesario.'}
-   btn.disabled=false;showToast('No se pudo registrar el resultado.');
+   btn.disabled=false;btn.classList.remove('fresh-action-pending');showToast('No se pudo registrar el resultado.');
   }return;
  }
- if(e.target?.id==='freshNoTrick'){
-  const btn=e.target,matchId=Number(freshRoomMatchId);
+ if(clicked?.id==='freshNoTrick'){
+  const btn=clicked,matchId=Number(freshRoomMatchId);btn.classList.add('fresh-action-pending');
+  await new Promise(requestAnimationFrame);
   try{
    btn.disabled=true;
    const {data,error}=await supabaseClient.rpc('submit_ranked_no_trick',{p_match_id:matchId});if(error)throw error;
