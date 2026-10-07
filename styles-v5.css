@@ -2424,3 +2424,8 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 
 /* VS chat height enforced on actual element */
 #freshRankedChat #freshChatMessages{height:285px!important;min-height:285px!important;max-height:285px!important;overflow-y:auto!important;display:block!important}
+
+/* VS: each player sees only the opponent card */
+#freshVersus .fresh-old-vs-grid{display:flex!important;justify-content:center!important;align-items:center!important;grid-template-columns:none!important}
+#freshVersus .fresh-old-vs-grid>.fresh-player-card:first-child,#freshVersus .fresh-old-vs-grid>.fresh-vs-center{display:none!important}
+#freshVersus .fresh-old-vs-grid>.fresh-player-card:last-child{display:flex!important;width:min(100%,320px)!important;max-width:320px!important;margin:0 auto!important}
