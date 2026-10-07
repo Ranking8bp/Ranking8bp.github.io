@@ -2880,7 +2880,7 @@ async function loadFreshRankedChat(){
   });
   // Mantener siempre visible el mensaje más reciente del VS.
   const lastMessage=box.lastElementChild;
-  if(lastMessage){requestAnimationFrame(()=>{lastMessage.scrollIntoView({block:'end',behavior:'smooth'});box.scrollTop=box.scrollHeight;});}
+  if(lastMessage){requestAnimationFrame(()=>{box.scrollTop=box.scrollHeight;});}
   const bothMessaged=senders.size>=2;
   const abandon=document.getElementById('freshAbandonPending');if(abandon)abandon.hidden=bothMessaged;
   if(bothMessaged){
