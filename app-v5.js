@@ -2817,8 +2817,6 @@ async function loadFreshRankedChat(){
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:freshRoomMatchId});if(error)throw error;
   const rows=Array.isArray(data)?data:[];
-  const hasUnreadIncoming=rows.some(m=>String(m.sender_id)!==String(currentUser?.id)&&!m.is_admin&&!m.read_by_other);
-  if(hasUnreadIncoming)supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:freshRoomMatchId}).catch(()=>{});
   const box=document.getElementById('freshChatMessages');if(!box)return;
   box.replaceChildren();
   const senders=new Set();
