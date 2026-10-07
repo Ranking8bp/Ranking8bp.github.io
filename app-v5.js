@@ -2847,7 +2847,9 @@ async function loadFreshRankedChat(){
    if(String(m.sender_id)===String(currentUser?.id)||m.is_admin){const seen=document.createElement('small');seen.className='fresh-chat-seen';seen.textContent=m.read_by_other?'✓✓ LEÍDO':'✓ ENVIADO';d.appendChild(seen)}
    box.appendChild(d);
   });
-  box.scrollTop=box.scrollHeight;
+  // Mantener siempre visible el mensaje más reciente del VS.
+  const lastMessage=box.lastElementChild;
+  if(lastMessage){requestAnimationFrame(()=>{lastMessage.scrollIntoView({block:'end',behavior:'smooth'});box.scrollTop=box.scrollHeight;});}
   const bothMessaged=senders.size>=2;
   const abandon=document.getElementById('freshAbandonPending');if(abandon)abandon.hidden=bothMessaged;
   if(bothMessaged){
