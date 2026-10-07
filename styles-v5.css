@@ -2432,3 +2432,7 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 
 /* VS opponent card: hide redundant ID 8 BALL POOL label */
 #freshVersus .fresh-old-vs-grid>.fresh-player-card:last-child .fresh-id-box>small{display:none!important}
+
+/* VS opponent ID and copy button on one horizontal line */
+#freshVersus .fresh-old-vs-grid>.fresh-player-card:last-child .fresh-id-box{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:10px!important;flex-wrap:nowrap!important}
+#freshVersus .fresh-old-vs-grid>.fresh-player-card:last-child .fresh-id-box>b,#freshVersus .fresh-old-vs-grid>.fresh-player-card:last-child .fresh-id-box>button{margin:0!important;display:inline-flex!important;align-items:center!important;white-space:nowrap!important}
