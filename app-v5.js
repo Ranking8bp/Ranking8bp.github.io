@@ -2880,6 +2880,14 @@ async function loadFreshRankedChat(){
    else{avatar.textContent=String(m.sender_name||'J').charAt(0).toUpperCase()}
    const content=document.createElement('div');content.className='fresh-chat-message-content';
    const n=document.createElement('strong');n.textContent=(m.is_admin?'ADMIN · ':'')+String(m.sender_name||'Jugador');
+   if(!mine&&!m.is_admin&&m.sender_id){
+    const openChatPlayerProfile=async(e)=>{e?.preventDefault?.();e?.stopPropagation?.();try{const {data,error}=await supabaseClient.rpc('get_profile_by_id',{p_player_id:m.sender_id});if(error)throw error;const p=Array.isArray(data)?data[0]:data;if(p)openRankingPlayer({...p,id:p.player_id,player_id:p.player_id});else showToast('No se pudo abrir el perfil.')}catch(err){console.error('Abrir perfil desde chat VS:',err);showToast('No se pudo abrir el perfil.')}};
+    avatar.classList.add('fresh-chat-profile-link');avatar.setAttribute('role','button');avatar.tabIndex=0;avatar.title='Ver perfil de '+String(m.sender_name||'Jugador');
+    n.classList.add('fresh-chat-profile-link');n.setAttribute('role','button');n.tabIndex=0;n.title='Ver perfil de '+String(m.sender_name||'Jugador');
+    avatar.addEventListener('click',openChatPlayerProfile);n.addEventListener('click',openChatPlayerProfile);
+    avatar.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openChatPlayerProfile(e)}});
+    n.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openChatPlayerProfile(e)}});
+   }
    const body=document.createElement('p');body.textContent=m.message||'';
    content.append(n,body);d.append(avatar,content);
    if(String(m.sender_id)===String(currentUser?.id)||m.is_admin){const seen=document.createElement('small');seen.className='fresh-chat-seen';seen.textContent=m.read_by_other?'✓✓ LEÍDO':'✓ ENVIADO';d.appendChild(seen)}
