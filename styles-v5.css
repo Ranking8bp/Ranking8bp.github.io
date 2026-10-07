@@ -2513,3 +2513,9 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 /* VS rank badge slow breathing animation */
 @keyframes freshRankBadgeBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
 #freshVersus #freshOpponentRankBadge img{animation:freshRankBadgeBreath 3.6s ease-in-out infinite!important;transform-origin:center center!important;will-change:transform!important}
+
+/* Center opponent name with the ID bar */
+#freshVersus .fresh-opponent-bottom{position:relative!important;display:block!important;text-align:center!important;width:100%!important}
+#freshVersus #freshOpponent{display:block!important;width:100%!important;max-width:none!important;margin:0 auto!important;text-align:center!important}
+#freshVersus #freshOpponentElo{display:block!important;width:100%!important;margin-top:3px!important;text-align:center!important}
+#freshVersus .fresh-old-vs-grid>.fresh-player-card:last-child .fresh-id-box{margin-left:auto!important;margin-right:auto!important}
