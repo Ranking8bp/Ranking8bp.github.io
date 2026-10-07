@@ -2794,7 +2794,19 @@ async function startFreshRoomRealtime(matchId){
  if(Number(freshRoomMatchId)!==id)return;
  const channel=supabaseClient.channel('fresh-vs-'+id+'-'+String(currentUser?.id||'guest')+'-'+Date.now())
   .on('postgres_changes',{event:'*',schema:'public',table:'ranked_matches',filter:'id=eq.'+id},()=>queueFreshRoomRealtimeRefresh('match'))
-  .on('postgres_changes',{event:'*',schema:'public',table:'ranked_match_messages',filter:'match_id=eq.'+id},()=>queueFreshRoomRealtimeRefresh('chat'));
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'ranked_match_messages',filter:'match_id=eq.'+id},payload=>{
+   const row=payload?.new;
+   if(row&&Number(row.match_id)===id){
+    const box=document.getElementById('freshChatMessages');
+    if(box&&!box.querySelector('[data-chat-id="'+String(row.id)+'"]')){
+     const d=document.createElement('div');d.dataset.chatId=String(row.id);d.className='ranked-vs-chat-message'+(String(row.sender_id)===String(currentUser?.id)?' mine':'');
+     const n=document.createElement('strong');n.textContent=String(row.sender_id)===String(currentUser?.id)?String(currentProfile?.account_name||currentProfile?.username||'TÚ'):'RIVAL';
+     const b=document.createElement('p');b.textContent=row.message||'';d.append(n,b);box.appendChild(d);box.scrollTop=box.scrollHeight;
+    }
+   }
+   queueFreshRoomRealtimeRefresh('chat');
+  })
+  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'ranked_match_messages',filter:'match_id=eq.'+id},()=>queueFreshRoomRealtimeRefresh('chat'));
  freshRoomRealtimeChannel=channel;
  channel.subscribe(status=>{if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.error('Realtime sala VS:',status)});
 }
@@ -2808,7 +2820,7 @@ async function loadFreshRankedChat(){
   const box=document.getElementById('freshChatMessages');if(!box)return;
   box.replaceChildren();
   const senders=new Set();
-  rows.forEach(m=>{if(m.sender_id)senders.add(String(m.sender_id));const d=document.createElement('div');d.className='ranked-vs-chat-message'+(String(m.sender_id)===String(currentUser?.id)?' mine':'');const n=document.createElement('strong');n.textContent=m.sender_name||'JUGADOR';const b=document.createElement('p');b.textContent=m.message||'';d.append(n,b);if(String(m.sender_id)===String(currentUser?.id)){const seen=document.createElement('small');seen.className='fresh-chat-seen';seen.textContent=m.read_by_other?'✓✓ VISTO':'✓ ENVIADO';d.appendChild(seen)}box.appendChild(d)});
+  rows.forEach(m=>{if(m.sender_id)senders.add(String(m.sender_id));const d=document.createElement('div');d.dataset.chatId=String(m.id||'');d.className='ranked-vs-chat-message'+(String(m.sender_id)===String(currentUser?.id)?' mine':'');const n=document.createElement('strong');n.textContent=m.sender_name||'JUGADOR';const b=document.createElement('p');b.textContent=m.message||'';d.append(n,b);if(String(m.sender_id)===String(currentUser?.id)){const seen=document.createElement('small');seen.className='fresh-chat-seen';seen.textContent=m.read_by_other?'✓✓ VISTO':'✓ ENVIADO';d.appendChild(seen)}box.appendChild(d)});
   box.scrollTop=box.scrollHeight;
   const {data:rs}=await supabaseClient.rpc('get_ranked_chat_response_status',{p_match_id:freshRoomMatchId});const state=Array.isArray(rs)?rs[0]:rs;const abandon=document.getElementById('freshAbandonPending');
   // El estado REVIEW lo controla el sondeo principal de la sala; no duplicar RPC aquí.
