@@ -1449,7 +1449,7 @@ async function loadGuestRanking(){
  guestRankingLoading=true;
  try{
   if(cached?.length)await burstJitter();
-  const {data,error}=await supabaseClient.rpc('get_public_home_snapshot');
+  const {data,error}=await supabaseClient.rpc('get_cached_public_home');
   if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
   if(Array.isArray(snapshot.streaks))rankingStreaks=new Map(snapshot.streaks.map(x=>[String(x.player_id),Number(x.streak)||0]));
@@ -2275,7 +2275,7 @@ async function loadRanking(){
  rankingLoading=true;
  try{
   if(cached?.length)await burstJitter();
-  const {data,error}=await supabaseClient.rpc('get_public_home_snapshot');if(error)throw error;
+  const {data,error}=await supabaseClient.rpc('get_cached_public_home');if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
   if(Array.isArray(snapshot.streaks))rankingStreaks=new Map(snapshot.streaks.map(x=>[String(x.player_id),Number(x.streak)||0]));
   const snapshotTotal=Number(snapshot.total_players);if(Number.isFinite(snapshotTotal)){totalRegisteredPlayers=snapshotTotal;try{localStorage.setItem('ranking8bp_real_registered_count',String(snapshotTotal))}catch(_){}}
