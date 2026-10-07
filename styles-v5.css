@@ -2502,3 +2502,8 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 
 /* VS status heading */
 #freshVersus>.matchmaking-mode{color:#20d66b!important;text-shadow:0 0 12px rgba(32,214,107,.35)!important}
+
+/* Online dot on VS opponent profile photo */
+#freshVersus #freshOpponentAvatar{overflow:visible!important}
+#freshVersus #freshOpponentAvatar>img{width:100%!important;height:100%!important;object-fit:cover!important;border-radius:50%!important}
+#freshVersus #freshOpponentAvatar .fresh-opponent-online-dot{position:absolute!important;top:3px!important;left:3px!important;width:16px!important;height:16px!important;border-radius:50%!important;background:#20e66b!important;border:3px solid #07111b!important;box-shadow:0 0 10px rgba(32,230,107,.9)!important;z-index:5!important}
