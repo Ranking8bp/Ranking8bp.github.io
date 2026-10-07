@@ -2604,3 +2604,8 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
  align-items:center!important;
  justify-content:center!important;
 }
+
+/* Clickable rival identity in VS chat */
+#freshChatMessages .fresh-chat-profile-link{cursor:pointer!important;touch-action:manipulation!important}
+#freshChatMessages strong.fresh-chat-profile-link{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+#freshChatMessages .fresh-chat-avatar.fresh-chat-profile-link{box-shadow:0 0 0 2px rgba(255,212,64,.16)!important}
