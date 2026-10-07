@@ -2491,10 +2491,8 @@ async function sharePrivateRankedInvite(){
   const {data,error}=await supabaseClient.rpc('create_ranked_match_invite');if(error)throw error;
   const token=String(data||'');if(!token)throw new Error('INVITE_NOT_CREATED');
   privateInviteToken=token;const url=new URL(location.href);url.search='';url.hash='';url.searchParams.set('invite',token);
-  const shareData={title:'Partida Ranking8BP',text:'Te invito a jugar una partida privada por Ranking8BP.',url:url.toString()};
-  if(navigator.share){try{await navigator.share(shareData)}catch(e){if(e?.name!=='AbortError')throw e}}
-  else if(navigator.clipboard){await navigator.clipboard.writeText(url.toString());showToast('Enlace de invitación copiado.')}
-  else{prompt('Copia este enlace de invitación:',url.toString())}
+  const link=url.toString();
+  try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(link)}else{const el=document.createElement('textarea');el.value=link;el.style.position='fixed';el.style.opacity='0';document.body.appendChild(el);el.select();const ok=document.execCommand('copy');el.remove();if(!ok)throw new Error('COPY_FAILED')}showToast('¡LINK DE SALA PRIVADA COPIADO!')}catch(copyError){prompt('COPIA EL LINK DE TU SALA PRIVADA:',link)}
   stopPrivateInvitePoll();privateInvitePollTimer=setInterval(()=>pollPrivateInvite(token),2000);pollPrivateInvite(token);
  }catch(e){console.error('Crear invitación:',e);showToast(String(e?.message||'').includes('ACTIVE_MATCH')?'Ya tienes un VS activo.':'No se pudo crear la invitación.')}finally{dashboardShareBtn.disabled=false}
 }
