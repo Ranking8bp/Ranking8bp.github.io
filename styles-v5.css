@@ -2351,3 +2351,6 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 .rules-hotspot-check input:checked+span:after{content:'✓';position:absolute;inset:0;display:grid;place-items:center;color:#22ff65;font-size:clamp(25px,7vw,54px);font-weight:1000;line-height:1;text-shadow:0 2px 5px #000}
 .rules-hotspot-accept{right:5%;bottom:2.8%;width:34%;height:8.5%;border-radius:16px}
 .rules-read-warning{position:fixed;left:50%;bottom:5%;transform:translateX(-50%);width:min(90vw,520px);padding:14px 16px;border:2px solid #e4b638;border-radius:14px;background:#07131e;color:#ffd84a;font-weight:900;text-align:center;line-height:1.25;box-shadow:0 8px 30px #000}
+
+/* Ajuste del visto de "He leído las reglas": mover a la derecha */
+.rules-hotspot-check span{left:8%!important}
