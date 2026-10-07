@@ -2360,3 +2360,12 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 
 /* Restaurar posición anterior del visto */
 .rules-hotspot-check span{left:8%!important;top:16%!important}
+
+/* LOGROS ahora se muestran solo desde el botón cuadrado */
+.dashboard-info-modal{position:fixed;inset:0;z-index:10040;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:18px}
+.dashboard-info-modal[hidden]{display:none!important}
+.dashboard-info-card{width:min(92vw,620px);max-height:84vh;overflow:auto;padding:18px;border:1px solid #8c7137;border-radius:18px;background:linear-gradient(145deg,#07131e,#02070d);box-shadow:0 18px 55px #000;color:#fff}
+.dashboard-info-card header{display:flex;align-items:center;justify-content:space-between;color:#e4b634;font-size:24px;margin-bottom:18px}
+.dashboard-info-card header button{width:44px;height:44px;border-radius:50%;border:2px solid #e4b634;background:#b91414;color:#fff;font-size:28px;font-weight:900}
+.dashboard-info-card .dynamic-wins-profile{font-size:20px;margin:8px 0 18px}
+.dashboard-info-card #competitiveAchievements{display:grid;gap:12px}
