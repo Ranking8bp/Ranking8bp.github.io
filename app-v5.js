@@ -1175,6 +1175,10 @@ async function startRankedMatchmaking(){
    const {data,error}=await supabaseClient.rpc('find_ranked_opponent');if(error)throw error;
    const st=Array.isArray(data)?data[0]:data;
    if(st?.state==='matched'&&st?.out_match_id){
+    if(!rankedSearchActive||token!==rankedSearchLoopToken){
+     await Promise.allSettled([supabaseClient.rpc('set_ranked_search_presence',{p_searching:false}),supabaseClient.rpc('matchmaking_v2_cancel')]);
+     return;
+    }
     const {data:room,error:roomError}=await supabaseClient.rpc('get_fresh_ranked_room',{p_match_id:Number(st.out_match_id)});if(roomError)throw roomError;
     const m=Array.isArray(room)?room[0]:room;if(!m)throw new Error('ROOM_NOT_READY');
     currentRankedMatchId=Number(m.match_id);rankedSearchActive=false;syncRankedSearchPresence(false);
@@ -2769,7 +2773,20 @@ if(rankingSearchInput) rankingSearchInput.addEventListener('input',()=>{
 if(guestRankingSearchInput)guestRankingSearchInput.addEventListener('input',renderGuestRanking);
 
 /* Fresh matchmaking room controls */
-document.addEventListener('click',e=>{if(e.target?.id==='freshMatchmakingClose'){rankedSearchActive=false;stopRankedSearchLoop();stopFreshRoomRealtime().catch(()=>{});const m=document.getElementById('freshMatchmakingModal');if(m)m.hidden=true;}});
+document.addEventListener('click',async e=>{if(e.target?.id==='freshMatchmakingClose'){
+ const wasSearching=rankedSearchActive&&!freshRoomMatchId;
+ rankedSearchActive=false;stopRankedSearchLoop();stopFreshRoomRealtime().catch(()=>{});
+ // Salir mientras BUSCA debe retirar la cola en servidor antes de ocultar la ventana.
+ if(wasSearching&&currentUser&&supabaseClient){
+  try{
+   await Promise.allSettled([
+    supabaseClient.rpc('set_ranked_search_presence',{p_searching:false}),
+    supabaseClient.rpc('matchmaking_v2_cancel')
+   ]);
+  }catch(err){console.error('Cancelar búsqueda:',err)}
+ }
+ const m=document.getElementById('freshMatchmakingModal');if(m)m.hidden=true;
+}});
 
 let freshRoomTimer=null,freshRoomChatPoll=null,freshRoomMatchId=null,freshRoomExpiresAt=0,freshRoomRealtimeChannel=null,freshRoomRealtimeRefreshTimer=null;
 async function stopFreshRoomRealtime(){
