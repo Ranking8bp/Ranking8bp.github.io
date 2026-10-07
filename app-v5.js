@@ -2351,15 +2351,27 @@ async function restoreSession(){
 // there is genuinely no saved session.
 (async()=>{
   if(!cloudReady){setGuestUI();return}
+  let session=null;
   try{
-    const {data}=await supabaseClient.auth.getSession();
-    if(data?.session){
-      currentUser=data.session.user;
-      const profile=await getProfile(data.session.user.id);
-      if(profile){await setPlayerUI(profile,data.session.user);return}
-    }
-  }catch(e){console.error('Restaurar sesión inicial:',e)}
-  setGuestUI();
+    const result=await supabaseClient.auth.getSession();
+    session=result?.data?.session||null;
+  }catch(e){console.error('Restaurar sesión inicial:',e);return}
+  if(!session){setGuestUI();return}
+  currentUser=session.user;
+  // Una sesión válida nunca debe verse como cerrada solo porque el perfil tarde
+  // o falle temporalmente al recargar. Conservamos la UI autenticada y reintentamos.
+  let profile=null;
+  for(let attempt=0;attempt<3&&!profile;attempt++){
+    try{profile=await getProfile(session.user.id)}catch(_){}
+    if(!profile&&attempt<2)await new Promise(r=>setTimeout(r,450*(attempt+1)));
+  }
+  if(profile){
+    try{await setPlayerUI(profile,session.user)}catch(e){console.error('Cargar UI de sesión:',e)}
+    return;
+  }
+  console.warn('Sesión válida restaurada; perfil pendiente. No se cerrará la sesión.');
+  // No llamar setGuestUI(): eso hacía parecer que la sesión se cerraba al actualizar.
+  setTimeout(()=>restoreSession(),1200);
 })();
 
 loginBtn.addEventListener('click',()=>{loginError.textContent='';openModal(loginModal,loginUsername)});
