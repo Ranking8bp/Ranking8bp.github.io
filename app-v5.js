@@ -302,26 +302,66 @@ if(cloudReady){supabaseClient=window.supabase.createClient(cloudConfig.url,cloud
 
 
 const RANKS=[
-  {min:0,name:'Latón',image:'assets/ranks/01_Laton.png'},
-  {min:230,name:'Bronce I',image:'assets/ranks/02_Bronce_I.png'},
-  {min:300,name:'Bronce II',image:'assets/ranks/03_Bronce_II.png'},
-  {min:380,name:'Bronce III',image:'assets/ranks/04_Bronce_III.png'},
-  {min:470,name:'Plata I',image:'assets/ranks/05_Plata_I.png'},
-  {min:570,name:'Plata II',image:'assets/ranks/06_Plata_II.png'},
-  {min:680,name:'Plata III',image:'assets/PLATA 3.png?v=20261005-plata3new'},
-  {min:800,name:'Oro I',image:'assets/ranks/08_Oro_I.png'},
-  {min:930,name:'Oro II',image:'assets/ranks/09_Oro_II.png'},
-  {min:1070,name:'Oro III',image:'assets/ranks/10_Oro_III.png'},
-  {min:1220,name:'Amatista I',image:'assets/ranks/11_Amatista_I.png'},
-  {min:1380,name:'Amatista II',image:'assets/ranks/12_Amatista_II.png'},
-  {min:1550,name:'Amatista III',image:'assets/ranks/13_Amatista_III.png'},
-  {min:1730,name:'Esmeralda I',image:'assets/ranks/14_Esmeralda_I.png'},
-  {min:1920,name:'Esmeralda II',image:'assets/ranks/15_Esmeralda_II.png'},
-  {min:2120,name:'Esmeralda III',image:'assets/ranks/16_Esmeralda_III.png'},
-  {min:2330,name:'Diamante I',image:'assets/ranks/17_Diamante_I.png'},
-  {min:2550,name:'Diamante II',image:'assets/ranks/18_Diamante_II.png'},
-  {min:2770,name:'Diamante III',image:'assets/ranks/19_Diamante_III.png'},
-  {min:3000,name:'Diamante Negro',image:'assets/ranks/20_Diamante_Negro.png'}
+  {min:0,name:'Latón I',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/LatonI.png'},
+  {min:25,name:'Latón II',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/LatonII.png'},
+  {min:50,name:'Latón III',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/LatonIII.png'},
+  {min:100,name:'Latón IV',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/LatonIV.png'},
+  {min:150,name:'Latón V',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/LatonV.png'},
+  {min:200,name:'Bronce I',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/bronceI.png'},
+  {min:275,name:'Bronce II',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/BronceII.png'},
+  {min:350,name:'Bronce III',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/BronceIII.png'},
+  {min:450,name:'Bronce IV',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/BronceIV.png'},
+  {min:550,name:'Bronce V',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/BronceV.png'},
+  {min:675,name:'Plata I',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/PlataI.png'},
+  {min:800,name:'Plata II',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/PlataII.png'},
+  {min:950,name:'Plata III',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/PlataIII.png'},
+  {min:1125,name:'Plata IV',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/PlataIV.png'},
+  {min:1300,name:'Plata V',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/PlataV.png'},
+  {min:1500,name:'Oro I',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/OroI.png'},
+  {min:1700,name:'Oro II',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/OroII.png'},
+  {min:1925,name:'Oro III',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/OroIII.png'},
+  {min:2175,name:'Oro IV',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/OroIV.png'},
+  {min:2425,name:'Oro V',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/OroV.png'},
+  {min:2700,name:'Platino I',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/PlatinoI.png'},
+  {min:3000,name:'Platino II',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/PlatinoII.png'},
+  {min:3300,name:'Platino III',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/PlatinoIII.png'},
+  {min:3625,name:'Platino IV',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/PlatinoIV.png'},
+  {min:3975,name:'Platino V',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/PlatinoV.png'},
+  {min:4350,name:'Titanio I',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/TitanioI.png'},
+  {min:4725,name:'Titanio II',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/TitanioII.png'},
+  {min:5125,name:'Titanio III',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/TitanioIII.png'},
+  {min:5550,name:'Titanio IV',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/TitanioIV.png'},
+  {min:6000,name:'Titanio V',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/TitanioV.png'},
+  {min:6475,name:'Diamante I',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/DiamanteI.png'},
+  {min:6950,name:'Diamante II',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/DiamanteII.png'},
+  {min:7450,name:'Diamante III',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/DiamanteIII.png'},
+  {min:7975,name:'Diamante IV',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/DiamanteIV.png'},
+  {min:8525,name:'Diamante V',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/DiamanteV.png'},
+  {min:9100,name:'Diamante Negro I',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/DiamantenegroI.png'},
+  {min:9700,name:'Diamante Negro II',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/DiamantenegroII.png'},
+  {min:10325,name:'Diamante Negro III',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/DiamantenegroIII.png'},
+  {min:10975,name:'Diamante Negro IV',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/DiamantenegroIV.png'},
+  {min:11625,name:'Diamante Negro V',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/DiamantenegroV.png'},
+  {min:12300,name:'Élite I',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/EliteI.png'},
+  {min:13000,name:'Élite II',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/EliteII.png'},
+  {min:13725,name:'Élite III',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/EliteIII.png'},
+  {min:14475,name:'Élite IV',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/EliteIV.png'},
+  {min:15250,name:'Élite V',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/EliteV.png'},
+  {min:16050,name:'Maestro I',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/MaestroI.png'},
+  {min:16875,name:'Maestro II',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/MaestroII.png'},
+  {min:17725,name:'Maestro III',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/MaestroIII.png'},
+  {min:18600,name:'Maestro IV',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/MaestroIV.png'},
+  {min:19500,name:'Maestro V',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/MaestroV.png'},
+  {min:20425,name:'Gran Maestro I',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/GranmaestroI.png'},
+  {min:21375,name:'Gran Maestro II',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/GranmaestroII.png'},
+  {min:22350,name:'Gran Maestro III',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/GranmaestroIII.png'},
+  {min:23350,name:'Gran Maestro IV',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/GranmaestroIV.png'},
+  {min:24375,name:'Gran Maestro V',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/GranmaestroV.png'},
+  {min:25425,name:'MÍTICO I',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/MiticoI.png'},
+  {min:26525,name:'MÍTICO II',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/MiticoII.png'},
+  {min:27650,name:'MÍTICO III',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/MiticoIII.png'},
+  {min:28800,name:'MÍTICO IV',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/MiticoIV.png'},
+  {min:30000,name:'MÍTICO V',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/MiticoV.png'}
 ];
 
 function getRankByElo(value){
@@ -341,7 +381,7 @@ function applyRankImage(element,rank){
   element.style.backgroundImage='none';
   element.replaceChildren();
   const img=document.createElement('img');
-  img.src=rank.image+'?v=20261001-original';
+  img.src=rank.image;
   img.alt='Insignia '+rank.name;
   img.className='rank-original-img';
   img.decoding='async';
@@ -362,7 +402,7 @@ function renderRankBadgeOn(element,rankOrElo){
 function openRankZoom(rank,player){
   const modal=document.getElementById('rankZoomModal'),img=document.getElementById('rankZoomImage'),name=document.getElementById('rankZoomName'),stats=document.getElementById('rankZoomStats');
   if(!modal||!img||!rank)return;
-  img.src=rank.image+'?v=20260930-hq1';
+  img.src=rank.image;
   img.alt='Insignia '+rank.name;
   if(name)name.textContent=rank.name.toUpperCase();
   if(stats&&player)stats.textContent='ELO '+(Number(player.elo_points)||0)+' · '+(Number(player.wins)||0)+' victorias · '+(Number(player.losses)||0)+' derrotas';
