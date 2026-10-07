@@ -193,6 +193,11 @@ const dashboardElo=document.getElementById('dashboardElo');
 const dashboardWins=document.getElementById('dashboardWins');
 const dashboardLosses=document.getElementById('dashboardLosses');
 const competitiveWins=document.getElementById('competitiveWins'),competitiveLosses=document.getElementById('competitiveLosses');
+const inviteGuestBanner=document.getElementById('inviteGuestBanner'),inviteGuestRegisterBtn=document.getElementById('inviteGuestRegisterBtn');
+const inviteTokenFromUrl=new URLSearchParams(location.search).get('invite');
+if(inviteTokenFromUrl){try{sessionStorage.setItem('ranking8bp-pending-invite',inviteTokenFromUrl)}catch(_){}}
+function paintGuestInvitePrompt(){if(inviteGuestBanner)inviteGuestBanner.hidden=!(inviteTokenFromUrl&&!currentUser)}
+if(inviteGuestRegisterBtn)inviteGuestRegisterBtn.addEventListener('click',()=>{document.getElementById('registerBtn')?.click()});
 const dashboardPlayBtn=document.getElementById('dashboardPlayBtn');
 const dashboardShareBtn=document.getElementById('dashboardShareBtn');
 let privateInvitePollTimer=null,privateInviteToken=null;
@@ -2494,11 +2499,11 @@ async function sharePrivateRankedInvite(){
  }catch(e){console.error('Crear invitación:',e);showToast(String(e?.message||'').includes('ACTIVE_MATCH')?'Ya tienes un VS activo.':'No se pudo crear la invitación.')}finally{dashboardShareBtn.disabled=false}
 }
 async function acceptPrivateInviteFromUrl(){
- const token=new URLSearchParams(location.search).get('invite');if(!token||!currentUser||!supabaseClient)return;
+ const token=new URLSearchParams(location.search).get('invite')||(()=>{try{return sessionStorage.getItem('ranking8bp-pending-invite')}catch(_){return null}})();if(!token||!currentUser||!supabaseClient)return;
  try{
   const {data,error}=await supabaseClient.rpc('accept_ranked_match_invite',{p_token:token});if(error)throw error;
   const mid=Number(data||0);if(!mid)throw new Error('INVITE_INVALID');
-  history.replaceState({},'',location.pathname+location.hash);showToast('Invitación aceptada. Entrando al VS...');await openPrivateInviteRoom(mid);
+  try{sessionStorage.removeItem('ranking8bp-pending-invite')}catch(_){} history.replaceState({},'',location.pathname+location.hash);showToast('Invitación aceptada. Entrando al VS...');await openPrivateInviteRoom(mid);
  }catch(e){console.error('Aceptar invitación:',e);const msg=String(e?.message||'');if(msg.includes('INVITE_OWNER')){privateInviteToken=token;stopPrivateInvitePoll();privateInvitePollTimer=setInterval(()=>pollPrivateInvite(token),2000);pollPrivateInvite(token);showToast('Esperando que tu rival abra la invitación.')}else showToast(msg.includes('INVITE_USED')?'Esta invitación ya fue utilizada.':msg.includes('INVITE_INVALID')?'La invitación venció o ya no es válida.':msg.includes('ACTIVE_MATCH')?'Ya tienes un VS activo.':'No se pudo aceptar la invitación.')}
 }
 if(dashboardShareBtn)dashboardShareBtn.addEventListener('click',sharePrivateRankedInvite);
