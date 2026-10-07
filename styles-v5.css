@@ -2519,3 +2519,13 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 #freshVersus #freshOpponent{display:block!important;width:100%!important;max-width:none!important;margin:0 auto!important;text-align:center!important}
 #freshVersus #freshOpponentElo{display:block!important;width:100%!important;margin-top:3px!important;text-align:center!important}
 #freshVersus .fresh-old-vs-grid>.fresh-player-card:last-child .fresh-id-box{margin-left:auto!important;margin-right:auto!important}
+
+/* ELO directly below Ranking position */
+#freshVersus .fresh-opponent-bottom{display:contents!important}
+#freshVersus #freshOpponent{grid-column:1/4!important;grid-row:2!important;display:block!important;width:100%!important;text-align:center!important;justify-self:center!important}
+#freshVersus #freshOpponentElo{grid-column:3!important;grid-row:1!important;align-self:end!important;justify-self:center!important;display:block!important;width:auto!important;margin:0 0 6px!important;color:#20e66b!important;font-size:17px!important;font-weight:1000!important;text-align:center!important;z-index:3!important}
+#freshVersus #freshOpponentPosition{align-self:start!important;margin-top:18px!important;padding-bottom:30px!important}
+@media(max-width:600px){
+ #freshVersus #freshOpponentElo{font-size:13px!important;margin-bottom:5px!important}
+ #freshVersus #freshOpponentPosition{margin-top:8px!important;padding-bottom:26px!important}
+}
