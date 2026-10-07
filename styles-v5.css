@@ -2529,3 +2529,32 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
  #freshVersus #freshOpponentElo{font-size:13px!important;margin-bottom:5px!important}
  #freshVersus #freshOpponentPosition{margin-top:8px!important;padding-bottom:26px!important}
 }
+
+/* Fix VS streak being covered by ID bar */
+#freshVersus #freshOpponentStreak{
+ position:absolute!important;
+ left:16px!important;
+ bottom:16px!important;
+ display:block!important;
+ max-width:175px!important;
+ margin:0!important;
+ padding:5px 8px!important;
+ color:#ffb323!important;
+ font-size:13px!important;
+ font-weight:1000!important;
+ line-height:1.1!important;
+ white-space:nowrap!important;
+ overflow:visible!important;
+ z-index:8!important;
+}
+#freshVersus #freshOpponentStreak[hidden]{display:none!important}
+#freshVersus .fresh-old-vs-grid>.fresh-player-card:last-child .fresh-id-box{
+ position:relative!important;
+ z-index:4!important;
+ margin-left:auto!important;
+ margin-right:auto!important;
+}
+@media(max-width:600px){
+ #freshVersus #freshOpponentStreak{left:12px!important;bottom:17px!important;max-width:95px!important;font-size:10px!important;padding:4px 2px!important}
+ #freshVersus .fresh-old-vs-grid>.fresh-player-card:last-child .fresh-id-box{min-width:0!important;width:64%!important;margin-left:34%!important;margin-right:2%!important}
+}
