@@ -3106,6 +3106,20 @@ document.addEventListener('keydown',e=>{if(e.target?.id==='freshChatInput'&&e.ke
 
 document.addEventListener('click',e=>{if(e.target?.id==='freshCopyMyId'||e.target?.id==='freshCopyOpponentId'){const id=e.target.id==='freshCopyMyId'?'freshMyId':'freshOpponentId',v=document.getElementById(id)?.textContent?.trim();if(v&&navigator.clipboard)navigator.clipboard.writeText(v).then(()=>showToast('ID copiado.')).catch(()=>{})}});
 
+async function openFreshOpponentProfile(){
+ if(!freshRoomMatchId||!supabaseClient)return;
+ try{
+  const {data:room,error:roomError}=await supabaseClient.rpc('get_fresh_ranked_room',{p_match_id:Number(freshRoomMatchId)});if(roomError)throw roomError;
+  const m=Array.isArray(room)?room[0]:room;if(!m?.opponent_id)throw new Error('OPPONENT_NOT_FOUND');
+  const {data,error}=await supabaseClient.rpc('get_profile_by_id',{p_player_id:m.opponent_id});if(error)throw error;
+  const p=Array.isArray(data)?data[0]:data;if(!p)throw new Error('PROFILE_NOT_FOUND');
+  openRankingPlayer({...p,id:p.player_id,player_id:p.player_id});
+ }catch(err){console.error('Abrir perfil rival desde tarjeta VS:',err);showToast('No se pudo abrir el perfil.')}
+}
+document.addEventListener('click',e=>{if(e.target?.closest?.('#freshOpponentAvatar'))openFreshOpponentProfile()});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target?.id==='freshOpponentAvatar'){e.preventDefault();openFreshOpponentProfile()}});
+
+
 
 /* Ranking8BP PWA install */
 function syncRankingInstallButton(){
