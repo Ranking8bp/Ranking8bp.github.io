@@ -2350,13 +2350,13 @@ async function restoreSession(){
 // localStorage and restores it automatically. Guest UI is shown only when
 // there is genuinely no saved session.
 (async()=>{
-  if(!cloudReady){setGuestUI();return}
+  if(!cloudReady){document.documentElement.classList.remove('auth-checking');setGuestUI();return}
   let session=null;
   try{
     const result=await supabaseClient.auth.getSession();
     session=result?.data?.session||null;
   }catch(e){console.error('Restaurar sesión inicial:',e);return}
-  if(!session){setGuestUI();return}
+  if(!session){document.documentElement.classList.remove('auth-checking');setGuestUI();return}
   currentUser=session.user;
   // Una sesión válida nunca debe verse como cerrada solo porque el perfil tarde
   // o falle temporalmente al recargar. Conservamos la UI autenticada y reintentamos.
@@ -2367,6 +2367,7 @@ async function restoreSession(){
   }
   if(profile){
     try{await setPlayerUI(profile,session.user)}catch(e){console.error('Cargar UI de sesión:',e)}
+    document.documentElement.classList.remove('auth-checking');
     return;
   }
   console.warn('Sesión válida restaurada; perfil pendiente. No se cerrará la sesión.');
