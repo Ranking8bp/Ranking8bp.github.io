@@ -1149,8 +1149,8 @@ async function renderLiveSearchingPlayers(){
   box.append(avatars,txt);
  }catch(e){console.error('Lista buscando:',e)}
 }
-setInterval(()=>{if(!document.hidden&&currentUser)renderLiveSearchingPlayers().catch(()=>{})},30000);
-setTimeout(()=>{if(currentUser)renderLiveSearchingPlayers().catch(()=>{})},5000);
+// Sin sondeo global: la barra Buscando se actualiza solo cuando cambia la cola.
+// Sin llamada automática al cargar/actualizar la página.
 async function refreshPlayersSearchingCount(){
  if(!supabaseClient||!playersSearchingCount||playersSearchingLoading)return;
  playersSearchingLoading=true;
@@ -1158,10 +1158,10 @@ async function refreshPlayersSearchingCount(){
 }
 async function syncRankedSearchPresence(active){
  if(!supabaseClient||!currentUser)return;
- try{await supabaseClient.rpc('set_ranked_search_presence',{p_searching:!!active});refreshPlayersSearchingCount().catch(()=>{});if(active)renderLiveSearchingPlayers().catch(()=>{})}catch(e){console.error('Presencia búsqueda:',e)}
+ try{await supabaseClient.rpc('set_ranked_search_presence',{p_searching:!!active});if(active){renderLiveSearchingPlayers().catch(()=>{});refreshPlayersSearchingCount().catch(()=>{})}}catch(e){console.error('Presencia búsqueda:',e)}
 }
-setInterval(()=>{if(!document.hidden&&currentUser&&rankedSearchActive)syncRankedSearchPresence(true)},30000);
-setTimeout(()=>{if(currentUser)refreshPlayersSearchingCount().catch(()=>{})},6000);
+setInterval(()=>{if(!document.hidden&&currentUser&&rankedSearchActive)syncRankedSearchPresence(true)},60000);
+// El conteo se refresca por eventos de entrada/salida, no al recargar.
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient||matchmakingStartLoading)return;
  matchmakingStartLoading=true;
@@ -1197,7 +1197,7 @@ async function startRankedMatchmaking(){
     search.hidden=true;vs.hidden=false;startFreshRankedRoom(Number(m.match_id),Number(m.chat_seconds_left??60));return;
    }
   }catch(e){console.error('Emparejamiento nuevo:',e);rankedSearchActive=false;search.hidden=true;modal.hidden=true;showToast('No se pudo entrar a la cola: '+String(e?.message||'ERROR DE CONEXIÓN'));return}
-  await new Promise(r=>setTimeout(r,3000));
+  await new Promise(r=>setTimeout(r,5000));
  }
 }
 async function leaveRankedRoom(){
