@@ -2476,6 +2476,7 @@ if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{if(!wind
           const paintRank=(el,rank)=>{if(!el)return;el.replaceChildren();const img=document.createElement('img');img.src='assets/ranks/'+rankFile(rank);img.alt=String(rank||'LATÓN');el.appendChild(img)};
           paintAvatar(document.getElementById('freshMyAvatar'),m.my_avatar_path,m.my_name);
           paintAvatar(document.getElementById('freshOpponentAvatar'),m.opponent_avatar_path,m.opponent_name);
+          paintRank(document.getElementById('freshOpponentRankBadge'),m.opponent_rank_name);
           
           document.getElementById('freshMyRank').textContent=String(m.my_rank_name||'LATÓN').toUpperCase();
           document.getElementById('freshOpponentRank').textContent=String(m.opponent_rank_name||'LATÓN').toUpperCase();
