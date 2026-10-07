@@ -2509,3 +2509,7 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 #freshVersus #freshOpponentAvatar .fresh-opponent-online-dot{position:absolute!important;top:3px!important;left:3px!important;width:16px!important;height:16px!important;border-radius:50%!important;background:#20e66b!important;border:3px solid #07111b!important;box-shadow:0 0 10px rgba(32,230,107,.9)!important;z-index:5!important}
 
 #freshVersus #freshOpponentAvatar::after{content:""!important;position:absolute!important;top:3px!important;left:3px!important;width:16px!important;height:16px!important;border-radius:50%!important;background:#20e66b!important;border:3px solid #07111b!important;box-shadow:0 0 10px rgba(32,230,107,.9)!important;z-index:6!important}
+
+/* VS rank badge slow breathing animation */
+@keyframes freshRankBadgeBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+#freshVersus #freshOpponentRankBadge img{animation:freshRankBadgeBreath 3.6s ease-in-out infinite!important;transform-origin:center center!important;will-change:transform!important}
