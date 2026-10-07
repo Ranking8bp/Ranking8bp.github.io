@@ -2504,7 +2504,7 @@ async function acceptPrivateInviteFromUrl(){
   const {data,error}=await supabaseClient.rpc('accept_ranked_match_invite',{p_token:token});if(error)throw error;
   const mid=Number(data||0);if(!mid)throw new Error('INVITE_INVALID');
   try{sessionStorage.removeItem('ranking8bp-pending-invite')}catch(_){} history.replaceState({},'',location.pathname+location.hash);showToast('Invitación aceptada. Entrando al VS...');await openPrivateInviteRoom(mid);
- }catch(e){console.error('Aceptar invitación:',e);const msg=String(e?.message||'');if(msg.includes('INVITE_OWNER')){privateInviteToken=token;stopPrivateInvitePoll();privateInvitePollTimer=setInterval(()=>pollPrivateInvite(token),2000);pollPrivateInvite(token);showToast('Esperando que tu rival abra la invitación.')}else showToast(msg.includes('INVITE_USED')?'Esta invitación ya fue utilizada.':msg.includes('INVITE_INVALID')?'La invitación venció o ya no es válida.':msg.includes('ACTIVE_MATCH')?'Ya tienes un VS activo.':'No se pudo aceptar la invitación.')}
+ }catch(e){console.error('Aceptar invitación:',e);const msg=String(e?.message||'');if(msg.includes('INVITE_OWNER')){privateInviteToken=token;stopPrivateInvitePoll();privateInvitePollTimer=setInterval(()=>pollPrivateInvite(token),2000);pollPrivateInvite(token);showToast('Esperando que tu rival abra la invitación.')}else showToast(msg.includes('INVITE_USED')?'Esta invitación ya fue utilizada.':(msg.includes('INVITE_INVALID')||msg.includes('INVITE_EXPIRED'))?'SALA EXPIRADA. Esta invitación ya no permite entrar.':msg.includes('ACTIVE_MATCH')?'Ya tienes un VS activo.':'No se pudo aceptar la invitación.')}
 }
 if(dashboardShareBtn)dashboardShareBtn.addEventListener('click',sharePrivateRankedInvite);
 
