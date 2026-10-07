@@ -2812,20 +2812,20 @@ function unlockFreshChatAudio(){
   const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
   if(!freshChatAudioCtx)freshChatAudioCtx=new AudioCtx();
   if(freshChatAudioCtx.state==='suspended')freshChatAudioCtx.resume().catch(()=>{});
+  if(freshChatAudioCtx.state==='running'){
+   const o=freshChatAudioCtx.createOscillator(),g=freshChatAudioCtx.createGain();g.gain.value=.00001;o.connect(g);g.connect(freshChatAudioCtx.destination);o.start();o.stop(freshChatAudioCtx.currentTime+.01);
+  }
  }catch(_){}
 }
-document.addEventListener('pointerdown',unlockFreshChatAudio,{passive:true});
-document.addEventListener('touchstart',unlockFreshChatAudio,{passive:true});
+['pointerdown','touchstart','click','keydown'].forEach(ev=>document.addEventListener(ev,unlockFreshChatAudio,{passive:true}));
 function playFreshIncomingChatSound(row){
  if(!row||String(row.sender_id)===String(currentUser?.id)||row.is_admin)return;
  const id=String(row.id??'');if(id&&freshLastIncomingSoundId===id)return;if(id)freshLastIncomingSoundId=id;
- try{if(typeof navigator.vibrate==='function')navigator.vibrate([120,60,120]);}catch(_){}
+ try{if(typeof navigator.vibrate==='function')navigator.vibrate([140,70,140]);}catch(_){}
  try{
   unlockFreshChatAudio();const ctx=freshChatAudioCtx;if(!ctx||ctx.state!=='running')return;
-  const gain=ctx.createGain(),osc=ctx.createOscillator();
-  osc.type='sine';osc.frequency.setValueAtTime(880,ctx.currentTime);osc.frequency.exponentialRampToValueAtTime(1174,ctx.currentTime+.12);
-  gain.gain.setValueAtTime(.0001,ctx.currentTime);gain.gain.exponentialRampToValueAtTime(.22,ctx.currentTime+.015);gain.gain.exponentialRampToValueAtTime(.0001,ctx.currentTime+.28);
-  osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+.29);
+  const now=ctx.currentTime;
+  [[880,0,.13],[1174,.15,.32]].forEach(([hz,start,end])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=hz;g.gain.setValueAtTime(.0001,now+start);g.gain.exponentialRampToValueAtTime(.45,now+start+.015);g.gain.exponentialRampToValueAtTime(.0001,now+end);o.connect(g);g.connect(ctx.destination);o.start(now+start);o.stop(now+end+.01);});
  }catch(_){}
 }
 async function startFreshRoomRealtime(matchId){
