@@ -2614,3 +2614,10 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 #freshChatMessages .ranked-vs-chat-message{background:transparent!important;padding:0!important;border-radius:0!important}
 #freshChatMessages .fresh-chat-message-content{background:linear-gradient(135deg,#102f43,#17465d)!important;border:1px solid rgba(96,190,245,.28)!important;border-radius:5px 15px 15px 15px!important;padding:10px 13px!important;box-shadow:0 3px 10px rgba(0,0,0,.22)!important}
 #freshChatMessages .ranked-vs-chat-message.mine .fresh-chat-message-content{background:linear-gradient(135deg,#174329,#1d5a37)!important;border-color:rgba(47,220,112,.32)!important;border-radius:15px 5px 15px 15px!important}
+
+/* Partida privada por invitación */
+.dashboard-play-area{display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important}
+.dashboard-play-area .dashboard-play-btn,.dashboard-play-area .dashboard-share-btn{width:min(44vw,330px)!important;margin:0!important}
+.dashboard-share-btn{min-height:58px;border:2px solid #d4a52d;border-radius:15px;background:linear-gradient(180deg,#182535,#09121d);color:#ffd65a;font-weight:1000;font-size:18px;letter-spacing:.6px;box-shadow:0 8px 20px rgba(0,0,0,.28)}
+.dashboard-share-btn:active{transform:scale(.98)}
+@media(max-width:600px){.dashboard-play-area{width:94%!important;margin-left:auto!important;margin-right:auto!important}.dashboard-play-area .dashboard-play-btn,.dashboard-play-area .dashboard-share-btn{width:50%!important;min-width:0!important}.dashboard-share-btn{font-size:15px!important}}
