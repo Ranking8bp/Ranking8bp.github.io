@@ -2327,3 +2327,13 @@ img,svg,video,canvas{max-width:100%}
  box-shadow:none!important;
  background:transparent!important;
 }
+
+/* Quitar resaltado táctil azul/celeste de TODOS los controles del sitio */
+button,a,[role="button"],input[type="button"],input[type="submit"],input[type="reset"],label{
+ -webkit-tap-highlight-color:transparent!important;
+ -webkit-touch-callout:none!important;
+}
+button:focus,a:focus,[role="button"]:focus,
+button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
+ outline:none!important;
+}
