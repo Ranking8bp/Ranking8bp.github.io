@@ -2409,4 +2409,4 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 #freshVersus #freshResultActions{order:6!important}
 
 /* VS chat: mensaje 3x mas grande */
-#freshChatMessages .ranked-vs-chat-message p{font-size:33px!important;line-height:1.25!important;overflow-wrap:anywhere!important;word-break:break-word!important}
+#freshChatMessages .ranked-vs-chat-message p{font-size:20px!important;line-height:1.25!important;overflow-wrap:anywhere!important;word-break:break-word!important}
