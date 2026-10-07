@@ -2226,3 +2226,7 @@ img,svg,video,canvas{max-width:100%}
 #dashboardPlayBtn:hover,#dashboardPlayBtn:active{background:transparent url("Botones/Botonjugar.png") center/contain no-repeat!important;}
 @keyframes jugarBrillo{0%,55%{left:-35%;opacity:0}60%{opacity:.9}88%{left:120%;opacity:.65}100%{left:120%;opacity:0}}
 @media(max-width:520px){#dashboardPlayBtn{width:94%!important;padding:0!important;font-size:0!important;border-radius:0!important}}
+
+/* Ajuste final botón JUGAR PNG: altura visible correcta */
+.dashboard-play-area{display:flex!important;justify-content:center!important;align-items:center!important;padding:8px 0!important;}
+#dashboardPlayBtn{display:block!important;width:94%!important;max-width:690px!important;height:auto!important;aspect-ratio:2048/640!important;background-image:url("Botones/Botonjugar.png")!important;background-size:100% 100%!important;background-position:center!important;background-repeat:no-repeat!important;border-radius:0!important;}
