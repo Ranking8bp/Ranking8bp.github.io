@@ -2747,9 +2747,33 @@ if(rankingSearchInput) rankingSearchInput.addEventListener('input',()=>{
 if(guestRankingSearchInput)guestRankingSearchInput.addEventListener('input',renderGuestRanking);
 
 /* Fresh matchmaking room controls */
-document.addEventListener('click',e=>{if(e.target?.id==='freshMatchmakingClose'){rankedSearchActive=false;stopRankedSearchLoop();const m=document.getElementById('freshMatchmakingModal');if(m)m.hidden=true;}});
+document.addEventListener('click',e=>{if(e.target?.id==='freshMatchmakingClose'){rankedSearchActive=false;stopRankedSearchLoop();stopFreshRoomRealtime().catch(()=>{});const m=document.getElementById('freshMatchmakingModal');if(m)m.hidden=true;}});
 
-let freshRoomTimer=null,freshRoomChatPoll=null,freshRoomMatchId=null,freshRoomExpiresAt=0;
+let freshRoomTimer=null,freshRoomChatPoll=null,freshRoomMatchId=null,freshRoomExpiresAt=0,freshRoomRealtimeChannel=null,freshRoomRealtimeRefreshTimer=null;
+async function stopFreshRoomRealtime(){
+ if(freshRoomRealtimeRefreshTimer){clearTimeout(freshRoomRealtimeRefreshTimer);freshRoomRealtimeRefreshTimer=null}
+ if(freshRoomRealtimeChannel&&supabaseClient){try{await supabaseClient.removeChannel(freshRoomRealtimeChannel)}catch(e){console.error('Realtime sala VS stop:',e)}}
+ freshRoomRealtimeChannel=null;
+}
+function queueFreshRoomRealtimeRefresh(kind){
+ if(freshRoomRealtimeRefreshTimer)return;
+ freshRoomRealtimeRefreshTimer=setTimeout(async()=>{
+  freshRoomRealtimeRefreshTimer=null;
+  if(document.hidden||!freshRoomMatchId)return;
+  try{
+   if(kind==='chat')await loadFreshRankedChat();
+   else{await restorePersistentFreshRoom(freshRoomMatchId);await loadFreshRankedChat()}
+  }catch(e){console.error('Realtime sala VS:',e)}
+ },100);
+}
+function startFreshRoomRealtime(matchId){
+ const id=Number(matchId||0);if(!id||!supabaseClient)return;
+ stopFreshRoomRealtime().catch(()=>{});
+ freshRoomRealtimeChannel=supabaseClient.channel('fresh-vs-'+id+'-'+String(currentUser?.id||'guest'))
+  .on('postgres_changes',{event:'*',schema:'public',table:'ranked_matches',filter:'id=eq.'+id},()=>queueFreshRoomRealtimeRefresh('match'))
+  .on('postgres_changes',{event:'*',schema:'public',table:'ranked_match_messages',filter:'match_id=eq.'+id},()=>queueFreshRoomRealtimeRefresh('chat'))
+  .subscribe();
+}
 async function loadFreshRankedChat(){
  if(!freshRoomMatchId||!supabaseClient)return;
  try{
@@ -2807,7 +2831,7 @@ async function restorePersistentFreshRoom(id){
 }
 async function awaitRestoreFreshRoom(id){try{await restorePersistentFreshRoom(id)}catch(e){console.error(e)}}
 function startFreshRankedRoom(id,secondsLeft=60){
- freshRoomMatchId=id;freshRoomExpiresAt=Date.now()+Math.max(0,Number(secondsLeft)||0)*1000;
+ freshRoomMatchId=id;startFreshRoomRealtime(id);freshRoomExpiresAt=Date.now()+Math.max(0,Number(secondsLeft)||0)*1000;
  clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);
  const warning=document.getElementById('freshResponseWarning');if(warning)warning.hidden=false;
  const oldNotice=document.getElementById('freshOpponentClaimNotice');if(oldNotice){oldNotice.hidden=true;oldNotice.textContent=''}
@@ -2862,7 +2886,7 @@ if(liveStatus==='review'){
  const chatSend=document.getElementById('freshChatSend');if(chatSend)chatSend.disabled=false;
  const resultStatus=document.getElementById('freshResultStatus');if(resultStatus&&!resultStatus.textContent)resultStatus.textContent='Tu rival envió evidencia. Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.';
 }
-if(!['matched','review'].includes(liveStatus)){clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;if(Number(freshRoomMatchId)===Number(checkingId))freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS ANULADO. Ambos jugadores quedaron libres.');return}if(!document.hidden)await loadFreshRankedChat()}catch(e){console.error('Estado sala:',e)}},30000);
+if(!['matched','review'].includes(liveStatus)){clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;if(Number(freshRoomMatchId)===Number(checkingId))freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS ANULADO. Ambos jugadores quedaron libres.');return}if(!document.hidden)await loadFreshRankedChat()}catch(e){console.error('Estado sala:',e)}},60000);
 }
 window.abandonFreshVsNow=async function(btn){
  if(!freshRoomMatchId)return;
