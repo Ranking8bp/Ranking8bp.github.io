@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>RANKING IKAR8BP</title>
-  <link rel="stylesheet" href="styles-v5.css?v=20261007-sin-tap-global" />
+  <link rel="stylesheet" href="styles-v5.css?v=20261007-reglas-modal1" />
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest?v=3">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -672,6 +672,14 @@
 <button type="button" class="dashboard-menu-tile" data-menu="reto"><img src="Botones/Retodiario.png" alt="RETO DIARIO"></button>
 <button type="button" class="dashboard-menu-tile" data-menu="rangos"><img src="Botones/Botonderangos.png" alt="RANGOS"></button>
 <button type="button" class="dashboard-menu-tile" data-menu="temporada"><img src="Botones/botondetemporadas.png" alt="TEMPORADA"></button>
+</div><div class="rules-image-modal" id="rulesImageModal" hidden>
+  <div class="rules-image-stage">
+    <img src="Botones/VentanaReglas.png" alt="Reglas del modo Ranking" class="rules-image-art">
+    <button type="button" class="rules-hotspot rules-hotspot-close" id="rulesImageClose" aria-label="Cerrar reglas"></button>
+    <label class="rules-hotspot rules-hotspot-check" id="rulesReadHotspot" aria-label="He leído las reglas"><input type="checkbox" id="rulesReadCheckbox"><span></span></label>
+    <button type="button" class="rules-hotspot rules-hotspot-accept" id="rulesAcceptBtn" aria-label="Aceptar reglas"></button>
+  </div>
+  <div class="rules-read-warning" id="rulesReadWarning" hidden>LEE LAS REGLAS Y MARCA “HE LEÍDO LAS REGLAS” PARA CONTINUAR.</div>
 </div><div class="playing-vs-modal" id="playingVsModal" hidden><div class="playing-vs-card"><header><strong>VS JUGÁNDOSE AHORA</strong><button type="button" id="playingVsClose">×</button></header><div id="playingVsList" class="playing-vs-list"></div></div></div>
         <div class="dashboard-whatsapp-area">
           <a class="dashboard-whatsapp-btn" id="dashboardWhatsappBtn" href="https://chat.whatsapp.com/E8wsyIDMq8TGaSNAbUuFew" aria-label="Grupo de WhatsApp">
@@ -1009,7 +1017,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261006-rango-elo-sync"></script>
+  <script src="app-v5.js?v=20261007-reglas-modal1"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
