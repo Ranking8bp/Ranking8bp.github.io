@@ -2809,6 +2809,7 @@ let freshLastIncomingSoundId=null;
 function playFreshIncomingChatSound(row){
  if(!row||String(row.sender_id)===String(currentUser?.id)||row.is_admin)return;
  const id=String(row.id??'');if(id&&freshLastIncomingSoundId===id)return;if(id)freshLastIncomingSoundId=id;
+ try{if(typeof navigator.vibrate==='function')navigator.vibrate([120,60,120]);}catch(_){}
  try{
   const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx)return;
   const ctx=new AudioCtx(),gain=ctx.createGain(),osc=ctx.createOscillator();
