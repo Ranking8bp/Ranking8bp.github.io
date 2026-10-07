@@ -2354,3 +2354,6 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 
 /* Ajuste del visto de "He leído las reglas": mover a la derecha */
 .rules-hotspot-check span{left:8%!important}
+
+/* Centrar el visto exactamente sobre el cuadro negro dibujado en VentanaReglas.png */
+.rules-hotspot-check span{left:15.5%!important;top:16%!important}
