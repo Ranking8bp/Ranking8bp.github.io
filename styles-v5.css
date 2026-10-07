@@ -2558,3 +2558,22 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
  #freshVersus #freshOpponentStreak{left:12px!important;bottom:17px!important;max-width:95px!important;font-size:10px!important;padding:4px 2px!important}
  #freshVersus .fresh-old-vs-grid>.fresh-player-card:last-child .fresh-id-box{min-width:0!important;width:64%!important;margin-left:34%!important;margin-right:2%!important}
 }
+
+/* Center matchmaking search state on screen */
+#freshMatchmakingModal:not([hidden]) #freshSearching:not([hidden]){
+ position:fixed!important;
+ inset:0!important;
+ width:100vw!important;
+ height:100dvh!important;
+ min-height:100vh!important;
+ box-sizing:border-box!important;
+ display:flex!important;
+ flex-direction:column!important;
+ align-items:center!important;
+ justify-content:center!important;
+ text-align:center!important;
+ margin:0!important;
+ padding:24px!important;
+ z-index:20!important;
+}
+#freshSearching>*{margin-left:auto!important;margin-right:auto!important}
