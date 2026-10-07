@@ -3104,7 +3104,7 @@ document.addEventListener('click',async e=>{if(e.target?.id==='freshForgotVideoB
 document.addEventListener('change',e=>{if(e.target?.id==='freshWinnerVideoInput'){const file=e.target.files?.[0];if(file)uploadFreshWinnerEvidence(file)}});
 document.addEventListener('keydown',e=>{if(e.target?.id==='freshChatInput'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendFreshRankedChat()}});
 
-document.addEventListener('click',e=>{if(e.target?.id==='freshCopyMyId'||e.target?.id==='freshCopyOpponentId'){const id=e.target.id==='freshCopyMyId'?'freshMyId':'freshOpponentId',v=document.getElementById(id)?.textContent?.trim();if(v&&navigator.clipboard)navigator.clipboard.writeText(v).then(()=>showToast('ID copiado.')).catch(()=>{})}});
+document.addEventListener('click',e=>{if(e.target?.id==='freshCopyMyId'||e.target?.id==='freshCopyOpponentId'){const id=e.target.id==='freshCopyMyId'?'freshMyId':'freshOpponentId',raw=document.getElementById(id)?.textContent?.trim(),v=String(raw||'').replace(/^ID\s*:\s*/i,'').trim();if(v&&navigator.clipboard)navigator.clipboard.writeText(v).then(()=>showToast('ID copiado.')).catch(()=>{})}});
 
 async function openFreshOpponentProfile(){
  if(!freshRoomMatchId||!supabaseClient)return;
