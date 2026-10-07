@@ -2293,3 +2293,13 @@ img,svg,video,canvas{max-width:100%}
  #playerDashboard *{text-shadow:none!important}
  #playerDashboard #dashboardPlayBtn{animation:none!important;will-change:auto!important}
 }
+
+/* JUGAR completamente estático */
+#playerDashboard #dashboardPlayBtn,
+#playerDashboard #dashboardPlayBtn:hover,
+#playerDashboard #dashboardPlayBtn:active{
+ animation:none!important;
+ transition:none!important;
+ transform:none!important;
+ will-change:auto!important;
+}
