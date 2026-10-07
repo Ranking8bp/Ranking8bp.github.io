@@ -2279,3 +2279,17 @@ img,svg,video,canvas{max-width:100%}
 }
 #playerDashboard #dashboardPlayBtn::before,
 #playerDashboard #dashboardPlayBtn::after{display:none!important;content:none!important;}
+
+/* Rendimiento móvil: desplazamiento más fluido */
+@media(max-width:768px){
+ html{scroll-behavior:auto!important}
+ body{-webkit-overflow-scrolling:touch}
+ #playerDashboard .dashboard-card,
+ #playerDashboard .competitive-profile,
+ #playerDashboard .season-card,
+ #playerDashboard .ranking-table-wrap{
+   backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ }
+ #playerDashboard *{text-shadow:none!important}
+ #playerDashboard #dashboardPlayBtn{animation:none!important;will-change:auto!important}
+}
