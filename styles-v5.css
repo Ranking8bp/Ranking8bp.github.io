@@ -2369,3 +2369,15 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 .dashboard-info-card header button{width:44px;height:44px;border-radius:50%;border:2px solid #e4b634;background:#b91414;color:#fff;font-size:28px;font-weight:900}
 .dashboard-info-card .dynamic-wins-profile{font-size:20px;margin:8px 0 18px}
 .dashboard-info-card #competitiveAchievements{display:grid;gap:12px}
+
+/* VS compacto: foto pequeña al lado izquierdo del nombre, sin insignia legacy */
+#freshMatchmakingModal .fresh-player-head{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-width:0}
+#freshMatchmakingModal .fresh-player-head .fresh-avatar{width:42px!important;height:42px!important;min-width:42px!important;flex:0 0 42px!important;border-width:2px!important;margin:0!important}
+#freshMatchmakingModal .fresh-player-head>strong{min-width:0;max-width:calc(100% - 50px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px!important}
+#freshMatchmakingModal .fresh-rank-badge{display:none!important}
+#freshMatchmakingModal .fresh-player-card{min-height:0!important;padding-top:12px!important}
+@media(max-width:600px){
+ #freshMatchmakingModal .fresh-player-card{min-height:0!important;padding:12px 6px!important;gap:7px!important}
+ #freshMatchmakingModal .fresh-player-head .fresh-avatar{width:38px!important;height:38px!important;min-width:38px!important;flex-basis:38px!important}
+ #freshMatchmakingModal .fresh-player-head>strong{max-width:calc(100% - 46px);font-size:14px!important}
+}
