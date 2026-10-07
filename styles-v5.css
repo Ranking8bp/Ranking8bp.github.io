@@ -2337,3 +2337,17 @@ button:focus,a:focus,[role="button"]:focus,
 button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
  outline:none!important;
 }
+
+/* Ventana REGLAS basada en VentanaReglas.png */
+.rules-image-modal{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.58);display:flex;align-items:center;justify-content:center;padding:10px;overflow:auto}
+.rules-image-modal[hidden]{display:none!important}
+.rules-image-stage{position:relative;width:min(94vw,680px);margin:auto;line-height:0}
+.rules-image-art{display:block;width:100%;height:auto;max-height:94vh;object-fit:contain;user-select:none;-webkit-user-select:none;pointer-events:none}
+.rules-hotspot{position:absolute;border:0;background:transparent!important;padding:0;margin:0;-webkit-tap-highlight-color:transparent!important;outline:none!important;box-shadow:none!important}
+.rules-hotspot-close{right:1%;top:1%;width:12%;height:9%;border-radius:50%}
+.rules-hotspot-check{left:7%;bottom:2.8%;width:54%;height:8.5%;cursor:pointer}
+.rules-hotspot-check input{position:absolute;opacity:0;pointer-events:none}
+.rules-hotspot-check span{position:absolute;left:2%;top:16%;width:12%;aspect-ratio:1;border-radius:10%;background:transparent}
+.rules-hotspot-check input:checked+span:after{content:'✓';position:absolute;inset:0;display:grid;place-items:center;color:#22ff65;font-size:clamp(25px,7vw,54px);font-weight:1000;line-height:1;text-shadow:0 2px 5px #000}
+.rules-hotspot-accept{right:5%;bottom:2.8%;width:34%;height:8.5%;border-radius:16px}
+.rules-read-warning{position:fixed;left:50%;bottom:5%;transform:translateX(-50%);width:min(90vw,520px);padding:14px 16px;border:2px solid #e4b638;border-radius:14px;background:#07131e;color:#ffd84a;font-weight:900;text-align:center;line-height:1.25;box-shadow:0 8px 30px #000}
