@@ -2410,3 +2410,7 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 
 /* VS chat: mensaje 3x mas grande */
 #freshChatMessages .ranked-vs-chat-message p{font-size:20px!important;line-height:1.25!important;overflow-wrap:anywhere!important;word-break:break-word!important}
+
+/* VS chat: nombres propios y rival */
+#freshChatMessages .ranked-vs-chat-message strong{font-size:15px!important;line-height:1.2!important;color:#ffd400!important}
+#freshChatMessages .ranked-vs-chat-message.mine strong{font-size:15px!important;color:#20d66b!important}
