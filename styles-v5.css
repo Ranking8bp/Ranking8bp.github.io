@@ -2609,3 +2609,8 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 #freshChatMessages .fresh-chat-profile-link{cursor:pointer!important;touch-action:manipulation!important}
 #freshChatMessages strong.fresh-chat-profile-link{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
 #freshChatMessages .fresh-chat-avatar.fresh-chat-profile-link{box-shadow:0 0 0 2px rgba(255,212,64,.16)!important}
+
+/* VS chat bubbles: restore visible message backgrounds after avatar grid */
+#freshChatMessages .ranked-vs-chat-message{background:transparent!important;padding:0!important;border-radius:0!important}
+#freshChatMessages .fresh-chat-message-content{background:linear-gradient(135deg,#102f43,#17465d)!important;border:1px solid rgba(96,190,245,.28)!important;border-radius:5px 15px 15px 15px!important;padding:10px 13px!important;box-shadow:0 3px 10px rgba(0,0,0,.22)!important}
+#freshChatMessages .ranked-vs-chat-message.mine .fresh-chat-message-content{background:linear-gradient(135deg,#174329,#1d5a37)!important;border-color:rgba(47,220,112,.32)!important;border-radius:15px 5px 15px 15px!important}
