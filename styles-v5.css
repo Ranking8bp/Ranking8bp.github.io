@@ -2499,3 +2499,6 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 #freshChatMessages .ranked-vs-chat-message.mine .fresh-chat-avatar{grid-column:2!important;border-color:#20d66b!important}
 #freshChatMessages .ranked-vs-chat-message.mine .fresh-chat-message-content{grid-column:1!important;grid-row:1!important}
 #freshChatMessages .ranked-vs-chat-message.mine .fresh-chat-seen{grid-column:1!important}
+
+/* VS status heading */
+#freshVersus>.matchmaking-mode{color:#20d66b!important;text-shadow:0 0 12px rgba(32,214,107,.35)!important}
