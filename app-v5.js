@@ -2800,7 +2800,9 @@ async function startFreshRoomRealtime(matchId){
     const box=document.getElementById('freshChatMessages');
     if(box&&!box.querySelector('[data-chat-id="'+String(row.id)+'"]')){
      const d=document.createElement('div');d.dataset.chatId=String(row.id);d.className='ranked-vs-chat-message'+(String(row.sender_id)===String(currentUser?.id)?' mine':'');
-     const n=document.createElement('strong');n.textContent=String(row.sender_id)===String(currentUser?.id)?String(currentProfile?.account_name||currentProfile?.username||'TÚ'):'RIVAL';
+     const n=document.createElement('strong');
+     if(String(row.sender_id)===String(currentUser?.id)) n.textContent=String(currentProfile?.account_name||currentProfile?.username||'TÚ');
+     else n.textContent=String(document.getElementById('freshOpponent')?.textContent||'JUGADOR').trim();
      const b=document.createElement('p');b.textContent=row.message||'';d.append(n,b);box.appendChild(d);box.scrollTop=box.scrollHeight;
     }
    }
