@@ -2357,3 +2357,6 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 
 /* Centrar el visto exactamente sobre el cuadro negro dibujado en VentanaReglas.png */
 .rules-hotspot-check span{left:15.5%!important;top:16%!important}
+
+/* Restaurar posición anterior del visto */
+.rules-hotspot-check span{left:8%!important;top:16%!important}
