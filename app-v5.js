@@ -1,4 +1,18 @@
 
+/* Reglas obligatorias antes de buscar rival */
+const rulesImageModal=document.getElementById('rulesImageModal');
+const rulesImageClose=document.getElementById('rulesImageClose');
+const rulesReadCheckbox=document.getElementById('rulesReadCheckbox');
+const rulesAcceptBtn=document.getElementById('rulesAcceptBtn');
+const rulesReadWarning=document.getElementById('rulesReadWarning');
+window.rankingRulesAccepted=localStorage.getItem('ranking8bp_rules_accepted_v1')==='1';
+window.openRankingRules=(fromPlay=false)=>{if(!rulesImageModal)return;rulesImageModal.hidden=false;rulesImageModal.dataset.fromPlay=fromPlay?'1':'0';if(rulesReadCheckbox)rulesReadCheckbox.checked=window.rankingRulesAccepted;if(rulesReadWarning){rulesReadWarning.hidden=!fromPlay; if(fromPlay)setTimeout(()=>{if(rulesReadWarning)rulesReadWarning.hidden=true},2600)}};
+window.closeRankingRules=()=>{if(rulesImageModal)rulesImageModal.hidden=true;if(rulesReadWarning)rulesReadWarning.hidden=true};
+document.querySelector('[data-menu="reglas"]')?.addEventListener('click',()=>window.openRankingRules(false));
+rulesImageClose?.addEventListener('click',()=>window.closeRankingRules());
+rulesImageModal?.addEventListener('click',e=>{if(e.target===rulesImageModal)window.closeRankingRules()});
+rulesAcceptBtn?.addEventListener('click',()=>{if(!rulesReadCheckbox?.checked){if(rulesReadWarning){rulesReadWarning.textContent='LEE LAS REGLAS Y MARCA “HE LEÍDO LAS REGLAS” PARA CONTINUAR.';rulesReadWarning.hidden=false}return}window.rankingRulesAccepted=true;localStorage.setItem('ranking8bp_rules_accepted_v1','1');window.closeRankingRules();showToast('✅ Reglas aceptadas. Ya puedes jugar.')});
+
 const GLOBAL_DESIGN_DEFAULTS={badgeSize:170,badgeX:-8,badgeY:-35,cardHeight:180,textX:0,textY:-39,titleSize:15,rankSize:16,eloLabelSize:28,eloNumberSize:48,progressSize:9,barHeight:9,cardWidth:94,artWidth:43};
 let globalDesignSettings={...GLOBAL_DESIGN_DEFAULTS};
 // Force badge motion with Web Animations API so CSS/inline transforms cannot stop it.
@@ -2355,7 +2369,7 @@ adminCorrectionsBtn?.addEventListener('click',loadLastFiveCorrections);
 if(adminVsTab)adminVsTab.addEventListener('click',showAdminVs);
 if(adminPlayersTab)adminPlayersTab.addEventListener('click',showAdminPlayers);
 if(adminModerationTab)adminModerationTab.addEventListener('click',showAdminModeration);
-if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{
+if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{if(!window.rankingRulesAccepted){window.openRankingRules?.(true);return;}
   // A pending unanswered VS must be reopened directly, never sent through matchmaking.
   try{
     if(currentUser&&supabaseClient){
