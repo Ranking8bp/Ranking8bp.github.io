@@ -2394,3 +2394,8 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
  #freshMatchmakingModal .fresh-player-card>strong{top:21px!important;left:53px!important;font-size:12px!important}
  #freshMatchmakingModal .fresh-rank-badge{width:70px!important;height:60px!important}
 }
+
+/* Respuesta táctil inmediata dentro de la sala VS */
+#freshMatchmakingModal button{touch-action:manipulation}
+#freshMatchmakingModal button:active{transform:scale(.97)!important;filter:brightness(1.12)}
+#freshMatchmakingModal .fresh-action-pending{opacity:.82!important;transform:scale(.98)!important}
