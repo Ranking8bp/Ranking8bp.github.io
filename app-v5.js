@@ -1193,7 +1193,7 @@ async function startRankedMatchmaking(){
     const rankAsset=(rank)=>{const key=String(rank||'LATÓN').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,'_');const map={LATON:'01_Laton.png',BRONCE_I:'02_Bronce_I.png',BRONCE_II:'03_Bronce_II.png',BRONCE_III:'04_Bronce_III.png',PLATA_I:'05_Plata_I.png',PLATA_II:'06_Plata_II.png',PLATA_III:'07_Plata_III.png',ORO_I:'08_Oro_I.png',ORO_II:'09_Oro_II.png',ORO_III:'10_Oro_III.png',AMATISTA_I:'11_Amatista_I.png',AMATISTA_II:'12_Amatista_II.png',AMATISTA_III:'13_Amatista_III.png',ESMERALDA_I:'14_Esmeralda_I.png',ESMERALDA_II:'15_Esmeralda_II.png',ESMERALDA_III:'16_Esmeralda_III.png',DIAMANTE_I:'17_Diamante_I.png',DIAMANTE_II:'18_Diamante_II.png',DIAMANTE_III:'19_Diamante_III.png',DIAMANTE_NEGRO:'20_Diamante_Negro.png'};return map[key]||map.LATON};
     const setFreshRankBadge=(id,rank)=>{const el=document.getElementById(id);if(!el)return;el.replaceChildren();const img=document.createElement('img');img.src='assets/ranks/'+rankAsset(rank);img.alt=String(rank||'LATÓN');el.appendChild(img)};
     setFreshAvatar('freshMyAvatar',m.my_avatar_path,m.my_name);setFreshAvatar('freshOpponentAvatar',m.opponent_avatar_path,m.opponent_name);
-    setFreshRankBadge('freshMyRankBadge',m.my_rank_name);setFreshRankBadge('freshOpponentRankBadge',m.opponent_rank_name);
+    
     search.hidden=true;vs.hidden=false;startFreshRankedRoom(Number(m.match_id),Number(m.chat_seconds_left??60));return;
    }
   }catch(e){console.error('Emparejamiento nuevo:',e);rankedSearchActive=false;search.hidden=true;modal.hidden=true;showToast('No se pudo entrar a la cola: '+String(e?.message||'ERROR DE CONEXIÓN'));return}
@@ -2453,8 +2453,7 @@ if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{if(!wind
           const paintRank=(el,rank)=>{if(!el)return;el.replaceChildren();const img=document.createElement('img');img.src='assets/ranks/'+rankFile(rank);img.alt=String(rank||'LATÓN');el.appendChild(img)};
           paintAvatar(document.getElementById('freshMyAvatar'),m.my_avatar_path,m.my_name);
           paintAvatar(document.getElementById('freshOpponentAvatar'),m.opponent_avatar_path,m.opponent_name);
-          paintRank(document.getElementById('freshMyRankBadge'),m.my_rank_name);
-          paintRank(document.getElementById('freshOpponentRankBadge'),m.opponent_rank_name);
+          
           document.getElementById('freshMyRank').textContent=String(m.my_rank_name||'LATÓN').toUpperCase();
           document.getElementById('freshOpponentRank').textContent=String(m.opponent_rank_name||'LATÓN').toUpperCase();
           document.getElementById('freshMyPosition').textContent='RANKING #'+(m.my_position||'--');
