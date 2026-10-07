@@ -2577,3 +2577,30 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
  z-index:20!important;
 }
 #freshSearching>*{margin-left:auto!important;margin-right:auto!important}
+
+/* Search mode: remove empty modal card frame, keep only close X */
+#freshMatchmakingModal:not([hidden]):has(#freshSearching:not([hidden]))>.matchmaking-card{
+ background:transparent!important;
+ border:0!important;
+ box-shadow:none!important;
+ border-radius:0!important;
+ padding:0!important;
+ width:100%!important;
+ max-width:none!important;
+ min-height:100dvh!important;
+ overflow:visible!important;
+}
+#freshMatchmakingModal:not([hidden]):has(#freshSearching:not([hidden])) .matchmaking-close{
+ position:fixed!important;
+ top:max(18px,env(safe-area-inset-top))!important;
+ right:18px!important;
+ z-index:50!important;
+ background:rgba(4,15,25,.78)!important;
+ border:1px solid rgba(212,165,45,.65)!important;
+ border-radius:50%!important;
+ width:44px!important;
+ height:44px!important;
+ display:flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+}
