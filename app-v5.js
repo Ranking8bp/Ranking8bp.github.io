@@ -1,10 +1,18 @@
 
-/* Sonido global de clic: solo en toque real, nunca al deslizar */
+/* Sonidos globales: clic normal y regresar/salir/abandonar */
 (()=>{
- const CLICK_SRC='Botones/clic.wav?v=3';
+ const CLICK_SRC='Botones/clic.wav?v=4';
+ const BACK_SRC='Botones/Regresar.wav?v=1';
  const selector='button,a,input[type="button"],input[type="submit"],input[type="reset"],input[type="checkbox"],input[type="radio"],label,[role="button"],[role="checkbox"],[role="radio"],.dashboard-menu-tile';
  let touch=null;
- const play=()=>{try{const a=new Audio(CLICK_SRC);a.volume=1;const p=a.play();if(p&&p.catch)p.catch(()=>{})}catch(_){}};
+ const play=src=>{try{const a=new Audio(src);a.volume=1;const p=a.play();if(p&&p.catch)p.catch(()=>{})}catch(_){}};
+ const isBackControl=el=>{
+  if(!el)return false;
+  const id=String(el.id||'').toLowerCase(), cls=String(el.className||'').toLowerCase();
+  const txt=String(el.getAttribute?.('aria-label')||el.getAttribute?.('title')||el.textContent||'').trim().toLowerCase();
+  return /close|cancel|back|exit|leave|abandon|cerrar|regresar|volver|salir|anular/.test(id+' '+cls+' '+txt) || txt==='×' || txt==='✕' || txt==='✖' || txt==='❌';
+ };
+ const fire=el=>play(isBackControl(el)?BACK_SRC:CLICK_SRC);
  document.addEventListener('touchstart',e=>{
   const el=e.target?.closest?.(selector);if(!el||el.disabled||el.getAttribute('aria-disabled')==='true'){touch=null;return}
   const t=e.changedTouches?.[0];if(!t){touch=null;return}
@@ -17,12 +25,12 @@
  document.addEventListener('touchend',e=>{
   if(!touch)return;const data=touch;touch=null;
   const t=e.changedTouches?.[0];if(t&&Math.hypot(t.clientX-data.x,t.clientY-data.y)>10)data.moved=true;
-  if(!data.moved)play();
+  if(!data.moved)fire(data.el);
  },{passive:true,capture:true});
  document.addEventListener('touchcancel',()=>{touch=null},{passive:true,capture:true});
  document.addEventListener('click',e=>{
   if('ontouchstart' in window)return;
-  const el=e.target?.closest?.(selector);if(!el||el.disabled||el.getAttribute('aria-disabled')==='true')return;play();
+  const el=e.target?.closest?.(selector);if(!el||el.disabled||el.getAttribute('aria-disabled')==='true')return;fire(el);
  },{capture:true});
 })();
 
