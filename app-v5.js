@@ -1,3 +1,12 @@
+/* Ventana de LOGROS desde el botón cuadrado */
+document.addEventListener('DOMContentLoaded',()=>{
+ const modal=document.getElementById('achievementsModal');
+ const close=document.getElementById('achievementsModalClose');
+ document.querySelector('[data-menu="logros"]')?.addEventListener('click',()=>{if(modal)modal.hidden=false});
+ close?.addEventListener('click',()=>{if(modal)modal.hidden=true});
+ modal?.addEventListener('click',e=>{if(e.target===modal)modal.hidden=true});
+});
+
 
 /* Sonidos globales: clic normal y regresar/salir/abandonar */
 (()=>{
