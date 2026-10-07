@@ -2858,6 +2858,13 @@ async function loadFreshRankedChat(){
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:Number(freshRoomMatchId)});if(error)throw error;
   const rows=Array.isArray(data)?data:[];
+  const incomingRows=rows.filter(m=>String(m.sender_id)!==String(currentUser?.id)&&!m.is_admin);
+  const newestIncoming=incomingRows.length?incomingRows[incomingRows.length-1]:null;
+  if(newestIncoming){
+   const incomingId=String(newestIncoming.id??'');
+   if(freshLastIncomingSoundId===null){freshLastIncomingSoundId=incomingId;}
+   else if(incomingId&&incomingId!==freshLastIncomingSoundId){playFreshIncomingChatSound(newestIncoming);}
+  }
   const hasUnreadIncoming=rows.some(m=>String(m.sender_id)!==String(currentUser?.id)&&!m.is_admin&&!m.read_by_other);
   if(hasUnreadIncoming){try{await supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:Number(freshRoomMatchId)})}catch(_){}}
   const box=document.getElementById('freshChatMessages');if(!box)return;box.replaceChildren();
