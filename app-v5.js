@@ -2255,6 +2255,28 @@ function buildRankingRow(player,index,displayPosition=null){
 
 async function refreshRankingStreaks(){if(!supabaseClient||rankingStreaksLoading)return;rankingStreaksLoading=true;try{const {data,error}=await supabaseClient.rpc('get_ranked_current_streaks');if(error)throw error;rankingStreaks=new Map((data||[]).map(x=>[String(x.player_id),Number(x.streak)||0]));renderFilteredRanking();renderGuestRanking()}catch(e){console.error('Rachas:',e)}finally{rankingStreaksLoading=false}}
 
+let latestResultRealtimeChannel=null,latestResultRefreshTimer=null;
+function startLatestResultRealtime(){
+ if(!supabaseClient||latestResultRealtimeChannel)return;
+ latestResultRealtimeChannel=supabaseClient.channel('public-latest-ranking-result')
+  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'ranked_matches'},payload=>{
+   const n=payload?.new||{},o=payload?.old||{};
+   // Solo reaccionar cuando el partido realmente termina con ganador y ELO aplicado.
+   if(String(n.status||'').toLowerCase()!=='finished'||!n.winner_id||!n.loser_id||!n.finished_at)return;
+   if(String(o.status||'').toLowerCase()==='finished'&&String(o.winner_id||'')===String(n.winner_id||''))return;
+   if(latestResultRefreshTimer)clearTimeout(latestResultRefreshTimer);
+   latestResultRefreshTimer=setTimeout(async()=>{
+    try{
+     // Una única lectura del snapshot compartido; no sondeo continuo.
+     const {data,error}=await supabaseClient.rpc('get_cached_public_home');if(error)throw error;
+     const snap=data&&typeof data==='object'?data:{};
+     if(snap.latest_result){writePublicCache('ranking8bp_latest_result',snap.latest_result);paintLatestRankingResult(snap.latest_result)}
+    }catch(e){console.error('Último resultado Realtime:',e)}
+   },350);
+  }).subscribe();
+}
+startLatestResultRealtime();
+
 async function loadLatestRankingResult(){
  const cached=readPublicCache('ranking8bp_latest_result');
  if(cached)paintLatestRankingResult(cached);
