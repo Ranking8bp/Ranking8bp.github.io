@@ -1,33 +1,29 @@
 
-/* Sonido global de clic: crea una instancia nueva por toque para máxima compatibilidad móvil/WebView */
+/* Sonido global de clic: solo en toque real, nunca al deslizar */
 (()=>{
- const CLICK_SRC='Botones/clic.wav?v=2';
- let unlocked=false;
- const unlock=()=>{
-  if(unlocked)return;
-  try{
-   const a=new Audio(CLICK_SRC);a.volume=0.01;
-   const p=a.play();
-   if(p&&p.then)p.then(()=>{a.pause();a.currentTime=0;unlocked=true}).catch(()=>{});
-  }catch(_){}
- };
- const playUiClick=()=>{
-  try{
-   const a=new Audio(CLICK_SRC);
-   a.volume=1;
-   a.preload='auto';
-   const p=a.play();
-   if(p&&p.catch)p.catch(()=>{});
-  }catch(_){}
- };
+ const CLICK_SRC='Botones/clic.wav?v=3';
  const selector='button,a,input[type="button"],input[type="submit"],input[type="reset"],input[type="checkbox"],input[type="radio"],label,[role="button"],[role="checkbox"],[role="radio"],.dashboard-menu-tile';
- const handle=e=>{
-  const el=e.target?.closest?.(selector);
-  if(!el||el.disabled||el.getAttribute('aria-disabled')==='true')return;
-  unlock();playUiClick();
- };
- document.addEventListener('touchstart',handle,{passive:true,capture:true});
- document.addEventListener('mousedown',e=>{if(!('ontouchstart' in window))handle(e)},{capture:true});
+ let touch=null;
+ const play=()=>{try{const a=new Audio(CLICK_SRC);a.volume=1;const p=a.play();if(p&&p.catch)p.catch(()=>{})}catch(_){}};
+ document.addEventListener('touchstart',e=>{
+  const el=e.target?.closest?.(selector);if(!el||el.disabled||el.getAttribute('aria-disabled')==='true'){touch=null;return}
+  const t=e.changedTouches?.[0];if(!t){touch=null;return}
+  touch={el,x:t.clientX,y:t.clientY,moved:false};
+ },{passive:true,capture:true});
+ document.addEventListener('touchmove',e=>{
+  if(!touch)return;const t=e.changedTouches?.[0];if(!t)return;
+  if(Math.hypot(t.clientX-touch.x,t.clientY-touch.y)>10)touch.moved=true;
+ },{passive:true,capture:true});
+ document.addEventListener('touchend',e=>{
+  if(!touch)return;const data=touch;touch=null;
+  const t=e.changedTouches?.[0];if(t&&Math.hypot(t.clientX-data.x,t.clientY-data.y)>10)data.moved=true;
+  if(!data.moved)play();
+ },{passive:true,capture:true});
+ document.addEventListener('touchcancel',()=>{touch=null},{passive:true,capture:true});
+ document.addEventListener('click',e=>{
+  if('ontouchstart' in window)return;
+  const el=e.target?.closest?.(selector);if(!el||el.disabled||el.getAttribute('aria-disabled')==='true')return;play();
+ },{capture:true});
 })();
 
 /* Reglas obligatorias antes de buscar rival */
