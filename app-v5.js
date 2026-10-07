@@ -2945,14 +2945,13 @@ function startFreshRankedRoom(id,secondsLeft=60){
    }
    tick();freshRoomTimer=setInterval(tick,250);await loadFreshRankedChat();
  }catch(e){console.error('Estado inicial sala:',e);tick();freshRoomTimer=setInterval(tick,250);loadFreshRankedChat()}})();
- freshRoomChatPoll=setInterval(async()=>{if(!freshRoomMatchId)return;await restorePersistentFreshRoom(freshRoomMatchId);const checkingId=freshRoomMatchId;try{const {data:status,error}=await supabaseClient.rpc('get_ranked_match_live_status',{p_match_id:checkingId});if(error)throw error;
+ freshRoomChatPoll=setInterval(async()=>{if(!freshRoomMatchId)return;const checkingId=Number(freshRoomMatchId);try{const {data:status,error}=await supabaseClient.rpc('get_ranked_match_live_status',{p_match_id:checkingId});if(error)throw error;
 const liveStatus=String(status||'');
 if(liveStatus==='review'){
  clearInterval(freshRoomTimer);freshRoomTimer=null;
  const warning=document.getElementById('freshResponseWarning');if(warning)warning.hidden=true;
  const abandon=document.getElementById('freshAbandonPending');if(abandon){abandon.hidden=true;abandon.disabled=true}
  const leave=document.getElementById('freshLeaveRoom');if(leave){leave.hidden=true;leave.disabled=true}
- await restorePersistentFreshRoom(checkingId);
  const chatInput=document.getElementById('freshChatInput');if(chatInput)chatInput.disabled=false;
  const chatSend=document.getElementById('freshChatSend');if(chatSend)chatSend.disabled=false;
  const resultStatus=document.getElementById('freshResultStatus');if(resultStatus&&!resultStatus.textContent)resultStatus.textContent='Tu rival envió evidencia. Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.';
