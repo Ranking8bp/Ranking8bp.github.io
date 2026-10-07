@@ -1,4 +1,24 @@
 
+/* Sonido global de clic para botones, casillas y controles pulsables */
+(()=>{
+ const clickSound=new Audio('Botones/clic.wav');
+ clickSound.preload='auto';
+ clickSound.volume=0.75;
+ const playUiClick=()=>{
+  try{
+   clickSound.pause();
+   clickSound.currentTime=0;
+   const p=clickSound.play();
+   if(p&&typeof p.catch==='function')p.catch(()=>{});
+  }catch(_){}
+ };
+ document.addEventListener('pointerdown',e=>{
+  const el=e.target?.closest?.('button,a,input[type="button"],input[type="submit"],input[type="reset"],input[type="checkbox"],input[type="radio"],label,[role="button"],[role="checkbox"],[role="radio"],.dashboard-menu-tile');
+  if(!el||el.disabled||el.getAttribute('aria-disabled')==='true')return;
+  playUiClick();
+ },{passive:true});
+})();
+
 /* Reglas obligatorias antes de buscar rival */
 const rulesImageModal=document.getElementById('rulesImageModal');
 const rulesImageClose=document.getElementById('rulesImageClose');
