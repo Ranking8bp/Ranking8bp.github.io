@@ -1,22 +1,33 @@
 
-/* Sonido global de clic para botones, casillas y controles pulsables */
+/* Sonido global de clic: crea una instancia nueva por toque para máxima compatibilidad móvil/WebView */
 (()=>{
- const clickSound=new Audio('Botones/clic.wav');
- clickSound.preload='auto';
- clickSound.volume=0.75;
- const playUiClick=()=>{
+ const CLICK_SRC='Botones/clic.wav?v=2';
+ let unlocked=false;
+ const unlock=()=>{
+  if(unlocked)return;
   try{
-   clickSound.pause();
-   clickSound.currentTime=0;
-   const p=clickSound.play();
-   if(p&&typeof p.catch==='function')p.catch(()=>{});
+   const a=new Audio(CLICK_SRC);a.volume=0.01;
+   const p=a.play();
+   if(p&&p.then)p.then(()=>{a.pause();a.currentTime=0;unlocked=true}).catch(()=>{});
   }catch(_){}
  };
- document.addEventListener('pointerdown',e=>{
-  const el=e.target?.closest?.('button,a,input[type="button"],input[type="submit"],input[type="reset"],input[type="checkbox"],input[type="radio"],label,[role="button"],[role="checkbox"],[role="radio"],.dashboard-menu-tile');
+ const playUiClick=()=>{
+  try{
+   const a=new Audio(CLICK_SRC);
+   a.volume=1;
+   a.preload='auto';
+   const p=a.play();
+   if(p&&p.catch)p.catch(()=>{});
+  }catch(_){}
+ };
+ const selector='button,a,input[type="button"],input[type="submit"],input[type="reset"],input[type="checkbox"],input[type="radio"],label,[role="button"],[role="checkbox"],[role="radio"],.dashboard-menu-tile';
+ const handle=e=>{
+  const el=e.target?.closest?.(selector);
   if(!el||el.disabled||el.getAttribute('aria-disabled')==='true')return;
-  playUiClick();
- },{passive:true});
+  unlock();playUiClick();
+ };
+ document.addEventListener('touchstart',handle,{passive:true,capture:true});
+ document.addEventListener('mousedown',e=>{if(!('ontouchstart' in window))handle(e)},{capture:true});
 })();
 
 /* Reglas obligatorias antes de buscar rival */
