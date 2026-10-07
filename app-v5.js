@@ -1528,6 +1528,12 @@ async function setPlayerUI(profile,user){
   // HIGH TRAFFIC MODE: render the account immediately. Secondary Supabase reads are staggered
   // so a wave of logins/refreshes does not hit every RPC in the same second.
   const rankTask=isAdminDashboard?Promise.resolve():renderRankBadge(rank);
+  if(!isAdminDashboard){
+    const syncRank=getRankByElo(elo);
+    const syncName=document.getElementById('dashboardRankName');
+    if(syncName)syncName.textContent=String(syncRank.name||'').toUpperCase();
+    renderRankBadge(syncRank);
+  }
   const avatarTask=profile?.avatar_path?loadAvatar(profile.avatar_path):Promise.resolve(clearAvatar());
   const competitiveHub=document.getElementById('competitiveHub');if(competitiveHub)competitiveHub.hidden=isAdminDashboard;
   Promise.allSettled([rankTask,avatarTask]).catch(()=>{});
