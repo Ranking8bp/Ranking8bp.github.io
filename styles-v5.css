@@ -2230,3 +2230,7 @@ img,svg,video,canvas{max-width:100%}
 /* Ajuste final botón JUGAR PNG: altura visible correcta */
 .dashboard-play-area{display:flex!important;justify-content:center!important;align-items:center!important;padding:8px 0!important;}
 #dashboardPlayBtn{display:block!important;width:94%!important;max-width:690px!important;height:auto!important;aspect-ratio:2048/640!important;background-image:url("Botones/Botonjugar.png")!important;background-size:100% 100%!important;background-position:center!important;background-repeat:no-repeat!important;border-radius:0!important;}
+
+/* Imagen real dentro de JUGAR: evita fallos de background en WebView */
+#dashboardPlayBtn{background:none!important;aspect-ratio:auto!important;height:auto!important;line-height:0!important;}
+#dashboardPlayBtn .dashboard-play-image{display:block!important;width:100%!important;height:auto!important;object-fit:contain!important;pointer-events:none!important;}
