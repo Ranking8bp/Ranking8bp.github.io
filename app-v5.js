@@ -1077,13 +1077,16 @@ async function renderLiveSearchingPlayers(){
  try{
   const {data,error}=await supabaseClient.rpc('get_ranked_searching_players_v2');if(error)throw error;
   const rows=Array.isArray(data)?data:[];box.replaceChildren();box.hidden=!rows.length;
+  if(!rows.length)return;
+  box.style.cssText='display:flex;align-items:center;gap:8px;padding:7px 10px;margin:5px 0;border-radius:14px;background:rgba(8,22,34,.78);border:1px solid rgba(255,255,255,.08);overflow-x:auto';
+  const avatars=document.createElement('div');avatars.style.cssText='display:flex;align-items:center;gap:7px;min-width:0;flex-wrap:nowrap';
   for(const p of rows){
-   const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:10px;padding:7px 10px;margin:5px 0;border-radius:14px;background:rgba(8,22,34,.78);border:1px solid rgba(255,255,255,.08)';
-   const av=document.createElement('div');av.style.cssText='width:38px;height:38px;min-width:38px;border-radius:50%;overflow:hidden;background:#172a3a;display:grid;place-items:center;font-weight:900';
+   const av=document.createElement('div');av.style.cssText='width:38px;height:38px;min-width:38px;border-radius:50%;overflow:hidden;background:#172a3a;display:grid;place-items:center;font-weight:900;flex:0 0 38px';
    if(p.avatar_path){const raw=String(p.avatar_path);const clean=raw.replace(/^profile-photos\//,'').replace(/^\/+/, '');const src=/^https?:\/\//i.test(raw)?raw:supabaseClient.storage.from('profile-photos').getPublicUrl(clean).data?.publicUrl;if(src){const img=document.createElement('img');img.src=src;img.alt='';img.style.cssText='width:100%;height:100%;object-fit:cover';img.onerror=()=>{av.textContent=String(p.player_name||'?').charAt(0).toUpperCase()};av.appendChild(img)}}else av.textContent=String(p.player_name||'?').charAt(0).toUpperCase();
-   const txt=document.createElement('span');txt.textContent='Buscando...';txt.style.cssText='font-weight:800;color:#fff';
-   row.append(av,txt);box.appendChild(row);
+   avatars.appendChild(av);
   }
+  const txt=document.createElement('span');txt.textContent='Buscando...';txt.style.cssText='font-weight:800;color:#fff;white-space:nowrap;flex:0 0 auto';
+  box.append(avatars,txt);
  }catch(e){console.error('Lista buscando:',e)}
 }
 setInterval(()=>{if(!document.hidden)renderLiveSearchingPlayers().catch(()=>{})},5000);
