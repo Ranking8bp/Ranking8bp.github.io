@@ -1195,7 +1195,7 @@ async function startRankedMatchmaking(){
     document.getElementById('freshOpponentPosition').textContent='RANKING #'+(m.opponent_position||'--');
     const setFreshAvatar=(id,path,name)=>{const el=document.getElementById(id);if(!el)return;el.replaceChildren();const fallback=()=>{el.replaceChildren();const sp=document.createElement('span');sp.textContent=String(name||'?').charAt(0).toUpperCase();el.appendChild(sp)};if(path){const img=document.createElement('img');const raw=String(path).trim();let src=raw;if(!/^https?:\/\//i.test(raw)){const clean=raw.replace(/^profile-photos\//,'').replace(/^\/+/, '');const {data:u}=supabaseClient.storage.from('profile-photos').getPublicUrl(clean);src=u?.publicUrl||''}img.src=src;img.alt=String(name||'Jugador');img.onerror=fallback;el.appendChild(img)}else fallback()};
     const setFreshRankBadge=(id,elo)=>{const el=document.getElementById(id);if(!el)return;el.replaceChildren();const current=getRankByElo(Number(elo)||0);const img=document.createElement('img');img.src=current.image;img.alt=current.name;el.appendChild(img)};
-    setFreshAvatar('freshMyAvatar',m.my_avatar_path,m.my_name);setFreshAvatar('freshOpponentAvatar',m.opponent_avatar_path,m.opponent_name);
+    setFreshAvatar('freshMyAvatar',m.my_avatar_path,m.my_name);setFreshAvatar('freshOpponentAvatar',m.opponent_avatar_path,m.opponent_name);setFreshRankBadge('freshOpponentRankBadge',m.opponent_elo);
     
     search.hidden=true;vs.hidden=false;startFreshRankedRoom(Number(m.match_id),Number(m.chat_seconds_left??60));return;
    }
