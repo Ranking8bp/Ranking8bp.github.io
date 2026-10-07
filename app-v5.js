@@ -1606,11 +1606,8 @@ async function setPlayerUI(profile,user){
   // El punto rojo de mensajes debe restaurarse inmediatamente al recargar la página.
   refreshInboxBadge().catch(e=>console.error('Carga inicial contador mensajes:',e));
   setTimeout(()=>{if(currentUser?.id===user?.id)refreshInboxBadge().catch(()=>{})},800);
-  // Las dinámicas deben reconstruirse siempre al restaurar/refrescar la sesión.
+  // Una sola carga de dinámicas al restaurar la sesión; evita 5 RPC por usuario.
   refreshDynamic().catch(e=>console.error('Carga inicial de dinámicas:',e));
-  [500,1500,3000,6000].forEach(ms=>setTimeout(()=>{
-    if(currentUser&&playerDashboard&&!playerDashboard.hidden)refreshDynamic().catch(()=>{});
-  },ms));
   playerUiReadyFor=uiUserId;playerUiLoadingFor=null;
 }
 
@@ -2339,7 +2336,7 @@ async function restoreSession(){
     const {data,error}=await supabaseClient.auth.getSession();
     if(error||!data.session)return;
     const profile=await getProfile(data.session.user.id);
-    await setPlayerUI(profile,data.session.user);refreshDynamic().catch(()=>{});
+    await setPlayerUI(profile,data.session.user);
   }catch(error){
     console.error('Error restaurando sesión:',error);
   }
@@ -2755,9 +2752,10 @@ let freshRoomTimer=null,freshRoomChatPoll=null,freshRoomMatchId=null,freshRoomEx
 async function loadFreshRankedChat(){
  if(!freshRoomMatchId||!supabaseClient)return;
  try{
-  await supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:freshRoomMatchId});
   const {data,error}=await supabaseClient.rpc('get_ranked_match_chat',{p_match_id:freshRoomMatchId});if(error)throw error;
   const rows=Array.isArray(data)?data:[];
+  const hasUnreadIncoming=rows.some(m=>String(m.sender_id)!==String(currentUser?.id)&&!m.is_admin&&!m.read_by_other);
+  if(hasUnreadIncoming)supabaseClient.rpc('mark_ranked_match_chat_read',{p_match_id:freshRoomMatchId}).catch(()=>{});
   const box=document.getElementById('freshChatMessages');if(!box)return;
   box.replaceChildren();
   const senders=new Set();
@@ -2863,7 +2861,7 @@ if(liveStatus==='review'){
  const chatSend=document.getElementById('freshChatSend');if(chatSend)chatSend.disabled=false;
  const resultStatus=document.getElementById('freshResultStatus');if(resultStatus&&!resultStatus.textContent)resultStatus.textContent='Tu rival envió evidencia. Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.';
 }
-if(!['matched','review'].includes(liveStatus)){clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;if(Number(freshRoomMatchId)===Number(checkingId))freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS ANULADO. Ambos jugadores quedaron libres.');return}if(!document.hidden)await loadFreshRankedChat()}catch(e){console.error('Estado sala:',e)}},10000);
+if(!['matched','review'].includes(liveStatus)){clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;if(Number(freshRoomMatchId)===Number(checkingId))freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS ANULADO. Ambos jugadores quedaron libres.');return}if(!document.hidden)await loadFreshRankedChat()}catch(e){console.error('Estado sala:',e)}},30000);
 }
 window.abandonFreshVsNow=async function(btn){
  if(!freshRoomMatchId)return;
