@@ -2230,3 +2230,19 @@ img,svg,video,canvas{max-width:100%}
 #playerDashboard .dashboard-play-area{display:flex!important;visibility:visible!important;opacity:1!important;min-height:76px!important;}
 #playerDashboard #dashboardPlayBtn{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;max-width:760px!important;height:88px!important;min-height:88px!important;padding:0!important;border:0!important;background:transparent!important;position:relative!important;}
 #playerDashboard #dashboardPlayBtn .dashboard-play-image{display:block!important;visibility:visible!important;opacity:1!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:contain!important;z-index:5!important;}
+
+/* Llamada visual suave del botón JUGAR: no altera su lógica */
+#playerDashboard #dashboardPlayBtn{
+  transform-origin:center center!important;
+  animation:jugarPulsoSuave 1.8s ease-in-out infinite!important;
+  will-change:transform;
+}
+#playerDashboard #dashboardPlayBtn:hover{animation-play-state:paused!important;}
+#playerDashboard #dashboardPlayBtn:active{animation:none!important;transform:scale(.97)!important;}
+@keyframes jugarPulsoSuave{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.035)}
+}
+@media (prefers-reduced-motion:reduce){
+  #playerDashboard #dashboardPlayBtn{animation:none!important}
+}
