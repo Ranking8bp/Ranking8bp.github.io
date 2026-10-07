@@ -2421,3 +2421,6 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 /* VS chat: encabezado centrado */
 #freshRankedChat .ranked-vs-chat-head{text-align:center!important}
 #freshRankedChat .ranked-vs-chat-head strong,#freshRankedChat .ranked-vs-chat-head span{text-align:center!important;width:100%!important}
+
+/* VS chat height enforced on actual element */
+#freshRankedChat #freshChatMessages{height:285px!important;min-height:285px!important;max-height:285px!important;overflow-y:auto!important;display:block!important}
