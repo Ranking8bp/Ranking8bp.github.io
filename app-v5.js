@@ -194,6 +194,8 @@ const dashboardWins=document.getElementById('dashboardWins');
 const dashboardLosses=document.getElementById('dashboardLosses');
 const competitiveWins=document.getElementById('competitiveWins'),competitiveLosses=document.getElementById('competitiveLosses');
 const dashboardPlayBtn=document.getElementById('dashboardPlayBtn');
+const dashboardShareBtn=document.getElementById('dashboardShareBtn');
+let privateInvitePollTimer=null,privateInviteToken=null;
 const playersOnlineCount=document.getElementById('playersOnlineCount');
 const playersSearchingCount=document.getElementById('playersSearchingCount'),playersSearchingText=document.getElementById('playersSearchingText');
 const playersOnlineNow=document.getElementById('playersOnlineNow'),playingVsModal=document.getElementById('playingVsModal'),playingVsClose=document.getElementById('playingVsClose'),playingVsList=document.getElementById('playingVsList');
@@ -1604,6 +1606,7 @@ async function setPlayerUI(profile,user){
   spread(()=>loadDashboardFollowStats(profile?.id||user?.id),2500,7000);
   // Los datos personales visibles deben estar correctos desde el primer render.
   if(!isAdminDashboard)loadCompetitiveHub(profile?.id||user?.id).catch(e=>console.error('Carga inicial logros:',e));
+  if(new URLSearchParams(location.search).get('invite'))setTimeout(()=>acceptPrivateInviteFromUrl(),250);
   // La clasificación debe aparecer de inmediato; loadRanking pinta primero el caché local y refresca detrás.
   loadRanking().catch(()=>{});
   maybeOpenDirectMatchmaking();
@@ -2451,6 +2454,55 @@ adminCorrectionsBtn?.addEventListener('click',loadLastFiveCorrections);
 if(adminVsTab)adminVsTab.addEventListener('click',showAdminVs);
 if(adminPlayersTab)adminPlayersTab.addEventListener('click',showAdminPlayers);
 if(adminModerationTab)adminModerationTab.addEventListener('click',showAdminModeration);
+
+async function openPrivateInviteRoom(matchId){
+ const {data:room,error}=await supabaseClient.rpc('get_fresh_ranked_room',{p_match_id:Number(matchId)});if(error)throw error;
+ const m=Array.isArray(room)?room[0]:room;if(!m)throw new Error('ROOM_NOT_READY');
+ currentRankedMatchId=Number(m.match_id);rankedSearchActive=false;syncRankedSearchPresence(false).catch?.(()=>{});
+ const modal=document.getElementById('freshMatchmakingModal'),search=document.getElementById('freshSearching'),vs=document.getElementById('freshVersus');
+ if(modal)modal.hidden=false;if(search)search.hidden=true;if(vs)vs.hidden=false;
+ document.getElementById('freshMe').textContent=String(m.my_name||'TÚ').toUpperCase();
+ document.getElementById('freshOpponent').textContent=String(m.opponent_name||'RIVAL').toUpperCase();
+ document.getElementById('freshMyElo').textContent='ELO '+m.my_elo;document.getElementById('freshOpponentElo').textContent='ELO '+m.opponent_elo;
+ document.getElementById('freshMyId').textContent=(m.my_game_id||'NO REGISTRADO');document.getElementById('freshOpponentId').textContent=(m.opponent_game_id||'NO REGISTRADO');
+ document.getElementById('freshMyRank').textContent=String(getRankByElo(m.my_elo).name).toUpperCase();document.getElementById('freshOpponentRank').textContent=String(getRankByElo(m.opponent_elo).name).toUpperCase();
+ document.getElementById('freshMyPosition').textContent='RANKING #'+(m.my_position||'--');document.getElementById('freshOpponentPosition').textContent='RANKING #'+(m.opponent_position||'--');
+ renderRankBadgeOn(document.getElementById('freshOpponentRankBadge'),Number(m.opponent_elo)||0);
+ await restorePersistentFreshRoom(Number(m.match_id));startFreshRankedRoom(Number(m.match_id),Number(m.chat_seconds_left??0));setTimeout(()=>restorePersistentFreshRoom(Number(m.match_id)),100);
+}
+function stopPrivateInvitePoll(){if(privateInvitePollTimer){clearInterval(privateInvitePollTimer);privateInvitePollTimer=null}}
+async function pollPrivateInvite(token){
+ if(!token||!currentUser||!supabaseClient)return;
+ try{const {data,error}=await supabaseClient.rpc('get_ranked_match_invite_status',{p_token:token});if(error)throw error;const st=Array.isArray(data)?data[0]:data;
+  if(st?.state==='matched'&&Number(st.out_match_id)>0){stopPrivateInvitePoll();privateInviteToken=null;showToast('¡Tu rival entró a la invitación!');await openPrivateInviteRoom(Number(st.out_match_id))}
+  else if(st?.state==='expired'){stopPrivateInvitePoll();privateInviteToken=null;showToast('La invitación venció.')}
+ }catch(e){console.error('Estado invitación:',e)}
+}
+async function sharePrivateRankedInvite(){
+ if(!currentUser||!supabaseClient){showToast('Inicia sesión para crear una invitación.');return}
+ if(!window.rankingRulesAccepted){window.openRankingRules?.(true);return}
+ try{
+  dashboardShareBtn.disabled=true;
+  const {data,error}=await supabaseClient.rpc('create_ranked_match_invite');if(error)throw error;
+  const token=String(data||'');if(!token)throw new Error('INVITE_NOT_CREATED');
+  privateInviteToken=token;const url=new URL(location.href);url.search='';url.hash='';url.searchParams.set('invite',token);
+  const shareData={title:'Partida Ranking8BP',text:'Te invito a jugar una partida privada por Ranking8BP.',url:url.toString()};
+  if(navigator.share){try{await navigator.share(shareData)}catch(e){if(e?.name!=='AbortError')throw e}}
+  else if(navigator.clipboard){await navigator.clipboard.writeText(url.toString());showToast('Enlace de invitación copiado.')}
+  else{prompt('Copia este enlace de invitación:',url.toString())}
+  stopPrivateInvitePoll();privateInvitePollTimer=setInterval(()=>pollPrivateInvite(token),2000);pollPrivateInvite(token);
+ }catch(e){console.error('Crear invitación:',e);showToast(String(e?.message||'').includes('ACTIVE_MATCH')?'Ya tienes un VS activo.':'No se pudo crear la invitación.')}finally{dashboardShareBtn.disabled=false}
+}
+async function acceptPrivateInviteFromUrl(){
+ const token=new URLSearchParams(location.search).get('invite');if(!token||!currentUser||!supabaseClient)return;
+ try{
+  const {data,error}=await supabaseClient.rpc('accept_ranked_match_invite',{p_token:token});if(error)throw error;
+  const mid=Number(data||0);if(!mid)throw new Error('INVITE_INVALID');
+  history.replaceState({},'',location.pathname+location.hash);showToast('Invitación aceptada. Entrando al VS...');await openPrivateInviteRoom(mid);
+ }catch(e){console.error('Aceptar invitación:',e);const msg=String(e?.message||'');if(msg.includes('INVITE_OWNER')){privateInviteToken=token;stopPrivateInvitePoll();privateInvitePollTimer=setInterval(()=>pollPrivateInvite(token),2000);pollPrivateInvite(token);showToast('Esperando que tu rival abra la invitación.')}else showToast(msg.includes('INVITE_USED')?'Esta invitación ya fue utilizada.':msg.includes('INVITE_INVALID')?'La invitación venció o ya no es válida.':msg.includes('ACTIVE_MATCH')?'Ya tienes un VS activo.':'No se pudo aceptar la invitación.')}
+}
+if(dashboardShareBtn)dashboardShareBtn.addEventListener('click',sharePrivateRankedInvite);
+
 if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{if(!window.rankingRulesAccepted){window.openRankingRules?.(true);return;}
   // A pending unanswered VS must be reopened directly, never sent through matchmaking.
   try{
