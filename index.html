@@ -957,16 +957,7 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
   <button type="button" id="freshForgotVideoBtn" class="fresh-forgot-video-btn">SALIR, OLVIDÉ GRABAR</button>
   <div id="freshWinnerVideoStatus"></div>
 </div>
-<div id="freshResultActions" class="fresh-results-section" hidden>
-<div class="fresh-elo-summary"><strong>GANADOR +15 ELO</strong><span>PERDEDOR -15 ELO · <b>-45 ELO SI ADMIN/MOD DEFINE EL RESULTADO</b></span></div>
-<div class="fresh-result-card">
-<strong>RESULTADO DEL PARTIDO</strong>
-<small>Cuando termine el VS, cada jugador debe indicar su resultado.</small>
-<p id="freshResultStatus">Indica el resultado cuando termine el partido.</p>
-<div class="fresh-evidence-warning">📹 SI MARCAS GANÉ Y TU RIVAL NO MARCA PERDÍ, DEBES SUBIR EVIDENCIA DE TU VICTORIA.</div>
-<div class="fresh-rule-warning">⚠️ <b>REGLA IMPORTANTE:</b> Si nadie ganó correctamente haciendo TRICKSHOT CON LA 8, debes tocar <b>NADIE HIZO TRICKSHOT CON LA 8</b>. Si marcas GANÉ y no presentas un video válido que demuestre tu trickshot ganador con la 8, recibirás una sanción de -100 ELO.</div>
-</div>
-</div>
+<p id="freshResultStatus" hidden></p>
 </div>
 </section></div>
   <div class="elo-daily-limit-backdrop" id="eloDailyLimitModal" hidden>
@@ -1011,7 +1002,7 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261007-authflash2"></script>
+  <script src="app-v5.js?v=20261007-vscleanup1"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer><script>
 (function(){
  function syncRankProgress(){
