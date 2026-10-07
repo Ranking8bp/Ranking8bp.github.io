@@ -2225,3 +2225,8 @@ img,svg,video,canvas{max-width:100%}
 }
 #playerDashboard #dashboardPlayBtn::before,
 #playerDashboard #dashboardPlayBtn::after{display:none!important;content:none!important;}
+
+/* JUGAR emergency visible reset */
+#playerDashboard .dashboard-play-area{display:flex!important;visibility:visible!important;opacity:1!important;min-height:76px!important;}
+#playerDashboard #dashboardPlayBtn{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;max-width:760px!important;height:88px!important;min-height:88px!important;padding:0!important;border:0!important;background:transparent!important;position:relative!important;}
+#playerDashboard #dashboardPlayBtn .dashboard-play-image{display:block!important;visibility:visible!important;opacity:1!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:contain!important;z-index:5!important;}
