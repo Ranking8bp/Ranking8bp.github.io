@@ -3269,7 +3269,7 @@ async function dailyRefreshStatus(){
  if(btn){
   const label=dailyEl('dailyMatchCountLabel');
   const em=label?.querySelectorAll('em');
-  if(em?.[0])em[0].textContent=String(Math.min(15,(st.played||0)+1));
+  if(em?.[0])em[0].textContent=String(Math.min(15,Math.max(0,Number(st.played)||0)));
   if(em?.[1])em[1].textContent='15';
   btn.textContent=canReturn?'REGRESAR A LA SALA':'JUGAR';
   btn.dataset.returnRoom=canReturn?'1':'0';
