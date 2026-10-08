@@ -3342,7 +3342,7 @@ async function dailyShowRoom(){
  const senders=new Set((chatRows||[]).map(x=>String(x.sender_id)));
  if(senders.has(String(m.player1_id))&&senders.has(String(m.player2_id))){
   if(actions.dataset.ready!=='1'||actions.children.length!==3){
-   actions.replaceChildren();dailyAction('🏆 GANÉ',()=>dailySubmitClaim('won'));
+   actions.replaceChildren();dailyAction('🏆 GANÉ',dailyChooseVictoryVideo);
    dailyAction('PERDÍ',()=>dailySubmitClaim('lost'));
    dailyAction('NADIE HIZO TRICKSHOT CON LA 8',()=>dailySubmitClaim('none'));
    actions.dataset.ready='1';
@@ -3363,6 +3363,40 @@ async function dailyAbandonBeforeChat(){
  try{await dailyRpc('daily_classification_abandon_before_chat',{p_match_id:dailyMatchId});dailyStopPolling();dailyMatchId=null;dailyEl('dailyMatchModal').hidden=true;await dailyRefreshStatus()}
  catch(e){alert('NO SE PUDO ABANDONAR: '+e.message);await dailyShowRoom()}
  finally{dailyBusy=false}
+}
+async function dailyChooseVictoryVideo(){
+ if(!dailyMatchId||dailyBusy)return;
+ let input=document.getElementById('dailyVictoryVideoInput');
+ if(!input){input=document.createElement('input');input.type='file';input.id='dailyVictoryVideoInput';input.accept='video/*';input.style.display='none';document.body.appendChild(input)}
+ input.value='';
+ input.onchange=async()=>{
+  const file=input.files?.[0];if(!file)return;
+  dailyBusy=true;
+  const actions=dailyEl('dailyMatchActions'),content=dailyEl('dailyMatchContent');
+  const buttons=[...actions.querySelectorAll('button')];buttons.forEach(b=>b.disabled=true);
+  let url;
+  try{
+   if(!file.type.startsWith('video/'))throw Error('SELECCIONA UN VIDEO');
+   url=URL.createObjectURL(file);
+   const video=document.createElement('video');video.preload='metadata';video.src=url;
+   const duration=await new Promise((resolve,reject)=>{video.onloadedmetadata=()=>resolve(video.duration);video.onerror=()=>reject(Error('NO SE PUDO LEER LA DURACIÓN DEL VIDEO'));setTimeout(()=>reject(Error('NO SE PUDO COMPROBAR LA DURACIÓN DEL VIDEO')),15000)});
+   if(!Number.isFinite(duration)||duration<=0||duration>60)throw Error('EL VIDEO DEBE DURAR MÁXIMO 1 MINUTO');
+   if(file.size>100*1024*1024)throw Error('EL VIDEO SUPERA LOS 100 MB');
+   const matchId=Number(dailyMatchId);
+   const userId=currentUser.id;
+   const safeExt=(file.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp4';
+   const path=userId+'/'+matchId+'-'+Date.now()+'.'+safeExt;
+   content.textContent='SUBIENDO VIDEO DE VICTORIA...';
+   const {error:uploadError}=await supabaseClient.storage.from('daily-vs-evidence').upload(path,file,{contentType:file.type||'video/mp4',upsert:false});
+   if(uploadError)throw uploadError;
+   await dailyRpc('daily_classification_submit_evidence',{p_match_id:matchId,p_path:path,p_duration:duration});
+   dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;
+   await dailyRefreshStatus();
+   alert('VIDEO ENVIADO. TU VICTORIA QUEDA PENDIENTE DE VALIDACIÓN.');
+  }catch(e){alert('NO SE PUDO ENVIAR EL VIDEO: '+e.message);content.textContent='SELECCIONA UN VIDEO DE TU VICTORIA (MÁXIMO 1 MINUTO).'}
+  finally{if(url)URL.revokeObjectURL(url);buttons.forEach(b=>b.disabled=false);dailyBusy=false}
+ };
+ input.click();
 }
 async function dailySubmitClaim(claim){
  if(!dailyMatchId||dailyBusy)return;dailyBusy=true;
