@@ -3290,3 +3290,39 @@ document.addEventListener('click',e=>{
  }
 });
 setInterval(()=>{if(currentUser&&dailyEl('playerDashboard')&&!dailyEl('playerDashboard').hidden)dailyRefreshStatus()},30000);
+
+
+/* Private invitation to daily classification: server validates both players. */
+let dailyInvitePoll=null;
+function dailyInviteShow(message,allowJoin=false,token=null){
+ const modal=dailyEl('dailyInviteModal'),msg=dailyEl('dailyInviteText'),actions=dailyEl('dailyInviteActions');
+ if(!modal)return;modal.hidden=false;msg.textContent=message;actions.replaceChildren();
+ if(allowJoin){const b=document.createElement('button');b.type='button';b.textContent='JUGAR CLASIFICATORIA DIARIA';b.addEventListener('click',async()=>{
+  b.disabled=true;b.textContent='VALIDANDO REQUISITOS...';
+  try{const mid=await dailyRpc('daily_classification_accept_invite',{p_token:token});clearInterval(dailyInvitePoll);modal.hidden=true;history.replaceState({},'',location.pathname);dailyMatchId=Number(mid);dailyEl('dailyMatchModal').hidden=false;await dailyShowRoom()}
+  catch(e){b.disabled=false;b.textContent='JUGAR CLASIFICATORIA DIARIA';msg.textContent=e.message.includes('MIN_30_ELO')?'NECESITAS AL MENOS 30 ELO PARA JUGAR.':e.message.includes('LIMIT_15')?'YA NO TIENES PARTIDOS DISPONIBLES DE LOS 15 DE HOY.':'NO SE PUDO ENTRAR: '+e.message}
+ });actions.appendChild(b)}
+}
+async function dailyHandleInviteFromUrl(){
+ const token=new URLSearchParams(location.search).get('dailyinvite');
+ if(!token||!supabaseClient)return;
+ try{const info=await dailyRpc('daily_classification_invite_info',{p_token:token});
+ if(info.state==='invalid'||info.state==='expired'||info.state==='used'){dailyInviteShow('ESTE LINK YA NO ESTÁ DISPONIBLE. SOLICITA OTRO.');return}
+ dailyInviteShow(info.creator_name+' ESTÁ BUSCANDO RIVAL PARA PARTIDO POR CLASIFICATORIA DIARIA. TOCA EL LINK DE ABAJO PARA JUGAR CON ÉL.',true,token);
+ }catch(e){dailyInviteShow('NO SE PUDO CONSULTAR LA INVITACIÓN.')}
+}
+document.addEventListener('click',async e=>{
+ if(e.target.closest('#dailyInviteClose')){dailyEl('dailyInviteModal').hidden=true;history.replaceState({},'',location.pathname);return}
+ if(!e.target.closest('#dailyClassificationShareBtn'))return;
+ if(!currentUser||!supabaseClient){alert('INICIA SESIÓN PARA COPIAR TU LINK PRIVADO.');return}
+ try{
+ const token=await dailyRpc('daily_classification_create_invite');
+ const link=location.origin+location.pathname+'?dailyinvite='+encodeURIComponent(token);
+ const name=currentProfile?.account_name||currentProfile?.username||'UN JUGADOR';
+ const message=name+' ESTÁ BUSCANDO RIVAL PARA PARTIDO POR CLASIFICATORIA DIARIA. TOCA EL LINK DE ABAJO PARA JUGAR CON ÉL.\\n\\n'+link;
+ try{await navigator.clipboard.writeText(message)}catch(_){const input=document.createElement('textarea');input.value=message;document.body.appendChild(input);input.select();document.execCommand('copy');input.remove()}
+ alert('LINK DE CLASIFICATORIA DIARIA COPIADO. COMPÁRTELO CON TU RIVAL.');
+ clearInterval(dailyInvitePoll);dailyInvitePoll=setInterval(async()=>{try{const info=await dailyRpc('daily_classification_invite_info',{p_token:token});if(info.state==='used'&&info.match_id){clearInterval(dailyInvitePoll);dailyMatchId=Number(info.match_id);dailyEl('dailyMatchModal').hidden=false;await dailyShowRoom()}}catch(e){console.warn(e)}},3000);
+ }catch(e){alert(e.message.includes('MIN_30_ELO')?'NECESITAS AL MENOS 30 ELO.':e.message.includes('LIMIT_15')?'YA COMPLETASTE LOS 15 PARTIDOS DE HOY.':'NO SE PUDO CREAR EL LINK: '+e.message)}
+});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',dailyHandleInviteFromUrl);else dailyHandleInviteFromUrl();
