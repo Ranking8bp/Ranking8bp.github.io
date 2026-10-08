@@ -763,7 +763,12 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
 <button type="button" class="dashboard-menu-tile" data-menu="rangos"><img src="Botones/Botonderangos.png" alt="RANGOS"></button>
 <button type="button" class="dashboard-menu-tile" data-menu="temporada"><img src="Botones/botondetemporadas.png" alt="TEMPORADA"></button>
  <div class="daily-ranking-menu-slot"><button type="button" class="dashboard-menu-tile" id="dailyRankingTableBtn" aria-label="Ver tabla de Clasificatoria Diaria"><img src="assets/clasificatoriadiaria.png" alt="CLASIFICATORIA DIARIA"></button><div id="dailyClassificationClock" role="timer" aria-label="Tiempo restante para finalizar la Clasificatoria Diaria">FINALIZA EN --:--:--</div></div>
-</div><div class="dashboard-info-modal" id="dailyRankingInfoModal" hidden><div class="dashboard-info-card daily-results-layout"><div class="daily-results-banner"><img src="assets/clasificatoriadiaria2.png" alt="CLASIFICATORIA DIARIA" class="daily-results-title-image"><button type="button" id="dailyRankingInfoClose" aria-label="Cerrar">×</button></div><div class="daily-results-toolbar"><p id="dailyLeaderboardCountdown" role="timer">FINALIZA EN --:--:--</p><button type="button" id="dailyPreviousResultsBtn" aria-label="Resultados del día anterior"><img src="assets/resultadodeldiaanterior.png" alt="RESULTADOS DEL DÍA ANTERIOR"></button></div><div class="ranking-card daily-ranking-card"><div class="ranking-header daily-ranking-header"><span>#</span><span>JUGADOR</span><span>PAÍS</span><span>PUNTOS</span><span>RESTANTES</span></div><div class="ranking-list" id="dailyRankingList"><div class="ranking-loading">Cargando tabla diaria...</div></div></div>
+</div><div class="dashboard-info-modal" id="dailyRankingInfoModal" hidden><div class="dashboard-info-card daily-results-layout"><div class="daily-results-banner"><img src="assets/clasificatoriadiaria2.png" alt="CLASIFICATORIA DIARIA" class="daily-results-title-image"><button type="button" id="dailyRankingInfoClose" aria-label="Cerrar">×</button></div><div class="daily-results-toolbar">
+ <p id="dailyLeaderboardCountdown" role="timer">FINALIZA EN --:--:--</p>
+ <button type="button" id="dailyPreviousResultsBtn" aria-label="Resultados del día anterior"><img src="assets/resultadodeldiaanterior.png" alt="RESULTADOS DEL DÍA ANTERIOR"></button>
+ <p class="daily-elo-bonus"><span class="bonus-yellow">SUMAS</span> <span class="bonus-green">+45 ELO</span> <span class="bonus-white">x Cada Victoria</span></p>
+ <p class="daily-winner-bonus"><span class="bonus-yellow">SUMA</span><span class="bonus-gold">+250</span> <span class="bonus-red">EL</span> <span class="bonus-gold">GANADOR</span></p>
+</div><div class="ranking-card daily-ranking-card"><div class="ranking-header daily-ranking-header"><span>#</span><span>JUGADOR</span><span>PAÍS</span><span>PUNTOS</span><span>RESTANTES</span></div><div class="ranking-list" id="dailyRankingList"><div class="ranking-loading">Cargando tabla diaria...</div></div></div>
 <section class="daily-winner-view" id="dailyWinnerView" aria-label="Ganador del día anterior" hidden>
  <div class="daily-winner-stage" id="dailyWinnerStage">
   <img class="daily-winner-background" src="Diaanterior.fondo.png?v=f9ebc2c5" alt="Presentación de ganador del día anterior" decoding="async">
@@ -790,6 +795,66 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
 #dailyRankingInfoModal #dailyPreviousResultsBtn img{display:block;width:100%;height:auto}#dailyRankingInfoModal #dailyPreviousResultsBtn[data-previous-day='1']{background:#b41118;border:2px solid #f1c33b;border-radius:18px;color:#fff;font-weight:900;font-size:12px;min-height:38px}#dailyRankingInfoModal #dailyPreviousResultsBtn[data-previous-day='1'] img{display:none}#dailyRankingInfoModal #dailyPreviousResultsBtn[data-previous-day='1']::after{content:'VOLVER A HOY'}
 #dailyRankingInfoModal .daily-ranking-card{border-radius:0!important;border-top:0!important}
 @media(max-width:420px){#dailyRankingInfoModal .daily-results-layout{padding:5px!important}#dailyRankingInfoModal .daily-results-banner{gap:4px}#dailyRankingInfoModal .daily-results-title-image{width:calc(100% - 36px)}#dailyRankingInfoModal #dailyRankingInfoClose{width:32px;height:32px;flex-basis:32px;font-size:19px}#dailyRankingInfoModal #dailyLeaderboardCountdown{font-size:clamp(14px,4vw,19px)}#dailyRankingInfoModal #dailyPreviousResultsBtn{min-width:105px;width:35%}}
+</style><style id="daily-reward-caption-style">
+/* Recompensas visibles bajo el reloj y bajo RESULTADOS DEL DÍA ANTERIOR. */
+#dailyRankingInfoModal .daily-results-toolbar{
+ display:grid!important;
+ grid-template-columns:minmax(0,1.6fr) minmax(0,.9fr)!important;
+ grid-template-areas:"timer previous" "victories winner"!important;
+ gap:6px 8px!important;
+ align-items:end!important;
+ justify-items:stretch!important;
+ margin:2px 0 0!important;
+ padding:0 2px 0!important;
+}
+#dailyRankingInfoModal .daily-results-toolbar #dailyLeaderboardCountdown{
+ grid-area:timer!important;align-self:end!important;justify-self:start!important;
+}
+#dailyRankingInfoModal .daily-results-toolbar #dailyPreviousResultsBtn{
+ grid-area:previous!important;
+ display:block!important;
+ justify-self:end!important;
+ width:min(100%,320px)!important;
+ max-width:100%!important;
+ min-width:0!important;
+ margin:0!important;
+ padding:0!important;
+}
+#dailyRankingInfoModal .daily-results-toolbar .daily-elo-bonus,
+#dailyRankingInfoModal .daily-results-toolbar .daily-winner-bonus{
+ display:block!important;
+ min-width:0!important;
+ margin:0!important;
+ padding:0!important;
+ color:#fff!important;
+ font:400 clamp(9px,2.5vw,23px)/1.15 Arial,sans-serif!important;
+ letter-spacing:-.025em!important;
+ white-space:nowrap!important;
+ text-shadow:0 0 4px rgba(240,207,39,.6),0 1px 4px #000!important;
+}
+#dailyRankingInfoModal .daily-results-toolbar .daily-elo-bonus{
+ grid-area:victories!important;
+ justify-self:start!important;
+ text-align:left!important;
+}
+#dailyRankingInfoModal .daily-results-toolbar .daily-winner-bonus{
+ grid-area:winner!important;
+ justify-self:end!important;
+ text-align:right!important;
+}
+#dailyRankingInfoModal .daily-results-toolbar .bonus-yellow{color:#fff100!important;text-shadow:0 0 6px #e0d00099!important}
+#dailyRankingInfoModal .daily-results-toolbar .bonus-green{color:#82bd41!important;text-shadow:0 0 6px #7fa539aa!important}
+#dailyRankingInfoModal .daily-results-toolbar .bonus-white{color:#fff!important;text-shadow:0 0 5px #ffffffaa!important}
+#dailyRankingInfoModal .daily-results-toolbar .bonus-gold{color:#f8ca20!important;text-shadow:0 0 6px #c79700aa!important}
+#dailyRankingInfoModal .daily-results-toolbar .bonus-red{color:#ff2323!important;text-shadow:0 0 7px #fd272799!important}
+@media(max-width:420px){
+ #dailyRankingInfoModal .daily-results-toolbar{gap:4px 5px!important;padding:0!important}
+ #dailyRankingInfoModal .daily-results-toolbar .daily-elo-bonus,
+ #dailyRankingInfoModal .daily-results-toolbar .daily-winner-bonus{
+  font-size:clamp(8px,2.35vw,10px)!important;
+  letter-spacing:-.045em!important;
+ }
+}
 </style><style id="daily-leaderboard-ranking-look">
 #dailyRankingInfoModal .daily-ranking-card{background:#05090e!important;border:1px solid #9b7c3d!important;border-radius:20px!important;overflow:hidden!important}
 #dailyRankingInfoModal .daily-ranking-header,#dailyRankingInfoModal .daily-leaderboard-row{display:grid!important;grid-template-columns:30px minmax(0,1.7fr) minmax(0,1fr) 48px 62px!important;align-items:center!important;gap:5px!important;box-sizing:border-box!important}
