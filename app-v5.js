@@ -3331,6 +3331,17 @@ async function dailyShowRoom(){
  const rankBadge=dailyEl('dailyOpponentRankBadge');if(firstRoomPaint&&rankBadge&&typeof renderRankBadgeOn==='function')renderRankBadgeOn(rankBadge,Number(m[opPrefix+'_elo'])||0);
  dailyRoomRenderedMatchId=renderingMatchId;
  dailyLoadChat();
+ const exitNotice=await dailyRpc('daily_classification_exit_notice',{p_match_id:renderingMatchId});
+ if(Number(dailyMatchId)!==renderingMatchId||dailyEl('dailyMatchModal').hidden)return;
+ const chatBox=dailyEl('dailyRankedChat');
+ if(exitNotice?.left){
+  if(chatBox)chatBox.hidden=true;
+  const name=exitNotice.name||'TU RIVAL';
+  const msg=exitNotice.action==='won_video'?name+' TOCÓ GANÉ, SUBIÓ PRUEBAS Y SALIÓ DEL CHAT.':exitNotice.action==='forgot'?name+' TOCÓ GANÉ, LUEGO OLVIDÉ GRABAR Y SALIÓ DEL CHAT.':exitNotice.action==='lost'?name+' TOCÓ PERDÍ Y SALIÓ DEL CHAT.':exitNotice.action==='none'?name+' TOCÓ NADIE HIZO TRICKSHOT CON LA 8 Y SALIÓ DEL CHAT.':name+' SALIÓ DEL CHAT.';
+  let notice=dailyEl('dailyOpponentExitNotice');if(!notice){notice=document.createElement('div');notice.id='dailyOpponentExitNotice';notice.className='daily-opponent-exit-notice';chatBox?.insertAdjacentElement('afterend',notice)}
+  if(notice)notice.textContent=msg;
+ }else{if(chatBox)chatBox.hidden=false;const notice=dailyEl('dailyOpponentExitNotice');if(notice)notice.remove()}
+
  const evidenceBox=dailyEl('dailyEvidenceBox');if(evidenceBox&&dailyEvidenceMatchId!==renderingMatchId)evidenceBox.hidden=true;
 
  if(m.status==='finished'){actions.replaceChildren();content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
@@ -3399,6 +3410,7 @@ async function dailyUploadVictoryVideo(){
    const {error:uploadError}=await supabaseClient.storage.from('daily-vs-evidence').upload(path,file,{contentType:file.type||'video/mp4',upsert:false});
    if(uploadError)throw uploadError;
    await dailyRpc('daily_classification_submit_evidence',{p_match_id:matchId,p_path:path,p_duration:duration});
+   await dailyRpc('daily_classification_leave',{p_match_id:matchId,p_action:'won_video'});
    dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;
    await dailyRefreshStatus();
    alert('VIDEO ENVIADO. TU VICTORIA QUEDA PENDIENTE DE VALIDACIÓN.');
@@ -3409,7 +3421,7 @@ async function dailyUploadVictoryVideo(){
 }
 async function dailySubmitClaim(claim){
  if(!dailyMatchId||dailyBusy)return;dailyBusy=true;
- try{await dailyRpc('daily_classification_claim',{p_match_id:dailyMatchId,p_claim:claim});dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus()}
+ try{await dailyRpc('daily_classification_claim',{p_match_id:dailyMatchId,p_claim:claim});await dailyRpc('daily_classification_leave',{p_match_id:dailyMatchId,p_action:claim});dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus()}
  catch(e){alert('No se pudo enviar el resultado: '+e.message)}finally{dailyBusy=false}
 }
 async function dailySearchLoop(){
@@ -3604,4 +3616,4 @@ document.getElementById('adminDailyProofsRefresh')?.addEventListener('click',loa
 for(const id of ['adminVsTab','adminPlayersTab','adminModerationTab'])document.getElementById(id)?.addEventListener('click',()=>{const el=document.getElementById('adminDailyProofsArea');if(el)el.hidden=true});
 
 document.getElementById('dailyEvidenceSelect')?.addEventListener('click',dailyUploadVictoryVideo);
-document.getElementById('dailyEvidenceForgot')?.addEventListener('click',async()=>{if(!dailyMatchId||dailyBusy)return;if(!confirm('¿SALIR SIN ENVIAR VIDEO? TU VICTORIA NO SERÁ VALIDADA.'))return;dailyEvidenceMatchId=null;const box=dailyEl('dailyEvidenceBox');if(box)box.hidden=true;dailyEl('dailyMatchContent').textContent='SALISTE SIN ENVIAR EVIDENCIA. NO SE REGISTRÓ TU VICTORIA.';dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus()});
+document.getElementById('dailyEvidenceForgot')?.addEventListener('click',async()=>{if(!dailyMatchId||dailyBusy)return;if(!confirm('¿SALIR SIN ENVIAR VIDEO? TU VICTORIA NO SERÁ VALIDADA.'))return;dailyBusy=true;try{await dailyRpc('daily_classification_leave',{p_match_id:dailyMatchId,p_action:'forgot'});dailyEvidenceMatchId=null;const box=dailyEl('dailyEvidenceBox');if(box)box.hidden=true;dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus()}catch(e){alert('NO SE PUDO SALIR: '+e.message)}finally{dailyBusy=false}});
