@@ -3588,6 +3588,7 @@ async function loadAdminDailyProofs(){
  const list=document.getElementById('adminDailyProofsList');if(!list||!supabaseClient)return;
  list.textContent='CARGANDO PRUEBAS...';
  try{
+  const {error:cleanupError}=await supabaseClient.functions.invoke('daily-evidence-cleanup',{body:{}});if(cleanupError)console.warn('Limpieza de evidencias:',cleanupError.message);
   const {data,error}=await supabaseClient.rpc('daily_classification_admin_evidence');if(error)throw error;
   list.replaceChildren();
   if(!data?.length){list.textContent='NO HAY VIDEOS DE CLASIFICACIÓN DIARIA.';return}
