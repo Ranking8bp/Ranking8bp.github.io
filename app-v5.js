@@ -3553,3 +3553,43 @@ document.addEventListener('click',async e=>{
  const input=dailyEl('dailyChatInput'),body=input?.value.trim();if(!body||!dailyMatchId)return;
  try{await dailyRpc('daily_classification_send_chat',{p_match_id:dailyMatchId,p_body:body});input.value='';await dailyLoadChat()}catch(err){alert('NO SE PUDO ENVIAR EL MENSAJE: '+err.message)}
 });
+
+
+/* Independent administrator inbox for Daily Classification evidence. */
+async function loadAdminDailyProofs(){
+ const list=document.getElementById('adminDailyProofsList');if(!list||!supabaseClient)return;
+ list.textContent='CARGANDO PRUEBAS...';
+ try{
+  const {data,error}=await supabaseClient.rpc('daily_classification_admin_evidence');if(error)throw error;
+  list.replaceChildren();
+  if(!data?.length){list.textContent='NO HAY VIDEOS DE CLASIFICACIÓN DIARIA.';return}
+  for(const e of data){
+   const card=document.createElement('article');card.className='daily-admin-proof';
+   const heading=document.createElement('strong');heading.textContent='VS #'+e.match_id+' · '+e.player_name+' contra '+e.opponent_name;card.appendChild(heading);
+   const detail=document.createElement('div');detail.textContent='VIDEO '+Number(e.duration_seconds).toFixed(1)+' SEGUNDOS · '+new Date(e.submitted_at).toLocaleString()+' · '+e.match_status;card.appendChild(detail);
+   const {data:link,error:linkError}=await supabaseClient.storage.from('daily-vs-evidence').createSignedUrl(e.video_path,1800);
+   if(linkError){const err=document.createElement('p');err.textContent='NO SE PUDO ABRIR VIDEO: '+linkError.message;card.appendChild(err)}
+   else{const video=document.createElement('video');video.controls=true;video.preload='none';video.src=link.signedUrl;card.appendChild(video)}
+   if(['matched','disputed'].includes(e.match_status)){
+    const win=document.createElement('button');win.textContent='CONFIRMAR VICTORIA DE '+e.player_name;
+    win.onclick=async()=>{if(!confirm('¿CONFIRMAR VICTORIA DE '+e.player_name+'?'))return;try{
+     const {data:matches,error:matchError}=await supabaseClient.rpc('admin_daily_classification_matches');if(matchError)throw matchError;
+     const m=(matches||[]).find(x=>Number(x.match_id)===Number(e.match_id));if(!m)throw Error('VS NO DISPONIBLE');
+     const winner=m.player1_name===e.player_name?m.player1_id:m.player2_id;
+     const {error:decideError}=await supabaseClient.rpc('admin_daily_classification_decide',{p_match_id:e.match_id,p_action:'winner',p_winner_id:winner});if(decideError)throw decideError;
+     await loadAdminDailyProofs()
+    }catch(ex){alert(ex.message)}};card.appendChild(win);
+    const cancel=document.createElement('button');cancel.textContent='ANULAR VS';cancel.onclick=async()=>{if(!confirm('¿ANULAR ESTE VS?'))return;const {error:err}=await supabaseClient.rpc('admin_daily_classification_decide',{p_match_id:e.match_id,p_action:'cancel'});if(err)alert(err.message);else await loadAdminDailyProofs()};card.appendChild(cancel);
+   }
+   list.appendChild(card);
+  }
+ }catch(e){list.textContent='ERROR AL CARGAR PRUEBAS: '+e.message}
+}
+document.getElementById('adminDailyProofsTab')?.addEventListener('click',()=>{
+ const area=document.getElementById('adminDailyProofsArea');
+ if(!area)return;
+ for(const id of ['adminMatchList','adminPlayerList','adminModeration','adminVsSearch','adminPlayerSearch']){const el=document.getElementById(id);if(el)el.hidden=true}
+ area.hidden=false;loadAdminDailyProofs();
+});
+document.getElementById('adminDailyProofsRefresh')?.addEventListener('click',loadAdminDailyProofs);
+for(const id of ['adminVsTab','adminPlayersTab','adminModerationTab'])document.getElementById(id)?.addEventListener('click',()=>{const el=document.getElementById('adminDailyProofsArea');if(el)el.hidden=true});
