@@ -3297,6 +3297,7 @@ async function dailyClose(){
  dailyEl('dailyMatchModal').hidden=true;await dailyRefreshStatus();
 }
 function dailyAction(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',fn);dailyEl('dailyMatchActions').appendChild(b)}
+let dailyEvidenceMatchId=null;
 let dailyRoomRenderBusy=false;
 let dailyRoomRenderedMatchId=null;
 async function dailyShowRoom(){
@@ -3330,6 +3331,7 @@ async function dailyShowRoom(){
  const rankBadge=dailyEl('dailyOpponentRankBadge');if(firstRoomPaint&&rankBadge&&typeof renderRankBadgeOn==='function')renderRankBadgeOn(rankBadge,Number(m[opPrefix+'_elo'])||0);
  dailyRoomRenderedMatchId=renderingMatchId;
  dailyLoadChat();
+ const evidenceBox=dailyEl('dailyEvidenceBox');if(evidenceBox&&dailyEvidenceMatchId!==renderingMatchId)evidenceBox.hidden=true;
 
  if(m.status==='finished'){actions.replaceChildren();content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
  if(m.status==='cancelled'){actions.replaceChildren();content.textContent='VS ANULADO: NINGUNO HIZO TRICKSHOT.';dailyMatchId=null;await dailyRefreshStatus();return}
@@ -3366,6 +3368,13 @@ async function dailyAbandonBeforeChat(){
 }
 async function dailyChooseVictoryVideo(){
  if(!dailyMatchId||dailyBusy)return;
+ dailyEvidenceMatchId=Number(dailyMatchId);
+ const box=dailyEl('dailyEvidenceBox');if(box)box.hidden=false;
+ const status=dailyEl('dailyEvidenceStatus');if(status)status.textContent='';
+ dailyEl('dailyEvidenceSelect')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+async function dailyUploadVictoryVideo(){
+ if(!dailyMatchId||dailyBusy)return;
  let input=document.getElementById('dailyVictoryVideoInput');
  if(!input){input=document.createElement('input');input.type='file';input.id='dailyVictoryVideoInput';input.accept='video/*';input.style.display='none';document.body.appendChild(input)}
  input.value='';
@@ -3386,14 +3395,14 @@ async function dailyChooseVictoryVideo(){
    const userId=currentUser.id;
    const safeExt=(file.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp4';
    const path=userId+'/'+matchId+'-'+Date.now()+'.'+safeExt;
-   content.textContent='SUBIENDO VIDEO DE VICTORIA...';
+   const status=dailyEl('dailyEvidenceStatus');if(status)status.textContent='SUBIENDO VIDEO DE VICTORIA...';
    const {error:uploadError}=await supabaseClient.storage.from('daily-vs-evidence').upload(path,file,{contentType:file.type||'video/mp4',upsert:false});
    if(uploadError)throw uploadError;
    await dailyRpc('daily_classification_submit_evidence',{p_match_id:matchId,p_path:path,p_duration:duration});
    dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;
    await dailyRefreshStatus();
    alert('VIDEO ENVIADO. TU VICTORIA QUEDA PENDIENTE DE VALIDACIÓN.');
-  }catch(e){alert('NO SE PUDO ENVIAR EL VIDEO: '+e.message);content.textContent='SELECCIONA UN VIDEO DE TU VICTORIA (MÁXIMO 1 MINUTO).'}
+  }catch(e){alert('NO SE PUDO ENVIAR EL VIDEO: '+e.message);dailyEl('dailyEvidenceStatus').textContent='SELECCIONA UN VIDEO DE TU VICTORIA (MÁXIMO 1 MINUTO).'}
   finally{if(url)URL.revokeObjectURL(url);buttons.forEach(b=>b.disabled=false);dailyBusy=false}
  };
  input.click();
@@ -3593,3 +3602,6 @@ document.getElementById('adminDailyProofsTab')?.addEventListener('click',()=>{
 });
 document.getElementById('adminDailyProofsRefresh')?.addEventListener('click',loadAdminDailyProofs);
 for(const id of ['adminVsTab','adminPlayersTab','adminModerationTab'])document.getElementById(id)?.addEventListener('click',()=>{const el=document.getElementById('adminDailyProofsArea');if(el)el.hidden=true});
+
+document.getElementById('dailyEvidenceSelect')?.addEventListener('click',dailyUploadVictoryVideo);
+document.getElementById('dailyEvidenceForgot')?.addEventListener('click',async()=>{if(!dailyMatchId||dailyBusy)return;if(!confirm('¿SALIR SIN ENVIAR VIDEO? TU VICTORIA NO SERÁ VALIDADA.'))return;dailyEvidenceMatchId=null;const box=dailyEl('dailyEvidenceBox');if(box)box.hidden=true;dailyEl('dailyMatchContent').textContent='SALISTE SIN ENVIAR EVIDENCIA. NO SE REGISTRÓ TU VICTORIA.';dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus()});
