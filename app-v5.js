@@ -3258,9 +3258,31 @@ let dailySearching=false,dailyMatchId=null,dailyPoll=null,dailyBusy=false;
 const dailyEl=id=>document.getElementById(id);
 const dailyDate=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Mexico_City',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 async function dailyRpc(name,args){const {data,error}=await supabaseClient.rpc(name,args);if(error)throw error;return data;}
+let dailyPrivateWatchBusy=false;
 async function dailyRefreshStatus(){
  if(!currentUser||!supabaseClient)return;
- try{const st=await dailyRpc('daily_classification_status');const btn=dailyEl('dailyClassificationPlayBtn');if(btn){const em=btn.querySelectorAll('em');if(em[0])em[0].textContent=String(Math.min(15,(st.played||0)+1));if(em[1])em[1].textContent='15';btn.disabled=st.remaining===0;btn.style.opacity=st.remaining===0?'.55':'1';}if(st.match_id&&!dailySearching&&dailyEl('dailyMatchModal')?.hidden===false){dailyMatchId=st.match_id;await dailyShowRoom()}}catch(e){console.warn('Daily status',e)}
+ try{
+ const st=await dailyRpc('daily_classification_status');
+ const btn=dailyEl('dailyClassificationPlayBtn');
+ const canReturn=Boolean(st.match_id&&!st.my_claim&&st.status==='matched');
+ if(btn){
+  const em=btn.querySelectorAll('em');
+  if(em[0])em[0].textContent=canReturn?'REGRESAR A LA SALA':String(Math.min(15,(st.played||0)+1));
+  if(em[1])em[1].textContent=canReturn?'':'15';
+  btn.dataset.returnRoom=canReturn?'1':'0';
+  btn.disabled=!canReturn&&st.remaining===0;
+  btn.style.opacity=btn.disabled?'.55':'1';
+ }
+ if(st.match_id&&dailyEl('dailyMatchModal')?.hidden===false&&!st.my_claim){dailyMatchId=Number(st.match_id);if(!dailySearching)await dailyShowRoom()}
+ if(st.match_id&&st.my_claim&&dailyEl('dailyMatchModal')?.hidden===false){dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null}
+ if(st.pending_invite_token&&!st.match_id&&!dailyPrivateWatchBusy){
+  dailyPrivateWatchBusy=true;
+  try{
+   const info=await dailyRpc('daily_classification_invite_info',{p_token:st.pending_invite_token});
+   if(info.state==='used'&&info.match_id){dailyMatchId=Number(info.match_id);dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyInviteModal').hidden=true;await dailyShowRoom()}
+  }finally{dailyPrivateWatchBusy=false}
+ }
+ }catch(e){console.warn('Daily status',e)}
 }
 async function dailyLoadLeaderboard(){
  const el=dailyEl('dailyRankingList');if(!el||!supabaseClient)return;
@@ -3310,7 +3332,7 @@ async function dailyShowRoom(){
 }
 async function dailySubmitClaim(claim){
  if(!dailyMatchId||dailyBusy)return;dailyBusy=true;
- try{await dailyRpc('daily_classification_claim',{p_match_id:dailyMatchId,p_claim:claim});dailySearching=false;clearTimeout(dailyPoll);await dailyShowRoom()}
+ try{await dailyRpc('daily_classification_claim',{p_match_id:dailyMatchId,p_claim:claim});dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus()}
  catch(e){alert('No se pudo enviar el resultado: '+e.message)}finally{dailyBusy=false}
 }
 async function dailySearchLoop(){
@@ -3327,8 +3349,10 @@ window.startDailyClassification=async function(){
  if(Number(currentProfile?.elo_points||0)<30){alert('NECESITAS AL MENOS 30 ELO PARA PARTICIPAR EN CLASIFICATORIA DIARIA.');return}
  try{
  const st=await dailyRpc('daily_classification_status');
+ if(st.match_id&&!st.my_claim){dailyEl('dailyMatchModal').hidden=false;dailyMatchId=Number(st.match_id);await dailyShowRoom();return}
  if(st.remaining<=0){alert('YA JUGASTE LOS 15 PARTIDOS DE HOY.');return}
  dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyMatchActions').replaceChildren();
+ if(st.match_id&&st.my_claim){alert('YA ENVIASTE TU RESULTADO. NO PUEDES REGRESAR A ESA SALA.');dailyEl('dailyMatchModal').hidden=true;return}
  if(st.match_id){dailyMatchId=st.match_id;await dailyShowRoom();return}
  dailyMatchId=null;dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchSearching').hidden=false;dailySearching=true;await dailySearchLoop()
  }catch(e){alert('ERROR AL INICIAR CLASIFICATORIA: '+e.message)}
@@ -3339,12 +3363,13 @@ document.addEventListener('click',e=>{
  if(e.target.closest('#dailyClassificationPlayBtn')){
  if(!currentUser){alert('INICIA SESIÓN PARA PARTICIPAR.');return}
  if(Number(currentProfile?.elo_points||0)<30){alert('NECESITAS AL MENOS 30 ELO PARA PARTICIPAR.');return}
+ if(dailyEl('dailyClassificationPlayBtn')?.dataset.returnRoom==='1'){window.startDailyClassification();return}
  const key='ranking8bp-daily-rules-ok-'+dailyDate();
  if(localStorage.getItem(key)!=='1'){dailyEl('dailyClassificationRulesModal').hidden=false;return}
  window.startDailyClassification();
  }
 });
-setInterval(()=>{if(currentUser&&dailyEl('playerDashboard')&&!dailyEl('playerDashboard').hidden)dailyRefreshStatus()},30000);
+setInterval(()=>{if(currentUser)dailyRefreshStatus()},3000);
 
 
 /* Private invitation to daily classification: server validates both players. */
