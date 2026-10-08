@@ -3762,7 +3762,7 @@ async function dailySearchLoop(){
 }
 window.startDailyClassification=async function(){
  if(!currentUser||!supabaseClient){alert('INICIA SESIÓN PARA JUGAR CLASIFICATORIA DIARIA.');return}
- if(Number(currentProfile?.elo_points||0)<30){alert('NECESITAS AL MENOS 30 ELO PARA PARTICIPAR EN CLASIFICATORIA DIARIA.');return}
+
  try{
  const st=await dailyRpc('daily_classification_status');
  if(st.match_id&&!st.my_claim){dailyEl('dailyMatchModal').hidden=false;dailyMatchId=Number(st.match_id);await dailyShowRoom();return}
@@ -3785,7 +3785,7 @@ document.addEventListener('click',e=>{
  }
  if(e.target.closest('#dailyClassificationPlayBtn')){
  if(!currentUser){alert('INICIA SESIÓN PARA PARTICIPAR.');return}
- if(Number(currentProfile?.elo_points||0)<30){alert('NECESITAS AL MENOS 30 ELO PARA PARTICIPAR.');return}
+
  if(dailyEl('dailyClassificationPlayBtn')?.dataset.returnRoom==='1'){window.startDailyClassification();return}
  if(dailyEl('dailyClassificationPlayBtn')?.dataset.dailyLimitReached==='1'){alert('YA JUGASTE TUS 15 PARTIDOS DE CLASIFICACION DIARIA. LOS PARTIDOS EN REVISION SE ACTUALIZARÁN ANTES QUE TERMINE LA COMPETENCIA.');return}
  const key='ranking8bp-daily-rules-ok-'+dailyDate();
@@ -3804,7 +3804,7 @@ function dailyInviteShow(message,allowJoin=false,token=null){
  if(allowJoin){const b=document.createElement('button');b.type='button';b.textContent='JUGAR CLASIFICATORIA DIARIA';b.addEventListener('click',async()=>{
   b.disabled=true;b.textContent='VALIDANDO REQUISITOS...';
   try{const mid=await dailyRpc('daily_classification_accept_invite',{p_token:token});clearInterval(dailyInvitePoll);modal.hidden=true;history.replaceState({},'',location.pathname);dailyMatchId=Number(mid);dailyEl('dailyMatchModal').hidden=false;await dailyShowRoom()}
-  catch(e){b.disabled=false;b.textContent='JUGAR CLASIFICATORIA DIARIA';msg.textContent=e.message.includes('MIN_30_ELO')?'NECESITAS AL MENOS 30 ELO PARA JUGAR.':e.message.includes('LIMIT_15')?'YA NO TIENES PARTIDOS DISPONIBLES DE LOS 15 DE HOY.':'NO SE PUDO ENTRAR: '+e.message}
+  catch(e){b.disabled=false;b.textContent='JUGAR CLASIFICATORIA DIARIA';msg.textContent=e.message.includes('LIMIT_15')?'YA NO TIENES PARTIDOS DISPONIBLES DE LOS 15 DE HOY.':'NO SE PUDO ENTRAR: '+e.message}
  });actions.appendChild(b)}
 }
 let dailyInviteOpening=false;
@@ -3853,7 +3853,7 @@ async function dailyHandleInviteFromUrl(){
   await dailyShowRoom();
  }catch(e){
   const msg=String(e?.message||e);
-  dailyInviteShow(msg.includes('MIN_30_ELO')?'NECESITAS AL MENOS 30 ELO PARA JUGAR.':msg.includes('LIMIT_15')?'YA NO TIENES PARTIDOS DISPONIBLES DE LOS 15 DE HOY.':'NO SE PUDO ENTRAR A LA SALA: '+msg);
+  dailyInviteShow(msg.includes('LIMIT_15')?'YA NO TIENES PARTIDOS DISPONIBLES DE LOS 15 DE HOY.':'NO SE PUDO ENTRAR A LA SALA: '+msg);
  }finally{dailyInviteOpening=false}
 }
 document.addEventListener('click',async e=>{
@@ -3871,7 +3871,7 @@ document.addEventListener('click',async e=>{
  try{await navigator.clipboard.writeText(message)}catch(_){const input=document.createElement('textarea');input.value=message;document.body.appendChild(input);input.select();document.execCommand('copy');input.remove()}
  alert('LINK DE CLASIFICATORIA DIARIA COPIADO. COMPÁRTELO CON TU RIVAL.');
  clearInterval(dailyInvitePoll);dailyInvitePoll=setInterval(async()=>{try{const info=await dailyRpc('daily_classification_invite_info',{p_token:token});if(info.state==='used'&&info.match_id){clearInterval(dailyInvitePoll);dailyStopPolling();dailyMatchId=Number(info.match_id);dailyEl('dailyInviteModal').hidden=true;dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyMatchSearching').hidden=true;await dailyShowRoom()}}catch(e){console.warn(e)}},1500);
- }catch(e){alert(e.message.includes('MIN_30_ELO')?'NECESITAS AL MENOS 30 ELO.':e.message.includes('LIMIT_15')?'YA COMPLETASTE LOS 15 PARTIDOS DE HOY.':'NO SE PUDO CREAR EL LINK: '+e.message)}
+ }catch(e){alert(e.message.includes('LIMIT_15')?'YA COMPLETASTE LOS 15 PARTIDOS DE HOY.':'NO SE PUDO CREAR EL LINK: '+e.message)}
 });
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',dailyHandleInviteFromUrl);else dailyHandleInviteFromUrl();
 
