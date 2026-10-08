@@ -3372,7 +3372,7 @@ document.addEventListener('click',async e=>{
  if(!currentUser||!supabaseClient){alert('INICIA SESIÓN PARA COPIAR TU LINK PRIVADO.');return}
  try{
  const token=await dailyRpc('daily_classification_create_invite');
- const link=location.origin+location.pathname+'?dailyinvite='+encodeURIComponent(token);
+ const link='https://ranking8bp.github.io/?dailyinvite='+encodeURIComponent(token);
  const name=currentProfile?.account_name||currentProfile?.username||'UN JUGADOR';
  const message=name+' ESTÁ BUSCANDO RIVAL PARA PARTIDO POR CLASIFICATORIA DIARIA. TOCA EL LINK DE ABAJO PARA JUGAR CON ÉL.\\n\\n'+link;
  try{await navigator.clipboard.writeText(message)}catch(_){const input=document.createElement('textarea');input.value=message;document.body.appendChild(input);input.select();document.execCommand('copy');input.remove()}
