@@ -3358,13 +3358,30 @@ function dailyInviteShow(message,allowJoin=false,token=null){
   catch(e){b.disabled=false;b.textContent='JUGAR CLASIFICATORIA DIARIA';msg.textContent=e.message.includes('MIN_30_ELO')?'NECESITAS AL MENOS 30 ELO PARA JUGAR.':e.message.includes('LIMIT_15')?'YA NO TIENES PARTIDOS DISPONIBLES DE LOS 15 DE HOY.':'NO SE PUDO ENTRAR: '+e.message}
  });actions.appendChild(b)}
 }
+let dailyInviteOpening=false;
 async function dailyHandleInviteFromUrl(){
  const token=new URLSearchParams(location.search).get('dailyinvite');
- if(!token||!supabaseClient)return;
- try{const info=await dailyRpc('daily_classification_invite_info',{p_token:token});
- if(info.state==='invalid'||info.state==='expired'||info.state==='used'){dailyInviteShow('ESTE LINK YA NO ESTÁ DISPONIBLE. SOLICITA OTRO.');return}
- dailyInviteShow(info.creator_name+' ESTÁ BUSCANDO RIVAL PARA PARTIDO POR CLASIFICATORIA DIARIA. TOCA EL LINK DE ABAJO PARA JUGAR CON ÉL.',true,token);
- }catch(e){dailyInviteShow('NO SE PUDO CONSULTAR LA INVITACIÓN.')}
+ if(!token||!supabaseClient||dailyInviteOpening)return;
+ dailyInviteOpening=true;
+ try{
+  if(!currentUser){
+   const {data}=await supabaseClient.auth.getSession();
+   if(!data?.session?.user){dailyInviteShow('INICIA SESIÓN PARA ENTRAR A LA SALA DE CLASIFICATORIA DIARIA.');return}
+   currentUser=data.session.user;
+  }
+  const info=await dailyRpc('daily_classification_invite_info',{p_token:token});
+  if(info.state==='invalid'||info.state==='expired'||info.state==='used'){dailyInviteShow('ESTE LINK YA NO ESTÁ DISPONIBLE. SOLICITA OTRO.');return}
+  const mid=await dailyRpc('daily_classification_accept_invite',{p_token:token});
+  clearInterval(dailyInvitePoll);
+  dailyEl('dailyInviteModal').hidden=true;
+  history.replaceState({},'',location.pathname);
+  dailyMatchId=Number(mid);
+  dailyEl('dailyMatchModal').hidden=false;
+  await dailyShowRoom();
+ }catch(e){
+  const msg=String(e?.message||e);
+  dailyInviteShow(msg.includes('MIN_30_ELO')?'NECESITAS AL MENOS 30 ELO PARA JUGAR.':msg.includes('LIMIT_15')?'YA NO TIENES PARTIDOS DISPONIBLES DE LOS 15 DE HOY.':'NO SE PUDO ENTRAR A LA SALA: '+msg);
+ }finally{dailyInviteOpening=false}
 }
 document.addEventListener('click',async e=>{
  if(e.target.closest('#dailyInviteClose')){dailyEl('dailyInviteModal').hidden=true;history.replaceState({},'',location.pathname);return}
