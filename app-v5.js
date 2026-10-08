@@ -3346,13 +3346,32 @@ document.addEventListener('click',async e=>{
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',dailyHandleInviteFromUrl);else dailyHandleInviteFromUrl();
 
 async function dailyLoadChat(){
- if(!dailyMatchId||!supabaseClient)return;
- try{const rows=await dailyRpc('daily_classification_get_chat',{p_match_id:dailyMatchId});const box=dailyEl('dailyChatMessages');if(!box)return;
- const atBottom=box.scrollHeight-box.scrollTop-box.clientHeight<90;box.replaceChildren();
- for(const m of rows||[]){const el=document.createElement('div');el.className='daily-chat-message';el.style.cssText='padding:8px 10px;margin:5px 0;border-radius:10px;background:'+(m.sender_id===currentUser?.id?'#16456c':'#233346')+';color:white;overflow-wrap:anywhere';const name=document.createElement('strong');name.textContent=m.sender_name+': ';el.append(name,document.createTextNode(m.body));box.appendChild(el)}
- if(atBottom)box.scrollTop=box.scrollHeight;
+ if(!dailyMatchId||!supabaseClient||dailyEl('dailyMatchModal')?.hidden)return;
+ try{
+ const rows=await dailyRpc('daily_classification_get_chat',{p_match_id:dailyMatchId});
+ const box=dailyEl('dailyChatMessages');if(!box)return;
+ const oldLast=box.lastElementChild?.dataset.chatId;
+ if(oldLast&&String(rows?.at(-1)?.id)===oldLast)return;
+ box.replaceChildren();
+ for(const m of rows||[]){
+ const mine=String(m.sender_id)===String(currentUser?.id);
+ const d=document.createElement('div');d.className='ranked-vs-chat-message'+(mine?' mine':'');d.dataset.chatId=String(m.id);
+ const avatar=document.createElement('span');avatar.className='fresh-chat-avatar';
+ const src=dailyEl(mine?'dailyMyAvatar':'dailyOpponentAvatar')?.querySelector('img')?.src;
+ if(src){const img=document.createElement('img');img.src=src;img.alt=m.sender_name||'Jugador';avatar.appendChild(img)}
+ else avatar.textContent=String(m.sender_name||'J').charAt(0).toUpperCase();
+ const content=document.createElement('div');content.className='fresh-chat-message-content';
+ const n=document.createElement('strong');n.textContent=m.sender_name||'Jugador';
+ const p=document.createElement('p');p.textContent=m.body||'';
+ content.append(n,p);d.append(avatar,content);
+ if(mine){const seen=document.createElement('small');seen.className='fresh-chat-seen';seen.textContent='✓ ENVIADO';d.appendChild(seen)}
+ box.appendChild(d);
+ }
+ requestAnimationFrame(()=>{box.scrollTop=box.scrollHeight});
  }catch(e){console.warn('Chat diario',e)}
 }
+setInterval(()=>{if(dailyMatchId&&!dailyEl('dailyMatchModal')?.hidden)dailyLoadChat()},2500);
+
 document.addEventListener('click',async e=>{
  if(e.target.closest('#dailyCopyMyId')){navigator.clipboard?.writeText(dailyEl('dailyMyGameId').textContent);return}
  if(e.target.closest('#dailyCopyOpponentId')){navigator.clipboard?.writeText(dailyEl('dailyOpponentGameId').textContent);return}
