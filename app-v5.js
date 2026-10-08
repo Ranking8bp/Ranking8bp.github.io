@@ -3418,7 +3418,21 @@ async function dailyLoadLeaderboard(previousDay=false){
  if(previousBtn){previousBtn.dataset.previousDay=previousDay?'1':'0';const img=previousBtn.querySelector('img');if(img)img.alt=previousDay?'VOLVER A CLASIFICATORIA DE HOY':'RESULTADOS DEL DÍA ANTERIOR';}
  if(previousDay){await dailyLoadWinner();return;}
  ++dailyWinnerLoadToken;
- try{const rows=await dailyRpc('daily_classification_leaderboard');el.replaceChildren();if(!rows?.length){el.textContent='TODAVÍA NO HAY JUGADORES CLASIFICADOS HOY.';return}
+ try{
+ const rows=await dailyRpc('daily_classification_leaderboard');
+ if(!rows?.length){el.replaceChildren();el.textContent='TODAVÍA NO HAY JUGADORES CLASIFICADOS HOY.';return}
+ // Consulta en bloque: usa el ELO real de todos los jugadores de esta clasificación,
+ // incluso los que están fuera de los 100 primeros del ranking general.
+ const dailyElos=new Map();
+ try{
+  const ids=rows.map(r=>r.player_id).filter(Boolean);
+  if(ids.length){
+   const {data:rankRows,error:rankError}=await supabaseClient.rpc('daily_classification_player_rank_elos',{p_player_ids:ids});
+   if(rankError)throw rankError;
+   for(const ranked of (rankRows||[]))dailyElos.set(String(ranked.player_id),Number(ranked.elo_points)||0);
+  }
+ }catch(rankError){console.warn('No se pudieron cargar insignias diarias:',rankError)}
+ el.replaceChildren();
  rows.forEach((r,i)=>{
   const item=document.createElement('div');item.className='daily-leaderboard-row';item.dataset.playerId=String(r.player_id||'');
   if(i<3)item.classList.add('daily-leaderboard-podium','daily-leaderboard-podium-'+(i+1));
@@ -3428,6 +3442,24 @@ async function dailyLoadLeaderboard(previousDay=false){
   if(r.avatar_path)getCachedAvatarUrl(r.avatar_path).then(url=>{if(!url)return;const img=document.createElement('img');img.src=url;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();avatar.replaceChildren(img)}).catch(()=>{});
   const name=document.createElement('strong');name.className='daily-leaderboard-name';name.textContent=r.player_name||'JUGADOR';
   player.append(avatar,name);
+  const playerId=String(r.player_id||'');
+  let rankElo=dailyElos.get(playerId);
+  if(rankElo===undefined){
+   const cachedPlayer=rankingPlayersCache.find(p=>String(p.player_id||p.id||'')===playerId);
+   if(cachedPlayer&&Number.isFinite(Number(cachedPlayer.elo_points)))rankElo=Number(cachedPlayer.elo_points);
+   else if(String(currentUser?.id||'')===playerId&&Number.isFinite(Number(currentProfile?.elo_points)))rankElo=Number(currentProfile.elo_points);
+  }
+  if(rankElo!==undefined){
+   const rank=getRankByElo(rankElo);
+   const rankBadge=document.createElement('button');
+   rankBadge.type='button';
+   rankBadge.className='daily-leaderboard-rank-badge';
+   rankBadge.title='Ver insignia '+rank.name+' de '+String(r.player_name||'jugador');
+   rankBadge.setAttribute('aria-label',rankBadge.title);
+   renderRankBadgeOn(rankBadge,rank);
+   rankBadge.addEventListener('click',event=>{event.stopPropagation();openRankZoom(rank)});
+   player.appendChild(rankBadge);
+  }
   const country=document.createElement('span');country.className='daily-leaderboard-country';const flag=document.createElement('span');flag.textContent=getFlag(r.country)||'🌎';const countryName=document.createElement('span');countryName.textContent=r.country||'—';country.append(flag,countryName);
   const points=document.createElement('strong');points.className='daily-leaderboard-points';points.textContent=String(r.points??0);
   const remaining=document.createElement('strong');remaining.className='daily-leaderboard-remaining';remaining.textContent=String(r.remaining??0)+'/15';
