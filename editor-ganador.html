@@ -30,6 +30,10 @@ h2{font-size:16px;color:#fff;margin:4px 0 10px}
 #part-foto{border-radius:50%;overflow:hidden;background:#120d0c;z-index:2}
 #part-foto img{object-fit:cover;border-radius:50%}
 #part-insignia{z-index:2;filter:drop-shadow(0 5px 9px #000a)}
+#part-humo{z-index:3;pointer-events:auto}
+#part-humo img{object-fit:fill}
+#part-foto{z-index:4}
+#part-nombre,#part-posicion,#part-puntos{z-index:5}
 .text-part{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:Arial,Helvetica,sans-serif;font-weight:1000;line-height:1.03;text-shadow:0 2px 5px #000,0 1px 2px #000}
 #part-nombre{color:#fff;z-index:3;padding:0 1%;font-weight:900}
 #part-posicion{color:#ffbf0a;z-index:3;text-shadow:0 4px 4px #290e00,0 1px 0 #e48700}
@@ -79,13 +83,14 @@ textarea{width:100%;height:198px;display:block;resize:vertical;padding:12px;bord
     <div id="stage" aria-label="Diseño interactivo del ganador">
      <img id="background" src="./Diaanterior.fondo.png?v=f9ebc2c5" alt="Fondo original del ganador" draggable="false">
      <div class="part" id="part-insignia" data-id="insignia" tabindex="0" role="button" aria-label="Mover insignia"><img src="https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/PlataIV.png" alt="Insignia de ejemplo Plata IV" draggable="false"></div>
+     <div class="part" id="part-humo" data-id="humo" tabindex="0" role="button" aria-label="Mover humo y fuego"><img src="./capadehumodiaria.png?v=e3773fda" alt="Capa de humo y fuego" draggable="false"></div>
      <div class="part" id="part-foto" data-id="foto" tabindex="0" role="button" aria-label="Mover fotografía"><img src="https://xcrzxnshhamribnimsxc.supabase.co/storage/v1/object/public/profile-photos/4d5d5644-5696-4c8c-aff4-ce4724fb5ce8/avatar-1791188136073.jpg" alt="Foto de SOMBRA" draggable="false"></div>
      <div class="part text-part" id="part-nombre" data-id="nombre" tabindex="0" role="button" aria-label="Mover nombre">🐦‍🔥⃤⃟⃝👑𝖘𝖔𝖒𝖇𝖗𝖆💜🤠💙</div>
      <div class="part text-part" id="part-posicion" data-id="posicion" tabindex="0" role="button" aria-label="Mover posición">#17</div>
      <div class="part text-part" id="part-puntos" data-id="puntos" tabindex="0" role="button" aria-label="Mover puntos">15</div>
     </div>
    </div>
-   <p class="tiny-note" id="assetStatus">Cargando las imágenes originales...</p>
+   <p class="tiny-note" id="assetStatus">Cargando fondo y capa de humo...</p>
   </section>
   <aside class="control-panel">
    <h2>Selecciona qué quieres mover</h2>
@@ -95,8 +100,10 @@ textarea{width:100%;height:198px;display:block;resize:vertical;padding:12px;bord
     <button type="button" data-select="nombre">✍️ NOMBRE</button>
     <button type="button" data-select="posicion">🏆 # RANKING</button>
     <button type="button" data-select="puntos">⭐ PUNTOS</button>
+    <button type="button" data-select="humo">🔥 HUMO / FUEGO</button>
    </div>
    <p class="selected-name" id="selectedName">FOTO</p>
+   <label style="margin:0 0 10px;display:flex;align-items:center;gap:7px"><input type="checkbox" id="smokeVisible" checked> Mostrar capa de humo</label>
    <div class="field-grid">
     <label>Izquierda (X %) <input type="number" id="fieldX" step="0.1" inputmode="decimal"></label>
     <label>Arriba (Y %) <input type="number" id="fieldY" step="0.1" inputmode="decimal"></label>
@@ -130,13 +137,14 @@ textarea{width:100%;height:198px;display:block;resize:vertical;padding:12px;bord
  const STORAGE_KEY='ranking8bp-winner-visual-editor-v1';
  const DEFAULTS={
   insignia:{x:15.7,y:25.7,w:37,h:52,label:'INSIGNIA'},
-  foto:{x:59.9,y:19.3,w:29.6,h:null,label:'FOTO'},
-  nombre:{x:52,y:52.2,w:38.7,h:6.2,font:3.15,label:'NOMBRE'},
-  posicion:{x:45,y:58,w:17,h:10,font:7.4,label:'# EN EL RANKING'},
-  puntos:{x:54.1,y:74.9,w:24.5,h:13,font:9.5,label:'PUNTOS'}
+  humo:{x:4,y:15,w:54,h:76,label:'HUMO / FUEGO'},
+  foto:{x:59.25,y:19.18,w:29.2,h:null,label:'FOTO'},
+  nombre:{x:53.4,y:51.8,w:38.7,h:6.2,font:4.2,label:'NOMBRE'},
+  posicion:{x:46.95,y:59.4,w:17.8,h:10,font:5.85,label:'# EN EL RANKING'},
+  puntos:{x:53.65,y:73.49,w:24.5,h:13,font:9.5,label:'PUNTOS'}
  };
- const order=['foto','insignia','nombre','posicion','puntos'];
- const selectors={foto:'.daily-winner-avatar',insignia:'.daily-winner-badge',nombre:'.daily-winner-name',posicion:'.daily-winner-rank-position',puntos:'.daily-winner-points'};
+ const order=['foto','insignia','nombre','posicion','puntos','humo'];
+ const selectors={foto:'.daily-winner-avatar',insignia:'.daily-winner-badge',nombre:'.daily-winner-name',posicion:'.daily-winner-rank-position',puntos:'.daily-winner-points',humo:'.daily-winner-smoke'};
  const defaults=()=>JSON.parse(JSON.stringify(DEFAULTS));
  const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
  const r=(n)=>Math.round(Number(n)*100)/100;
@@ -174,6 +182,7 @@ textarea{width:100%;height:198px;display:block;resize:vertical;padding:12px;bord
     const upper=id==='nombre'?33:id==='posicion'?74:95;
     el.style.fontSize='clamp('+lower+'px,'+item.font+'cqw,'+upper+'px)';
    }
+   if(id==='humo')el.hidden=!document.getElementById('smokeVisible').checked;
    el.classList.toggle('active',id===selected);
   }
   document.querySelectorAll('[data-select]').forEach(btn=>{
@@ -206,6 +215,7 @@ textarea{width:100%;height:198px;display:block;resize:vertical;padding:12px;bord
  function exportText(){
   let msg='POSICIONES DEFINITIVAS DEL GANADOR DEL DÍA — RANKING8BP\n';
   msg+='Fondo: Diaanterior.fondo.png\n';
+  msg+='Capa de humo: capadehumodiaria.png (encima de la insignia y del pedestal).\n';
   msg+='Tomar estas coordenadas como porcentajes del cartel completo.\n\n';
   for(const id of order){msg+=values[id].label+': '+cssValue(id)+'\n'}
   msg+='\nCSS PARA APLICAR EN EL SITIO:\n';
@@ -225,7 +235,8 @@ textarea{width:100%;height:198px;display:block;resize:vertical;padding:12px;bord
   fields[key].addEventListener('input',e=>setField(key,e.target.value));
   fields[key].addEventListener('change',()=>paint());
  }
- document.querySelectorAll('[data-select]').forEach(el=>el.addEventListener('click',()=>choose(el.dataset.select)));
+ document.querySelectorAll('[data-select]').forEach(el=>el.addEventListener('click',()=>{if(el.dataset.select==='humo')document.getElementById('smokeVisible').checked=true;choose(el.dataset.select)}));
+ document.getElementById('smokeVisible').addEventListener('change',()=>paint());
  document.querySelectorAll('.part').forEach(el=>{
   el.addEventListener('click',()=>choose(el.dataset.id));
   el.addEventListener('pointerdown',e=>{
