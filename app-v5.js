@@ -3592,6 +3592,11 @@ document.addEventListener('click',e=>{
  if(e.target.closest('#dailyWinnerBackToToday')){dailyLoadLeaderboard(false);return}
  if(e.target.closest('#dailyWinnerClose')){const modal=dailyEl('dailyRankingInfoModal');if(modal)modal.hidden=true;return}
  if(e.target.closest('#dailyMatchClose'))dailyClose();
+ if(e.target.closest('#dailyClassificationRulesBtn')){
+  const rules=dailyEl('dailyClassificationRulesModal');
+  if(rules){rules.dataset.rulesOnly='1';rules.hidden=false;}
+  return;
+ }
  if(e.target.closest('#dailyClassificationPlayBtn')){
  if(!currentUser){alert('INICIA SESIÓN PARA PARTICIPAR.');return}
  if(Number(currentProfile?.elo_points||0)<30){alert('NECESITAS AL MENOS 30 ELO PARA PARTICIPAR.');return}
