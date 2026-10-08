@@ -3324,10 +3324,19 @@ async function dailyShowRoom(){
  dailyLoadChat();
 
  if(m.status==='finished'){content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
+ if(m.status==='cancelled'){content.textContent='VS ANULADO: NINGUNO HIZO TRICKSHOT.';dailyMatchId=null;await dailyRefreshStatus();return}
  if(m.status==='disputed'){content.textContent='RESULTADO EN REVISIÓN: AMBOS JUGADORES DECLARARON EL MISMO RESULTADO. CONTACTA AL ADMINISTRADOR.';return}
  content.textContent='RIVAL: '+other+' · ID: '+(otherId||'NO REGISTRADO')+' · JUEGA EN MIAMI. ¡GRABA TU PARTIDA!';
  if(mine){content.textContent+=' · YA ENVIASTE TU RESULTADO. ESPERANDO AL RIVAL.'}
- else{dailyAction('GANÉ',()=>dailySubmitClaim('won'));dailyAction('PERDÍ',()=>dailySubmitClaim('lost'))}
+ else{
+ const chatRows=await dailyRpc('daily_classification_get_chat',{p_match_id:dailyMatchId});
+ const senders=new Set((chatRows||[]).map(x=>String(x.sender_id)));
+ if(senders.has(String(m.player1_id))&&senders.has(String(m.player2_id))){
+  dailyAction('🏆 GANÉ',()=>dailySubmitClaim('won'));
+  dailyAction('PERDÍ',()=>dailySubmitClaim('lost'));
+  dailyAction('NADIE HIZO TRICKSHOT CON LA 8',()=>dailySubmitClaim('none'));
+ }else{content.textContent='AMBOS JUGADORES DEBEN ENVIAR UN MENSAJE PARA ACTIVAR LOS RESULTADOS.'}
+}
  if(!dailySearching){dailySearching=true;dailyPoll=setTimeout(async()=>{dailySearching=false;if(dailyMatchId&&!dailyEl('dailyMatchModal').hidden)await dailyShowRoom()},3000)}
  }catch(e){console.error(e);dailyEl('dailyMatchContent').textContent='ERROR AL CARGAR EL PARTIDO: '+e.message}
 }
