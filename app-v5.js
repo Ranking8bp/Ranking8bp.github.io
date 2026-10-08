@@ -3356,10 +3356,20 @@ async function dailyLoadWinner(){
  if(badge)badge.hidden=true;
  if(avatar){avatar.hidden=true;avatar.removeAttribute('src');}
  if(initial){initial.textContent='🎱';initial.hidden=false;}
+ const winnerView=dailyEl('dailyWinnerView');if(winnerView)winnerView.classList.remove('is-pending');
  if(message)message.hidden=true;
  try{
   const winner=await dailyRpc('daily_classification_previous_winner');
   if(token!==dailyWinnerLoadToken||dailyEl('dailyPreviousResultsBtn')?.dataset.previousDay!=='1')return;
+  if(winner?.pending){
+    if(winnerView)winnerView.classList.add('is-pending');
+    if(name){name.textContent='RESULTADO PENDIENTE';name.title=name.textContent}
+    if(position)position.textContent='';
+    if(points)points.textContent='';
+    if(initial)initial.hidden=true;
+    if(message){message.textContent='EL RESULTADO DEL DÍA ANTERIOR ESTARÁ LISTO PRONTO';message.hidden=false;}
+    return;
+  }
   if(!winner||!winner.player_id){
    if(name)name.textContent='SIN GANADOR';
    if(message){message.textContent='NO HUBO JUGADORES CLASIFICADOS EL DÍA ANTERIOR.';message.hidden=false;}
@@ -3483,10 +3493,11 @@ async function dailyShowRoom(){
  const evidenceBox=dailyEl('dailyEvidenceBox');if(evidenceBox&&dailyEvidenceMatchId!==renderingMatchId)evidenceBox.hidden=true;
  if(dailyEvidenceMatchId===renderingMatchId&&evidenceBox&&!evidenceBox.hidden){return}
 
- if(m.status==='finished'){actions.replaceChildren();content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +45 ELO Y +45 PUNTOS EN CLASIFICACIÓN DIARIA.':'PARTIDA TERMINADA. NO PIERDES ELO; SOLO CONSUMISTE 1 DE TUS 15 PARTIDAS.');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();await dailyRefreshGlobalRanking();return}
+ if(m.status==='finished'){actions.replaceChildren();const credited=Number(m.rank_elo_awarded_amount)===45;content.textContent=m.winner_id===m.my_id?(credited?'¡GANASTE! +45 ELO Y +45 PUNTOS EN CLASIFICACIÓN DIARIA.':'¡GANASTE! PARTIDA FINALIZADA FUERA DE TIEMPO. NO SUMA ELO NI PUNTOS.'):'PARTIDA TERMINADA. NO PIERDES ELO; SOLO CONSUMISTE 1 DE TUS 15 PARTIDAS.';dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();await dailyRefreshGlobalRanking();return}
  if(m.status==='cancelled'){actions.replaceChildren();content.textContent='VS ANULADO: NINGUNO HIZO TRICKSHOT.';dailyMatchId=null;await dailyRefreshStatus();return}
  if(m.status==='disputed'){actions.replaceChildren();content.textContent='RESULTADO EN REVISIÓN: AMBOS JUGADORES DECLARARON EL MISMO RESULTADO. CONTACTA AL ADMINISTRADOR.';return}
  if(content.textContent)content.textContent='';
+ if(String(m.day)!==String(dailyDate())){content.textContent='LA CLASIFICATORIA DE AYER YA TERMINÓ. PUEDES MARCAR GANÉ O PERDÍ, PERO LOS RESULTADOS ENVIADOS AHORA NO SUMAN PUNTOS. '}
  if(mine){actions.replaceChildren();content.textContent+=' · YA ENVIASTE TU RESULTADO. ESPERANDO AL RIVAL.'}
  else{
  const chatRows=await dailyRpc('daily_classification_get_chat',{p_match_id:renderingMatchId});
