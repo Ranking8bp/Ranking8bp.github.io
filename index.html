@@ -561,7 +561,61 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
  }catch(_){}
  setTimeout(function(){document.documentElement.classList.remove('auth-checking')},5000);
 })();
-</script></head>
+</script><style id="ranking8bp-legend-emblem-layout">
+/* Emblema LEYENDA centrado entre RESULTADOS y RACHA ACTUAL, según referencia visual. */
+#playerDashboard .competitive-hub .competitive-grid{
+  display:grid!important;
+  grid-template-columns:minmax(0,3.1fr) minmax(0,1fr) minmax(0,1.43fr)!important;
+  gap:clamp(9px,3vw,38px)!important;
+  align-items:center!important;
+  justify-content:stretch!important;
+  width:100%!important;
+}
+#playerDashboard .competitive-hub .competitive-grid>.competitive-record-card{
+  grid-column:1!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:112px!important;
+}
+#playerDashboard .competitive-hub .competitive-grid>.legend-rank-emblem{
+  display:block!important;
+  grid-column:2!important;
+  justify-self:center!important;
+  align-self:center!important;
+  width:100%!important;
+  max-width:112px!important;
+  height:auto!important;
+  aspect-ratio:1/1!important;
+  object-fit:cover!important;
+  border:1px solid rgba(218,171,61,.62)!important;
+  border-radius:18%!important;
+  box-shadow:0 5px 16px rgba(0,0,0,.35)!important;
+}
+#playerDashboard .competitive-hub .competitive-grid>.competitive-streak-card{
+  grid-column:3!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:112px!important;
+  margin:0!important;
+}
+@media(max-width:700px){
+  #playerDashboard .competitive-hub .competitive-grid{
+    gap:clamp(6px,1.8vw,10px)!important;
+  }
+  #playerDashboard .competitive-hub .competitive-grid>.competitive-record-card,
+  #playerDashboard .competitive-hub .competitive-grid>.competitive-streak-card{
+    min-height:90px!important;
+    padding:8px 4px!important;
+  }
+  #playerDashboard .competitive-hub .competitive-grid>.legend-rank-emblem{
+    max-width:96px!important;
+  }
+  #playerDashboard .competitive-hub .competitive-grid small{
+    font-size:clamp(9px,2.3vw,12px)!important;
+  }
+}
+</style>
+</head>
 <body>
 <div id="rankingReloadFallback" role="status" style="position:fixed;inset:0;z-index:2147483640;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:24px;text-align:center;background:#06121a;color:#fff;font:600 16px Arial,sans-serif"><div>RANKING8BP NO TERMINÓ DE CARGAR</div><button type="button" onclick="location.reload()" style="border:0;border-radius:12px;padding:14px 24px;background:#e4b34e;color:#101820;font-weight:800">REINTENTAR</button></div>
 <script>(function(){var done=false;var t=setTimeout(function(){if(!done){var el=document.getElementById('rankingReloadFallback');if(el)el.style.display='flex'}},12000);function ready(){done=true;clearTimeout(t);var el=document.getElementById('rankingReloadFallback');if(el)el.style.display='none'}window.addEventListener('load',ready,{once:true});window.addEventListener('pageshow',function(){if(document.readyState==='complete')ready()});})();</script>
@@ -676,7 +730,7 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
           </div>
         </section>
 
-        <section class="competitive-hub" id="competitiveHub"><div class="season-strip"><strong id="seasonName">TEMPORADA 1</strong><span id="seasonCountdown">Clasificación activa</span></div><div class="top3-showcase" id="top3Showcase"></div><div class="competitive-grid"><div class="competitive-record-card"><small>RESULTADOS</small><div class="competitive-record-values"><span><b id="competitiveWins">0</b><em>GANADAS</em></span><span><b id="competitiveLosses">0</b><em>PERDIDAS</em></span></div></div><div class="competitive-streak-card"><small>RACHA ACTUAL</small><strong id="competitiveStreak">0</strong></div></div><div class="match-history-box"><strong>ÚLTIMAS PARTIDAS</strong><div id="competitiveHistory"></div></div></section><div class="dashboard-play-area ranking-play-strip"><button type="button" class="dashboard-play-btn" id="dashboardPlayBtn">JUGAR</button><button type="button" class="dashboard-share-btn" id="dashboardShareBtn"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.2M8.7 13.3l6.6 4.2"/></svg><span>COPIAR LINK PARA SALA PRIVADA</span></button></div><div class="daily-play-area daily-play-strip"><div id="dailyMatchCountLabel" class="daily-match-count-label"><em>0</em><span>/</span><em>15</em></div><button type="button" id="dailyClassificationPlayBtn" class="daily-classification-play-btn">JUGAR</button><button type="button" id="dailyClassificationShareBtn" class="dashboard-share-btn"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.2M8.7 13.3l6.6 4.2"/></svg><span>COPIAR LINK PARA SALA PRIVADA<br>CLASIFICATORIA DIARIA</span></button></div><div id="liveSearchingPlayers" style="width:94%;max-width:760px;margin:8px auto 12px"></div><div class="dynamic-area" id="dynamicArea" hidden><input id="dynamicVideoInput" type="file" accept="video/*" hidden><small id="dynamicStatus"></small></div><div class="ikar-moderator-area" id="ikarModeratorArea" hidden><button type="button" class="ikar-moderator-btn" id="ikarModeratorBtn">MODERAR</button></div><div class="players-playing-row" id="playersOnlineNow" hidden><span class="online-player-dot"></span><strong id="playersOnlineCount">0</strong><span>JUGADORES JUGANDO</span></div><div class="dashboard-menu-grid" id="dashboardMenuGrid">
+        <section class="competitive-hub" id="competitiveHub"><div class="season-strip"><strong id="seasonName">TEMPORADA 1</strong><span id="seasonCountdown">Clasificación activa</span></div><div class="top3-showcase" id="top3Showcase"></div><div class="competitive-grid"><div class="competitive-record-card"><small>RESULTADOS</small><div class="competitive-record-values"><span><b id="competitiveWins">0</b><em>GANADAS</em></span><span><b id="competitiveLosses">0</b><em>PERDIDAS</em></span></div></div><img class="legend-rank-emblem" src="https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/botonleyenda.png" alt="LEYENDA" loading="lazy" decoding="async"><div class="competitive-streak-card"><small>RACHA ACTUAL</small><strong id="competitiveStreak">0</strong></div></div><div class="match-history-box"><strong>ÚLTIMAS PARTIDAS</strong><div id="competitiveHistory"></div></div></section><div class="dashboard-play-area ranking-play-strip"><button type="button" class="dashboard-play-btn" id="dashboardPlayBtn">JUGAR</button><button type="button" class="dashboard-share-btn" id="dashboardShareBtn"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.2M8.7 13.3l6.6 4.2"/></svg><span>COPIAR LINK PARA SALA PRIVADA</span></button></div><div class="daily-play-area daily-play-strip"><div id="dailyMatchCountLabel" class="daily-match-count-label"><em>0</em><span>/</span><em>15</em></div><button type="button" id="dailyClassificationPlayBtn" class="daily-classification-play-btn">JUGAR</button><button type="button" id="dailyClassificationShareBtn" class="dashboard-share-btn"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.2M8.7 13.3l6.6 4.2"/></svg><span>COPIAR LINK PARA SALA PRIVADA<br>CLASIFICATORIA DIARIA</span></button></div><div id="liveSearchingPlayers" style="width:94%;max-width:760px;margin:8px auto 12px"></div><div class="dynamic-area" id="dynamicArea" hidden><input id="dynamicVideoInput" type="file" accept="video/*" hidden><small id="dynamicStatus"></small></div><div class="ikar-moderator-area" id="ikarModeratorArea" hidden><button type="button" class="ikar-moderator-btn" id="ikarModeratorBtn">MODERAR</button></div><div class="players-playing-row" id="playersOnlineNow" hidden><span class="online-player-dot"></span><strong id="playersOnlineCount">0</strong><span>JUGADORES JUGANDO</span></div><div class="dashboard-menu-grid" id="dashboardMenuGrid">
 <button type="button" class="dashboard-menu-tile" data-menu="reglas"><img src="Botones/Reglasdebajodejugar.png" alt="REGLAS"></button>
 <button type="button" class="dashboard-menu-tile" data-menu="regalos"><img src="Botones/Regalosdebajodejugar.png" alt="REGALOS"></button>
 <button type="button" class="dashboard-menu-tile" data-menu="premio"><img src="Botones/Premiosdebajodejugar.png" alt="PREMIO"></button>
