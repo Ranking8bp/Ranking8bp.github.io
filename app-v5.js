@@ -3233,7 +3233,7 @@ async function dailyLoadLeaderboard(){
 }
 function dailyStopPolling(){dailySearching=false;clearTimeout(dailyPoll);dailyPoll=null}
 async function dailyClose(){
- dailyStopPolling();if(!dailyMatchId){try{await dailyRpc('daily_classification_cancel_search')}catch(e){console.warn(e)}}
+ dailyStopPolling();dailyEl('dailyMatchSearching').hidden=true;if(!dailyMatchId){try{await dailyRpc('daily_classification_cancel_search')}catch(e){console.warn(e)}}
  dailyEl('dailyMatchModal').hidden=true;await dailyRefreshStatus();
 }
 function dailyAction(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',fn);dailyEl('dailyMatchActions').appendChild(b)}
@@ -3244,7 +3244,7 @@ async function dailyShowRoom(){
  const me=m.my_id===m.player1_id?1:2;const mine=me===1?m.player1_claim:m.player2_claim;
  const other=me===1?m.player2_name:m.player1_name;const otherId=me===1?m.player2_game_id:m.player1_game_id;
  dailyEl('dailyMatchTitle').textContent='CLASIFICATORIA DIARIA · MESA MIAMI';
- const content=dailyEl('dailyMatchContent'),actions=dailyEl('dailyMatchActions');actions.replaceChildren();
+ const content=dailyEl('dailyMatchContent'),actions=dailyEl('dailyMatchActions');dailyEl('dailyMatchSearching').hidden=true;actions.replaceChildren();
  if(m.status==='finished'){content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
  if(m.status==='disputed'){content.textContent='RESULTADO EN REVISIÓN: AMBOS JUGADORES DECLARARON EL MISMO RESULTADO. CONTACTA AL ADMINISTRADOR.';return}
  content.textContent='RIVAL: '+other+' · ID: '+(otherId||'NO REGISTRADO')+' · JUEGA EN MIAMI. ¡GRABA TU PARTIDA!';
@@ -3263,8 +3263,8 @@ async function dailySearchLoop(){
  try{
  const st=await dailyRpc('daily_classification_find');
  if(st.state==='matched'&&st.match_id){dailyMatchId=st.match_id;dailySearching=false;await dailyShowRoom();return}
- dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';
- }catch(e){dailyStopPolling();dailyEl('dailyMatchContent').textContent='NO SE PUDO BUSCAR RIVAL: '+e.message;return}
+ dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchSearching').hidden=false;
+ }catch(e){dailyStopPolling();dailyEl('dailyMatchSearching').hidden=true;dailyEl('dailyMatchContent').textContent='NO SE PUDO BUSCAR RIVAL: '+e.message;return}
  dailyPoll=setTimeout(dailySearchLoop,3000);
 }
 window.startDailyClassification=async function(){
@@ -3275,7 +3275,7 @@ window.startDailyClassification=async function(){
  if(st.remaining<=0){alert('YA JUGASTE LOS 15 PARTIDOS DE HOY.');return}
  dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyMatchActions').replaceChildren();
  if(st.match_id){dailyMatchId=st.match_id;await dailyShowRoom();return}
- dailyMatchId=null;dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailySearching=true;await dailySearchLoop()
+ dailyMatchId=null;dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchSearching').hidden=false;dailySearching=true;await dailySearchLoop()
  }catch(e){alert('ERROR AL INICIAR CLASIFICATORIA: '+e.message)}
 };
 document.addEventListener('click',e=>{
