@@ -2492,7 +2492,9 @@ async function sharePrivateRankedInvite(){
   const token=String(data||'');if(!token)throw new Error('INVITE_NOT_CREATED');
   privateInviteToken=token;const url=new URL(location.href);url.search='';url.hash='';url.searchParams.set('invite',token);
   const link=url.toString();
-  try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(link)}else{const el=document.createElement('textarea');el.value=link;el.style.position='fixed';el.style.opacity='0';document.body.appendChild(el);el.select();const ok=document.execCommand('copy');el.remove();if(!ok)throw new Error('COPY_FAILED')}showToast('¡LINK DE SALA PRIVADA COPIADO!')}catch(copyError){prompt('COPIA EL LINK DE TU SALA PRIVADA:',link)}
+  const inviterName=String(currentProfile?.account_name||currentProfile?.username||currentUser?.user_metadata?.account_name||'Un jugador').trim();
+  const invitationText=inviterName+' te está buscando rival para jugar partido por RANKING. Toca el link de abajo para JUGAR CON ÉL:\n'+link;
+  try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(invitationText)}else{const el=document.createElement('textarea');el.value=invitationText;el.style.position='fixed';el.style.opacity='0';document.body.appendChild(el);el.select();const ok=document.execCommand('copy');el.remove();if(!ok)throw new Error('COPY_FAILED')}showToast('¡LINK DE SALA PRIVADA COPIADO!')}catch(copyError){prompt('COPIA LA INVITACIÓN DE TU SALA PRIVADA:',invitationText)}
   stopPrivateInvitePoll();privateInvitePollTimer=setInterval(()=>pollPrivateInvite(token),2000);pollPrivateInvite(token);
  }catch(e){console.error('Crear invitación:',e);showToast(String(e?.message||'').includes('ACTIVE_MATCH')?'Ya tienes un VS activo.':'No se pudo crear la invitación.')}finally{dashboardShareBtn.disabled=false}
 }
