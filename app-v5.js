@@ -3709,7 +3709,12 @@ async function dailyUploadVictoryVideo(){
  // Native label opens the input after this synchronous click handler prepares onchange.
 }
 async function dailySubmitClaim(claim){
- if(!dailyMatchId||dailyBusy)return;dailyBusy=true;
+ if(!dailyMatchId||dailyBusy)return;
+ // El chat NUNCA registra derrotas: PERDÍ requiere una confirmación explícita.
+ const confirmedMatchId=Number(dailyMatchId);
+ if(claim==='lost'&&!confirm('¿CONFIRMAS QUE PERDISTE ESTE PARTIDO DE CLASIFICATORIA DIARIA?\n\nSI CONFIRMAS, TU RIVAL GANARÁ AUTOMÁTICAMENTE Y SE SUMARÁN SUS PUNTOS.'))return;
+ if(confirmedMatchId!==Number(dailyMatchId)||dailyEl('dailyMatchModal')?.hidden)return;
+ dailyBusy=true;
  try{await dailyRpc('daily_classification_claim',{p_match_id:dailyMatchId,p_claim:claim});dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();await dailyRefreshGlobalRanking()}
  catch(e){alert('No se pudo enviar el resultado: '+e.message)}finally{dailyBusy=false}
 }
@@ -3870,6 +3875,7 @@ document.addEventListener('click',async e=>{
  if(e.target.closest('#dailyCopyMyId')){navigator.clipboard?.writeText(dailyEl('dailyMyGameId').textContent);return}
  if(e.target.closest('#dailyCopyOpponentId')){navigator.clipboard?.writeText(dailyEl('dailyOpponentGameId').textContent);return}
  if(!e.target.closest('#dailyChatSend'))return;
+ e.preventDefault();e.stopPropagation();
  const input=dailyEl('dailyChatInput'),body=input?.value.trim();if(!body||!dailyMatchId)return;
  try{await dailyRpc('daily_classification_send_chat',{p_match_id:dailyMatchId,p_body:body});input.value='';await dailyLoadChat();await dailyShowRoom()}catch(err){alert('NO SE PUDO ENVIAR EL MENSAJE: '+err.message)}
 });
