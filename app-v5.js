@@ -3106,7 +3106,7 @@ if(liveStatus==='review'){
  const chatSend=document.getElementById('freshChatSend');if(chatSend)chatSend.disabled=false;
  const resultStatus=document.getElementById('freshResultStatus');if(resultStatus&&!resultStatus.textContent)resultStatus.textContent='Tu rival envió evidencia. Indica GANÉ, PERDÍ o NADIE HIZO TRICKSHOT.';
 }
-if(!['matched','review'].includes(liveStatus)){clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;if(Number(freshRoomMatchId)===Number(checkingId))freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS ANULADO. Ambos jugadores quedaron libres.');return}if(!document.hidden){await loadFreshRankedChat();await restorePersistentFreshRoom(checkingId)}}catch(e){console.error('Estado sala:',e)}},2000);
+if(!['matched','review'].includes(liveStatus)){clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);freshRoomTimer=null;freshRoomChatPoll=null;if(Number(freshRoomMatchId)===Number(checkingId))freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS ANULADO. Ambos jugadores quedaron libres.');return}if(!document.hidden)await loadFreshRankedChat()}catch(e){console.error('Estado sala:',e)}},2000);
 }
 window.abandonFreshVsNow=async function(btn){
  if(!freshRoomMatchId)return;
@@ -3267,11 +3267,9 @@ async function dailyRefreshStatus(){
  const btn=dailyEl('dailyClassificationPlayBtn');
  const canReturn=Boolean(st.match_id&&!st.my_claim&&st.status==='matched');
  if(btn){
-  const label=dailyEl('dailyMatchCountLabel');
-  const em=label?.querySelectorAll('em');
-  if(em?.[0])em[0].textContent=String(Math.min(15,Math.max(0,Number(st.played)||0)));
-  if(em?.[1])em[1].textContent='15';
-  btn.textContent=canReturn?'REGRESAR A LA SALA':'JUGAR';
+  const em=btn.querySelectorAll('em');
+  if(em[0])em[0].textContent=canReturn?'REGRESAR A LA SALA':String(Math.min(15,(st.played||0)+1));
+  if(em[1])em[1].textContent=canReturn?'':'15';
   btn.dataset.returnRoom=canReturn?'1':'0';
   btn.disabled=!canReturn&&st.remaining===0;
   btn.style.opacity=btn.disabled?'.55':'1';
@@ -3305,6 +3303,138 @@ async function dailyLoadLeaderboard(){
   const remaining=document.createElement('strong');remaining.className='daily-leaderboard-remaining';remaining.textContent=String(r.remaining??0)+'/15';
   item.append(position,player,country,points,remaining);el.appendChild(item);
  })
+ }catch(e){console.error(e);el.textContent='NO SE PUDO CARGAR LA CLASIFICATORIA DIARIA.'}
+}
+function dailyStopPolling(){dailySearching=false;clearTimeout(dailyPoll);dailyPoll=null}
+async function dailyClose(){
+ dailyStopPolling();dailyEl('dailyMatchSearching').hidden=true;if(!dailyMatchId){try{await dailyRpc('daily_classification_cancel_search')}catch(e){console.warn(e)}}
+ dailyEl('dailyMatchModal').hidden=true;await dailyRefreshStatus();
+}
+function dailyAction(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',fn);dailyEl('dailyMatchActions').appendChild(b)}
+let dailyEvidenceMatchId=null;
+let dailyRoomRenderBusy=false;
+let dailyRoomRefreshTimer=null;
+function dailyEnsureRoomRefresh(){if(dailyRoomRefreshTimer)return;dailyRoomRefreshTimer=setInterval(()=>{if(dailyMatchId&&!dailyEl('dailyMatchModal')?.hidden)dailyShowRoom()},2000)}
+
+let dailyRoomRenderedMatchId=null;
+async function dailyShowRoom(){
+ if(!dailyMatchId||dailyEl('dailyMatchModal').hidden||dailyRoomRenderBusy)return;
+ dailyRoomRenderBusy=true;
+ dailyEnsureRoomRefresh();
+ try{
+ const renderingMatchId=Number(dailyMatchId);
+ const m=await dailyRpc('daily_classification_room',{p_match_id:renderingMatchId});
+ if(Number(dailyMatchId)!==renderingMatchId||dailyEl('dailyMatchModal').hidden)return;
+ if(dailyRoomRenderedMatchId!==renderingMatchId){const a=dailyEl('dailyMatchActions');a.replaceChildren();a.dataset.ready='0';a.hidden=false;dailyEvidenceMatchId=null}
+ const me=m.my_id===m.player1_id?1:2;const mine=me===1?m.player1_claim:m.player2_claim;
+ const other=me===1?m.player2_name:m.player1_name;const otherId=me===1?m.player2_game_id:m.player1_game_id;
+ const firstRoomPaint=dailyRoomRenderedMatchId!==renderingMatchId;
+ dailyEl('dailyMatchTitle').textContent='CLASIFICATORIA DIARIA · MESA MIAMI';
+ const content=dailyEl('dailyMatchContent'),actions=dailyEl('dailyMatchActions');if(!dailyEl('dailyMatchSearching').hidden)dailyEl('dailyMatchSearching').hidden=true;
+ if(dailyEl('dailyMatchVs').hidden)dailyEl('dailyMatchVs').hidden=false;
+ const myName=me===1?m.player1_name:m.player2_name;
+ const myId=me===1?m.player1_game_id:m.player2_game_id;
+ const minePrefix=me===1?'player1':'player2',opPrefix=me===1?'player2':'player1';
+ if(firstRoomPaint){dailyEl('dailyMyName').textContent=myName||'TÚ';dailyEl('dailyOpponentName').textContent=other||'RIVAL';
+ dailyEl('dailyMyGameId').textContent=myId||'NO REGISTRADO';dailyEl('dailyOpponentGameId').textContent=otherId||'NO REGISTRADO';
+ dailyEl('dailyMyRank').textContent=m[minePrefix+'_rank']||'LATÓN';
+ dailyEl('dailyOpponentRank').textContent=m[opPrefix+'_rank']||'LATÓN';
+ dailyEl('dailyMyElo').textContent='ELO '+(m[minePrefix+'_elo']??0);
+ dailyEl('dailyOpponentElo').textContent='ELO '+(m[opPrefix+'_elo']??0);
+ dailyEl('dailyMyPosition').textContent='CLASIFICATORIA DIARIA';
+ dailyEl('dailyOpponentPosition').textContent='CLASIFICATORIA DIARIA';}
+ const avatar=(id,path,name)=>{const el=dailyEl(id);if(!el)return;el.replaceChildren();const fallback=()=>{el.replaceChildren();const t=document.createElement('span');t.textContent=String(name||'?').slice(0,1).toUpperCase();el.appendChild(t)};if(!path){fallback();return}let src=path;if(!/^https?:\/\//i.test(path)){const clean=String(path).replace(/^profile-photos\//,'').replace(/^\/+/, '');src=supabaseClient.storage.from('profile-photos').getPublicUrl(clean).data.publicUrl}const img=document.createElement('img');img.src=src;img.alt=name||'Jugador';img.onerror=fallback;el.appendChild(img)};
+ if(firstRoomPaint){avatar('dailyMyAvatar',m[minePrefix+'_avatar_path'],myName);
+ avatar('dailyOpponentAvatar',m[opPrefix+'_avatar_path'],other);}
+ const rankBadge=dailyEl('dailyOpponentRankBadge');if(firstRoomPaint&&rankBadge&&typeof renderRankBadgeOn==='function')renderRankBadgeOn(rankBadge,Number(m[opPrefix+'_elo'])||0);
+ dailyRoomRenderedMatchId=renderingMatchId;
+ // Chat has its own polling; do not repaint it from the room polling.
+ const exitNotice=await dailyRpc('daily_classification_exit_notice',{p_match_id:renderingMatchId});
+ if(Number(dailyMatchId)!==renderingMatchId||dailyEl('dailyMatchModal').hidden)return;
+ const chatBox=dailyEl('dailyRankedChat');
+ if(exitNotice?.left){
+  if(chatBox)chatBox.hidden=true;
+  const name=exitNotice.name||'TU RIVAL';
+  const msg=exitNotice.action==='won_video'?name+' TOCÓ GANÉ, SUBIÓ PRUEBAS Y SALIÓ DEL CHAT.':exitNotice.action==='forgot'?name+' TOCÓ GANÉ, LUEGO OLVIDÉ GRABAR Y SALIÓ DEL CHAT.':exitNotice.action==='lost'?name+' TOCÓ PERDÍ Y SALIÓ DEL CHAT.':exitNotice.action==='none'?name+' TOCÓ NADIE HIZO TRICKSHOT CON LA 8 Y SALIÓ DEL CHAT.':name+' SALIÓ DEL CHAT.';
+  let notice=dailyEl('dailyOpponentExitNotice');if(!notice){notice=document.createElement('div');notice.id='dailyOpponentExitNotice';notice.className='daily-opponent-exit-notice';chatBox?.insertAdjacentElement('afterend',notice)}
+  if(notice)notice.textContent=msg;
+ }else{if(chatBox)chatBox.hidden=false;const notice=dailyEl('dailyOpponentExitNotice');if(notice)notice.remove()}
+
+ const evidenceBox=dailyEl('dailyEvidenceBox');if(evidenceBox&&dailyEvidenceMatchId!==renderingMatchId)evidenceBox.hidden=true;
+ if(dailyEvidenceMatchId===renderingMatchId&&evidenceBox&&!evidenceBox.hidden){return}
+
+ if(m.status==='finished'){actions.replaceChildren();content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
+ if(m.status==='cancelled'){actions.replaceChildren();content.textContent='VS ANULADO: NINGUNO HIZO TRICKSHOT.';dailyMatchId=null;await dailyRefreshStatus();return}
+ if(m.status==='disputed'){actions.replaceChildren();content.textContent='RESULTADO EN REVISIÓN: AMBOS JUGADORES DECLARARON EL MISMO RESULTADO. CONTACTA AL ADMINISTRADOR.';return}
+ if(content.textContent)content.textContent='';
+ if(mine){actions.replaceChildren();content.textContent+=' · YA ENVIASTE TU RESULTADO. ESPERANDO AL RIVAL.'}
+ else{
+ const chatRows=await dailyRpc('daily_classification_get_chat',{p_match_id:renderingMatchId});
+ if(Number(dailyMatchId)!==renderingMatchId||dailyEl('dailyMatchModal').hidden)return;
+ const senders=new Set((chatRows||[]).map(x=>String(x.sender_id)));
+ if(senders.has(String(m.player1_id))&&senders.has(String(m.player2_id))){
+  const extraAbandon=dailyEl('dailyMatchActions')?.querySelectorAll('button');extraAbandon?.forEach(b=>{if(/ABANDONAR/i.test(b.textContent||''))b.remove()});
+  if(actions.dataset.ready!=='1'||actions.children.length!==3){
+   actions.replaceChildren();dailyAction('🏆 GANÉ',dailyChooseVictoryVideo);
+   dailyAction('PERDÍ',()=>dailySubmitClaim('lost'));
+   dailyAction('NADIE HIZO TRICKSHOT CON LA 8',()=>dailySubmitClaim('none'));
+   actions.dataset.ready='1';
+  }
+ }else{
+  if(actions.dataset.ready!=='abandon'||actions.children.length!==1){actions.replaceChildren();dailyAction('ABANDONAR VS',dailyAbandonBeforeChat);actions.dataset.ready='abandon'}
+  if(content.textContent!=='ESPERANDO MENSAJES DE AMBOS JUGADORES...')content.textContent='ESPERANDO MENSAJES DE AMBOS JUGADORES...';
+ }
+}
+ // Room updates are handled by a dedicated timer, including private invitations.
+ }catch(e){console.error(e);dailyEl('dailyMatchContent').textContent='ERROR AL CARGAR EL PARTIDO: '+e.message}
+ finally{dailyRoomRenderBusy=false}
+}
+async function dailyAbandonBeforeChat(){
+ if(!dailyMatchId||dailyBusy)return;
+ if(!confirm('¿ABANDONAR ESTE VS? SE ANULARÁ LA PARTIDA PARA AMBOS JUGADORES.'))return;
+ dailyBusy=true;
+ try{await dailyRpc('daily_classification_abandon_before_chat',{p_match_id:dailyMatchId});dailyStopPolling();dailyMatchId=null;dailyEl('dailyMatchModal').hidden=true;await dailyRefreshStatus()}
+ catch(e){alert('NO SE PUDO ABANDONAR: '+e.message);await dailyShowRoom()}
+ finally{dailyBusy=false}
+}
+async function dailyChooseVictoryVideo(){
+ if(!dailyMatchId||dailyBusy)return;
+ dailyEvidenceMatchId=Number(dailyMatchId);
+ const box=dailyEl('dailyEvidenceBox');if(box)box.hidden=false;
+ const status=dailyEl('dailyEvidenceStatus');if(status)status.textContent='';
+ const actions=dailyEl('dailyMatchActions');if(actions)actions.hidden=true;
+ dailyEl('dailyEvidenceSelect')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+async function dailyUploadVictoryVideo(){
+ if(!dailyMatchId||dailyBusy)return;
+ let input=document.getElementById('dailyVictoryVideoInput');
+ if(!input){input=document.createElement('input');input.type='file';input.id='dailyVictoryVideoInput';input.accept='video/*';input.style.display='none';document.body.appendChild(input)}
+ input.value='';
+ input.onchange=async()=>{
+  const file=input.files?.[0];if(!file)return;
+  dailyBusy=true;
+  const actions=dailyEl('dailyMatchActions'),content=dailyEl('dailyMatchContent');
+  const buttons=[...actions.querySelectorAll('button')];buttons.forEach(b=>b.disabled=true);
+  let url;
+  try{
+   if(!file.type.startsWith('video/'))throw Error('SELECCIONA UN VIDEO');
+   url=URL.createObjectURL(file);
+   const video=document.createElement('video');video.preload='metadata';video.src=url;
+   const duration=await new Promise((resolve,reject)=>{video.onloadedmetadata=()=>resolve(video.duration);video.onerror=()=>reject(Error('NO SE PUDO LEER LA DURACIÓN DEL VIDEO'));setTimeout(()=>reject(Error('NO SE PUDO COMPROBAR LA DURACIÓN DEL VIDEO')),15000)});
+   if(!Number.isFinite(duration)||duration<=0||duration>60)throw Error('EL VIDEO DEBE DURAR MÁXIMO 1 MINUTO');
+   if(file.size>100*1024*1024)throw Error('EL VIDEO SUPERA LOS 100 MB');
+   const matchId=Number(dailyMatchId);
+   const userId=currentUser.id;
+   const safeExt=(file.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp4';
+   const path=userId+'/'+matchId+'-'+Date.now()+'.'+safeExt;
+   const status=dailyEl('dailyEvidenceStatus');if(status)status.textContent='SUBIENDO VIDEO DE VICTORIA...';
+   const {error:uploadError}=await supabaseClient.storage.from('daily-vs-evidence').upload(path,file,{contentType:file.type||'video/mp4',upsert:false});
+   if(uploadError)throw uploadError;
+   await dailyRpc('daily_classification_submit_evidence',{p_match_id:matchId,p_path:path,p_duration:duration});
+   await dailyRpc('daily_classification_leave',{p_match_id:matchId,p_action:'won_video'});
+   dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;
+   await dailyRefreshStatus();
+   alert('VIDEO ENVIADO. TU VICTORIA QUEDA PENDIENTE DE VALIDACIÓN.');
   }catch(e){alert('NO SE PUDO ENVIAR EL VIDEO: '+e.message);dailyEl('dailyEvidenceStatus').textContent='SELECCIONA UN VIDEO DE TU VICTORIA (MÁXIMO 1 MINUTO).'}
   finally{if(url)URL.revokeObjectURL(url);buttons.forEach(b=>b.disabled=false);dailyBusy=false}
  };
