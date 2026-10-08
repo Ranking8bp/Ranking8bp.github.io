@@ -3374,7 +3374,7 @@ document.addEventListener('click',async e=>{
  const token=await dailyRpc('daily_classification_create_invite');
  const link='https://ranking8bp.github.io/?dailyinvite='+encodeURIComponent(token);
  const name=currentProfile?.account_name||currentProfile?.username||'UN JUGADOR';
- const message=name+' ESTÁ BUSCANDO RIVAL PARA PARTIDO POR CLASIFICATORIA DIARIA. TOCA EL LINK DE ABAJO PARA JUGAR CON ÉL.\\n\\n'+link;
+ const message=name+' ESTÁ BUSCANDO RIVAL PARA PARTIDO POR CLASIFICATORIA DIARIA. TOCA EL LINK DE ABAJO PARA JUGAR CON ÉL.\n\n'+link;
  try{await navigator.clipboard.writeText(message)}catch(_){const input=document.createElement('textarea');input.value=message;document.body.appendChild(input);input.select();document.execCommand('copy');input.remove()}
  alert('LINK DE CLASIFICATORIA DIARIA COPIADO. COMPÁRTELO CON TU RIVAL.');
  clearInterval(dailyInvitePoll);dailyInvitePoll=setInterval(async()=>{try{const info=await dailyRpc('daily_classification_invite_info',{p_token:token});if(info.state==='used'&&info.match_id){clearInterval(dailyInvitePoll);dailyMatchId=Number(info.match_id);dailyEl('dailyMatchModal').hidden=false;await dailyShowRoom()}}catch(e){console.warn(e)}},3000);
