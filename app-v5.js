@@ -3250,10 +3250,17 @@ async function dailyShowRoom(){
  const myId=me===1?m.player1_game_id:m.player2_game_id;
  dailyEl('dailyMyName').textContent=myName||'TÚ';dailyEl('dailyOpponentName').textContent=other||'RIVAL';
  dailyEl('dailyMyGameId').textContent=myId||'NO REGISTRADO';dailyEl('dailyOpponentGameId').textContent=otherId||'NO REGISTRADO';
- dailyEl('dailyMyRank').textContent=String(currentProfile?.rank_name||'');
- dailyEl('dailyOpponentRank').textContent='MIAMI';
- dailyEl('dailyMyAvatar').textContent=String(myName||'?').slice(0,1).toUpperCase();
- dailyEl('dailyOpponentAvatar').textContent=String(other||'?').slice(0,1).toUpperCase();
+ const minePrefix=me===1?'player1':'player2',opPrefix=me===1?'player2':'player1';
+ dailyEl('dailyMyRank').textContent=m[minePrefix+'_rank']||'LATÓN';
+ dailyEl('dailyOpponentRank').textContent=m[opPrefix+'_rank']||'LATÓN';
+ dailyEl('dailyMyElo').textContent='ELO '+(m[minePrefix+'_elo']??0);
+ dailyEl('dailyOpponentElo').textContent='ELO '+(m[opPrefix+'_elo']??0);
+ dailyEl('dailyMyPosition').textContent='CLASIFICATORIA DIARIA';
+ dailyEl('dailyOpponentPosition').textContent='CLASIFICATORIA DIARIA';
+ const avatar=(id,path,name)=>{const el=dailyEl(id);if(!el)return;el.replaceChildren();const fallback=()=>{el.replaceChildren();const t=document.createElement('span');t.textContent=String(name||'?').slice(0,1).toUpperCase();el.appendChild(t)};if(!path){fallback();return}let src=path;if(!/^https?:\/\//i.test(path)){const clean=String(path).replace(/^profile-photos\//,'').replace(/^\/+/, '');src=supabaseClient.storage.from('profile-photos').getPublicUrl(clean).data.publicUrl}const img=document.createElement('img');img.src=src;img.alt=name||'Jugador';img.onerror=fallback;el.appendChild(img)};
+ avatar('dailyMyAvatar',m[minePrefix+'_avatar_path'],myName);
+ avatar('dailyOpponentAvatar',m[opPrefix+'_avatar_path'],other);
+ const rankBadge=dailyEl('dailyOpponentRankBadge');if(rankBadge&&typeof renderRankBadgeOn==='function')renderRankBadgeOn(rankBadge,Number(m[opPrefix+'_elo'])||0);
  dailyLoadChat();
 
  if(m.status==='finished'){content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
