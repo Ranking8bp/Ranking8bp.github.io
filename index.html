@@ -563,6 +563,8 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
 })();
 </script></head>
 <body>
+<div id="rankingReloadFallback" role="status" style="position:fixed;inset:0;z-index:2147483640;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:24px;text-align:center;background:#06121a;color:#fff;font:600 16px Arial,sans-serif"><div>RANKING8BP NO TERMINÓ DE CARGAR</div><button type="button" onclick="location.reload()" style="border:0;border-radius:12px;padding:14px 24px;background:#e4b34e;color:#101820;font-weight:800">REINTENTAR</button></div>
+<script>(function(){var done=false;var t=setTimeout(function(){if(!done){var el=document.getElementById('rankingReloadFallback');if(el)el.style.display='flex'}},12000);function ready(){done=true;clearTimeout(t);var el=document.getElementById('rankingReloadFallback');if(el)el.style.display='none'}window.addEventListener('load',ready,{once:true});window.addEventListener('pageshow',function(){if(document.readyState==='complete')ready()});})();</script>
   <main class="viewport-shell">
     <section class="site-canvas" id="siteCanvas">
       <header class="guest-topbar" id="guestTopbar" hidden>
