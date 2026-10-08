@@ -3457,7 +3457,7 @@ async function dailyLoadLeaderboard(previousDay=false){
    rankBadge.title='Ver insignia '+rank.name+' de '+String(r.player_name||'jugador');
    rankBadge.setAttribute('aria-label',rankBadge.title);
    renderRankBadgeOn(rankBadge,rank);
-   rankBadge.addEventListener('click',event=>{event.stopPropagation();openRankZoom(rank)});
+   rankBadge.addEventListener('click',event=>{event.stopPropagation();openRankZoom(rank);const stats=document.getElementById('rankZoomStats');if(stats)stats.textContent='ELO '+String(rankElo)});
    player.appendChild(rankBadge);
   }
   const country=document.createElement('span');country.className='daily-leaderboard-country';const flag=document.createElement('span');flag.textContent=getFlag(r.country)||'🌎';const countryName=document.createElement('span');countryName.textContent=r.country||'—';country.append(flag,countryName);
