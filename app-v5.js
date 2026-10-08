@@ -3264,6 +3264,7 @@ async function dailyRefreshStatus(){
  if(!currentUser||!supabaseClient)return;
  try{
  const st=await dailyRpc('daily_classification_status');
+ const countLabel=dailyEl('dailyMatchCountLabel');if(countLabel){const nums=countLabel.querySelectorAll('em');if(nums[0])nums[0].textContent=String(Math.min(15,Number(st.played)||0));if(nums[1])nums[1].textContent='15';}
  const btn=dailyEl('dailyClassificationPlayBtn');
  const canReturn=Boolean(st.match_id&&!st.my_claim&&st.status==='matched');
  if(btn){
@@ -3442,7 +3443,7 @@ async function dailyUploadVictoryVideo(){
 }
 async function dailySubmitClaim(claim){
  if(!dailyMatchId||dailyBusy)return;dailyBusy=true;
- try{await dailyRpc('daily_classification_claim',{p_match_id:dailyMatchId,p_claim:claim});dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus()}
+ try{await dailyRpc('daily_classification_claim',{p_match_id:dailyMatchId,p_claim:claim});dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard()}
  catch(e){alert('No se pudo enviar el resultado: '+e.message)}finally{dailyBusy=false}
 }
 async function dailySearchLoop(){
