@@ -3425,8 +3425,7 @@ async function dailyUploadVictoryVideo(){
   }catch(e){alert('NO SE PUDO ENVIAR EL VIDEO: '+e.message);dailyEl('dailyEvidenceStatus').textContent='SELECCIONA UN VIDEO DE TU VICTORIA (MÁXIMO 1 MINUTO).'}
   finally{if(url)URL.revokeObjectURL(url);buttons.forEach(b=>b.disabled=false);dailyBusy=false}
  };
- // The file input must be activated directly by the user's tap (mobile browsers).
- input.click();
+ // Native label opens the input after this synchronous click handler prepares onchange.
 }
 async function dailySubmitClaim(claim){
  if(!dailyMatchId||dailyBusy)return;dailyBusy=true;
