@@ -3356,12 +3356,14 @@ async function dailyShowRoom(){
  if(m.status==='cancelled'){actions.replaceChildren();content.textContent='VS ANULADO: NINGUNO HIZO TRICKSHOT.';dailyMatchId=null;await dailyRefreshStatus();return}
  if(m.status==='disputed'){actions.replaceChildren();content.textContent='RESULTADO EN REVISIÓN: AMBOS JUGADORES DECLARARON EL MISMO RESULTADO. CONTACTA AL ADMINISTRADOR.';return}
  if(content.textContent)content.textContent='';
+ content.hidden=!mine;
  if(mine){actions.replaceChildren();content.textContent+=' · YA ENVIASTE TU RESULTADO. ESPERANDO AL RIVAL.'}
  else{
  const chatRows=await dailyRpc('daily_classification_get_chat',{p_match_id:renderingMatchId});
  if(Number(dailyMatchId)!==renderingMatchId||dailyEl('dailyMatchModal').hidden)return;
  const senders=new Set((chatRows||[]).map(x=>String(x.sender_id)));
  if(senders.has(String(m.player1_id))&&senders.has(String(m.player2_id))){
+  content.hidden=false;
   const extraAbandon=dailyEl('dailyMatchActions')?.querySelectorAll('button');extraAbandon?.forEach(b=>{if(/ABANDONAR/i.test(b.textContent||''))b.remove()});
   if(actions.dataset.ready!=='1'||actions.children.length!==3){
    actions.replaceChildren();dailyAction('🏆 GANÉ',dailyChooseVictoryVideo);
@@ -3370,6 +3372,7 @@ async function dailyShowRoom(){
    actions.dataset.ready='1';
   }
  }else{
+  content.textContent='';content.hidden=true;
   if(actions.dataset.ready!=='abandon'||actions.children.length!==1){actions.replaceChildren();dailyAction('ABANDONAR VS',dailyAbandonBeforeChat);actions.dataset.ready='abandon'}
   // Sin mensaje de espera: evita saltos de altura mientras llegan los primeros chats.
   if(content.textContent)content.textContent='';
