@@ -3434,7 +3434,7 @@ async function dailyUploadVictoryVideo(){
    await dailyRpc('daily_classification_submit_evidence',{p_match_id:matchId,p_path:path,p_duration:duration});
    await dailyRpc('daily_classification_leave',{p_match_id:matchId,p_action:'won_video'});
    dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;
-   await dailyRefreshStatus();
+   await dailyRefreshStatus();await dailyLoadLeaderboard();
    alert('VIDEO ENVIADO. TU VICTORIA QUEDA PENDIENTE DE VALIDACIÓN.');
   }catch(e){alert('NO SE PUDO ENVIAR EL VIDEO: '+e.message);dailyEl('dailyEvidenceStatus').textContent='SELECCIONA UN VIDEO DE TU VICTORIA (MÁXIMO 1 MINUTO).'}
   finally{if(url)URL.revokeObjectURL(url);buttons.forEach(b=>b.disabled=false);dailyBusy=false}
