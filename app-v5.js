@@ -3297,14 +3297,16 @@ async function dailyClose(){
  dailyEl('dailyMatchModal').hidden=true;await dailyRefreshStatus();
 }
 function dailyAction(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',fn);dailyEl('dailyMatchActions').appendChild(b)}
+let dailyRoomRenderBusy=false;
 async function dailyShowRoom(){
- if(!dailyMatchId||dailyEl('dailyMatchModal').hidden)return;
+ if(!dailyMatchId||dailyEl('dailyMatchModal').hidden||dailyRoomRenderBusy)return;
+ dailyRoomRenderBusy=true;
  try{
  const m=await dailyRpc('daily_classification_room',{p_match_id:dailyMatchId});
  const me=m.my_id===m.player1_id?1:2;const mine=me===1?m.player1_claim:m.player2_claim;
  const other=me===1?m.player2_name:m.player1_name;const otherId=me===1?m.player2_game_id:m.player1_game_id;
  dailyEl('dailyMatchTitle').textContent='CLASIFICATORIA DIARIA · MESA MIAMI';
- const content=dailyEl('dailyMatchContent'),actions=dailyEl('dailyMatchActions');dailyEl('dailyMatchSearching').hidden=true;actions.replaceChildren();
+ const content=dailyEl('dailyMatchContent'),actions=dailyEl('dailyMatchActions');dailyEl('dailyMatchSearching').hidden=true;
  dailyEl('dailyMatchVs').hidden=false;
  const myName=me===1?m.player1_name:m.player2_name;
  const myId=me===1?m.player1_game_id:m.player2_game_id;
@@ -3323,22 +3325,26 @@ async function dailyShowRoom(){
  const rankBadge=dailyEl('dailyOpponentRankBadge');if(rankBadge&&typeof renderRankBadgeOn==='function')renderRankBadgeOn(rankBadge,Number(m[opPrefix+'_elo'])||0);
  dailyLoadChat();
 
- if(m.status==='finished'){content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
- if(m.status==='cancelled'){content.textContent='VS ANULADO: NINGUNO HIZO TRICKSHOT.';dailyMatchId=null;await dailyRefreshStatus();return}
- if(m.status==='disputed'){content.textContent='RESULTADO EN REVISIÓN: AMBOS JUGADORES DECLARARON EL MISMO RESULTADO. CONTACTA AL ADMINISTRADOR.';return}
+ if(m.status==='finished'){actions.replaceChildren();content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
+ if(m.status==='cancelled'){actions.replaceChildren();content.textContent='VS ANULADO: NINGUNO HIZO TRICKSHOT.';dailyMatchId=null;await dailyRefreshStatus();return}
+ if(m.status==='disputed'){actions.replaceChildren();content.textContent='RESULTADO EN REVISIÓN: AMBOS JUGADORES DECLARARON EL MISMO RESULTADO. CONTACTA AL ADMINISTRADOR.';return}
  content.textContent='';
- if(mine){content.textContent+=' · YA ENVIASTE TU RESULTADO. ESPERANDO AL RIVAL.'}
+ if(mine){actions.replaceChildren();content.textContent+=' · YA ENVIASTE TU RESULTADO. ESPERANDO AL RIVAL.'}
  else{
  const chatRows=await dailyRpc('daily_classification_get_chat',{p_match_id:dailyMatchId});
  const senders=new Set((chatRows||[]).map(x=>String(x.sender_id)));
  if(senders.has(String(m.player1_id))&&senders.has(String(m.player2_id))){
-  dailyAction('🏆 GANÉ',()=>dailySubmitClaim('won'));
-  dailyAction('PERDÍ',()=>dailySubmitClaim('lost'));
-  dailyAction('NADIE HIZO TRICKSHOT CON LA 8',()=>dailySubmitClaim('none'));
- }else{content.textContent='AMBOS JUGADORES DEBEN ENVIAR UN MENSAJE PARA ACTIVAR LOS RESULTADOS.'}
+  if(actions.dataset.ready!=='1'||actions.children.length!==3){
+   actions.replaceChildren();dailyAction('🏆 GANÉ',()=>dailySubmitClaim('won'));
+   dailyAction('PERDÍ',()=>dailySubmitClaim('lost'));
+   dailyAction('NADIE HIZO TRICKSHOT CON LA 8',()=>dailySubmitClaim('none'));
+   actions.dataset.ready='1';
+  }
+ }else{actions.replaceChildren();actions.dataset.ready='0';content.textContent='AMBOS JUGADORES DEBEN ENVIAR UN MENSAJE PARA ACTIVAR LOS RESULTADOS.'}
 }
  if(!dailySearching){dailySearching=true;dailyPoll=setTimeout(async()=>{dailySearching=false;if(dailyMatchId&&!dailyEl('dailyMatchModal').hidden)await dailyShowRoom()},3000)}
  }catch(e){console.error(e);dailyEl('dailyMatchContent').textContent='ERROR AL CARGAR EL PARTIDO: '+e.message}
+ finally{dailyRoomRenderBusy=false}
 }
 async function dailySubmitClaim(claim){
  if(!dailyMatchId||dailyBusy)return;dailyBusy=true;
