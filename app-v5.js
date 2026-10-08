@@ -3425,6 +3425,7 @@ async function dailyUploadVictoryVideo(){
   }catch(e){alert('NO SE PUDO ENVIAR EL VIDEO: '+e.message);dailyEl('dailyEvidenceStatus').textContent='SELECCIONA UN VIDEO DE TU VICTORIA (MÁXIMO 1 MINUTO).'}
   finally{if(url)URL.revokeObjectURL(url);buttons.forEach(b=>b.disabled=false);dailyBusy=false}
  };
+ // The file input must be activated directly by the user's tap (mobile browsers).
  input.click();
 }
 async function dailySubmitClaim(claim){
@@ -3623,5 +3624,5 @@ document.getElementById('adminDailyProofsTab')?.addEventListener('click',()=>{
 document.getElementById('adminDailyProofsRefresh')?.addEventListener('click',loadAdminDailyProofs);
 for(const id of ['adminVsTab','adminPlayersTab','adminModerationTab'])document.getElementById(id)?.addEventListener('click',()=>{const el=document.getElementById('adminDailyProofsArea');if(el)el.hidden=true});
 
-document.getElementById('dailyEvidenceSelect')?.addEventListener('click',dailyUploadVictoryVideo);
+document.addEventListener('click',e=>{if(e.target.closest('#dailyEvidenceSelect'))dailyUploadVictoryVideo()});
 document.getElementById('dailyEvidenceForgot')?.addEventListener('click',async()=>{if(!dailyMatchId||dailyBusy)return;if(!confirm('¿SALIR SIN ENVIAR VIDEO? TU VICTORIA NO SERÁ VALIDADA.'))return;dailyBusy=true;try{await dailyRpc('daily_classification_leave',{p_match_id:dailyMatchId,p_action:'forgot'});dailyEvidenceMatchId=null;const box=dailyEl('dailyEvidenceBox');if(box)box.hidden=true;dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus()}catch(e){alert('NO SE PUDO SALIR: '+e.message)}finally{dailyBusy=false}});
