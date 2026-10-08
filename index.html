@@ -691,6 +691,7 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
  <div class="daily-winner-stage" id="dailyWinnerStage">
   <img class="daily-winner-background" src="Diaanterior.fondo.png?v=f9ebc2c5" alt="Presentación de ganador del día anterior" decoding="async">
   <img class="daily-winner-badge" id="dailyWinnerBadge" alt="" hidden>
+  <img class="daily-winner-smoke" id="dailyWinnerSmoke" src="capadehumodiaria.png?v=e3773fda" alt="" aria-hidden="true" decoding="async" draggable="false">
   <div class="daily-winner-avatar" id="dailyWinnerAvatarShell">
    <span id="dailyWinnerAvatarFallback">?</span><img id="dailyWinnerAvatar" alt="Foto del ganador" hidden>
   </div>
@@ -768,15 +769,25 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
 }
 #dailyRankingInfoModal .daily-winner-badge{
   position:absolute;
-  left:15.7%;top:25.7%;width:37%;height:52%;
+  left:8.95%;top:24.77%;width:50%;height:52%;
   object-fit:contain;
+  z-index:2;
   filter:drop-shadow(0 5px 12px #000b);
   pointer-events:none;
 }
 #dailyRankingInfoModal .daily-winner-badge[hidden]{display:none!important}
+#dailyRankingInfoModal .daily-winner-smoke{
+  position:absolute;
+  left:4.75%;top:17.34%;width:54%;height:76%;
+  object-fit:fill;
+  z-index:3;
+  pointer-events:none;
+  user-select:none;
+}
 #dailyRankingInfoModal .daily-winner-avatar{
   position:absolute;
   left:59.25%;top:19.18%;width:29.2%;aspect-ratio:1;
+  z-index:4;
   display:grid;place-items:center;
   overflow:hidden;border-radius:50%;
   background:#1a1210;color:#d6ad57;
@@ -795,6 +806,7 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
   font-family:Arial,Helvetica,sans-serif;font-weight:1000;line-height:1.03;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   text-shadow:0 2px 5px #000,0 1px 2px #000;
+  z-index:5;
 }
 #dailyRankingInfoModal .daily-winner-name{
   left:53.4%;top:51.8%;width:38.7%;height:6.2%;
@@ -817,7 +829,7 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
 }
 #dailyRankingInfoModal .daily-winner-message[hidden]{display:none!important}
 #dailyRankingInfoModal .daily-winner-close{
-  position:absolute;top:7.6%;right:2.3%;z-index:2;
+  position:absolute;top:7.6%;right:2.3%;z-index:6;
   display:grid;place-items:center;width:5%;min-width:23px;aspect-ratio:1;
   border:2px solid #f7ce64;border-radius:50%;padding:0;
   color:#fff;background:#a20a11;font-size:clamp(13px,3cqw,27px);line-height:1;cursor:pointer;
