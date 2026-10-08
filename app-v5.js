@@ -3420,8 +3420,11 @@ async function dailyRefreshGlobalRanking(){
 }
 async function dailyRpc(name,args){const {data,error}=await supabaseClient.rpc(name,args);if(error)throw error;return data;}
 let dailyPrivateWatchBusy=false;let dailyLastAutoOpenedMatchId=null;
+// Evitar que el sondeo de estado diario acumule peticiones mientras Supabase está saturado.
+let dailyStatusRefreshBusy=false;
 async function dailyRefreshStatus(){
- if(!currentUser||!supabaseClient)return;
+ if(!currentUser||!supabaseClient||dailyStatusRefreshBusy)return;
+ dailyStatusRefreshBusy=true;
  try{
  const st=await dailyRpc('daily_classification_status');
  const countLabel=dailyEl('dailyMatchCountLabel');if(countLabel){const nums=countLabel.querySelectorAll('em');if(nums[0])nums[0].textContent=String(Math.min(15,Number(st.played)||0));if(nums[1])nums[1].textContent='15';}
@@ -3446,6 +3449,7 @@ async function dailyRefreshStatus(){
   }finally{dailyPrivateWatchBusy=false}
  }
  }catch(e){console.warn('Daily status',e)}
+ finally{dailyStatusRefreshBusy=false}
 }
 
 let dailyWinnerLoadToken=0;
@@ -3614,7 +3618,7 @@ function dailyAction(label,fn){const b=document.createElement('button');b.type='
 let dailyEvidenceMatchId=null;
 let dailyRoomRenderBusy=false;
 let dailyRoomRefreshTimer=null;
-function dailyEnsureRoomRefresh(){if(dailyRoomRefreshTimer)return;dailyRoomRefreshTimer=setInterval(()=>{if(dailyMatchId&&!dailyEl('dailyMatchModal')?.hidden)dailyShowRoom()},2000)}
+function dailyEnsureRoomRefresh(){if(dailyRoomRefreshTimer)return;dailyRoomRefreshTimer=setInterval(()=>{if(!document.hidden&&dailyMatchId&&!dailyEl('dailyMatchModal')?.hidden)dailyShowRoom()},5000)}
 
 let dailyRoomRenderedMatchId=null;
 async function dailyShowRoom(){
@@ -3793,7 +3797,7 @@ document.addEventListener('click',e=>{
  window.startDailyClassification();
  }
 });
-setInterval(()=>{if(currentUser)dailyRefreshStatus()},3000);
+setInterval(()=>{if(currentUser&&!document.hidden)dailyRefreshStatus()},15000);
 
 
 /* Private invitation to daily classification: server validates both players. */
@@ -3875,8 +3879,10 @@ document.addEventListener('click',async e=>{
 });
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',dailyHandleInviteFromUrl);else dailyHandleInviteFromUrl();
 
+let dailyChatLoading=false;
 async function dailyLoadChat(){
- if(!dailyMatchId||!supabaseClient||dailyEl('dailyMatchModal')?.hidden)return;
+ if(!dailyMatchId||!supabaseClient||dailyEl('dailyMatchModal')?.hidden||dailyChatLoading)return;
+ dailyChatLoading=true;
  try{
  const rows=await dailyRpc('daily_classification_get_chat',{p_match_id:dailyMatchId});
  const box=dailyEl('dailyChatMessages');if(!box)return;
@@ -3901,8 +3907,9 @@ async function dailyLoadChat(){
  }
  if(document.activeElement!==dailyEl('dailyChatInput'))requestAnimationFrame(()=>{box.scrollTop=box.scrollHeight});
  }catch(e){console.warn('Chat diario',e)}
+ finally{dailyChatLoading=false}
 }
-setInterval(()=>{if(dailyMatchId&&!dailyEl('dailyMatchModal')?.hidden)dailyLoadChat()},2500);
+setInterval(()=>{if(!document.hidden&&dailyMatchId&&!dailyEl('dailyMatchModal')?.hidden)dailyLoadChat()},4000);
 
 document.addEventListener('click',async e=>{
  if(e.target.closest('#dailyCopyMyId')){navigator.clipboard?.writeText(dailyEl('dailyMyGameId').textContent);return}
