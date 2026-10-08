@@ -3315,13 +3315,13 @@ async function dailyShowRoom(){
  if(dailyRoomRenderedMatchId!==renderingMatchId){const a=dailyEl('dailyMatchActions');a.replaceChildren();a.dataset.ready='0';a.hidden=false;dailyEvidenceMatchId=null}
  const me=m.my_id===m.player1_id?1:2;const mine=me===1?m.player1_claim:m.player2_claim;
  const other=me===1?m.player2_name:m.player1_name;const otherId=me===1?m.player2_game_id:m.player1_game_id;
- const firstRoomPaint=dailyEl('dailyMatchVs').hidden||dailyRoomRenderedMatchId!==renderingMatchId;
+ const firstRoomPaint=dailyRoomRenderedMatchId!==renderingMatchId;
  dailyEl('dailyMatchTitle').textContent='CLASIFICATORIA DIARIA · MESA MIAMI';
  const content=dailyEl('dailyMatchContent'),actions=dailyEl('dailyMatchActions');dailyEl('dailyMatchSearching').hidden=true;
  dailyEl('dailyMatchVs').hidden=false;
  const myName=me===1?m.player1_name:m.player2_name;
  const myId=me===1?m.player1_game_id:m.player2_game_id;
- dailyEl('dailyMyName').textContent=myName||'TÚ';dailyEl('dailyOpponentName').textContent=other||'RIVAL';
+ if(firstRoomPaint){dailyEl('dailyMyName').textContent=myName||'TÚ';dailyEl('dailyOpponentName').textContent=other||'RIVAL';
  dailyEl('dailyMyGameId').textContent=myId||'NO REGISTRADO';dailyEl('dailyOpponentGameId').textContent=otherId||'NO REGISTRADO';
  const minePrefix=me===1?'player1':'player2',opPrefix=me===1?'player2':'player1';
  dailyEl('dailyMyRank').textContent=m[minePrefix+'_rank']||'LATÓN';
@@ -3329,13 +3329,13 @@ async function dailyShowRoom(){
  dailyEl('dailyMyElo').textContent='ELO '+(m[minePrefix+'_elo']??0);
  dailyEl('dailyOpponentElo').textContent='ELO '+(m[opPrefix+'_elo']??0);
  dailyEl('dailyMyPosition').textContent='CLASIFICATORIA DIARIA';
- dailyEl('dailyOpponentPosition').textContent='CLASIFICATORIA DIARIA';
+ dailyEl('dailyOpponentPosition').textContent='CLASIFICATORIA DIARIA';}
  const avatar=(id,path,name)=>{const el=dailyEl(id);if(!el)return;el.replaceChildren();const fallback=()=>{el.replaceChildren();const t=document.createElement('span');t.textContent=String(name||'?').slice(0,1).toUpperCase();el.appendChild(t)};if(!path){fallback();return}let src=path;if(!/^https?:\/\//i.test(path)){const clean=String(path).replace(/^profile-photos\//,'').replace(/^\/+/, '');src=supabaseClient.storage.from('profile-photos').getPublicUrl(clean).data.publicUrl}const img=document.createElement('img');img.src=src;img.alt=name||'Jugador';img.onerror=fallback;el.appendChild(img)};
  if(firstRoomPaint){avatar('dailyMyAvatar',m[minePrefix+'_avatar_path'],myName);
  avatar('dailyOpponentAvatar',m[opPrefix+'_avatar_path'],other);}
  const rankBadge=dailyEl('dailyOpponentRankBadge');if(firstRoomPaint&&rankBadge&&typeof renderRankBadgeOn==='function')renderRankBadgeOn(rankBadge,Number(m[opPrefix+'_elo'])||0);
  dailyRoomRenderedMatchId=renderingMatchId;
- dailyLoadChat();
+ // Chat has its own polling; do not repaint it from the room polling.
  const exitNotice=await dailyRpc('daily_classification_exit_notice',{p_match_id:renderingMatchId});
  if(Number(dailyMatchId)!==renderingMatchId||dailyEl('dailyMatchModal').hidden)return;
  const chatBox=dailyEl('dailyRankedChat');
@@ -3353,7 +3353,7 @@ async function dailyShowRoom(){
  if(m.status==='finished'){actions.replaceChildren();content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
  if(m.status==='cancelled'){actions.replaceChildren();content.textContent='VS ANULADO: NINGUNO HIZO TRICKSHOT.';dailyMatchId=null;await dailyRefreshStatus();return}
  if(m.status==='disputed'){actions.replaceChildren();content.textContent='RESULTADO EN REVISIÓN: AMBOS JUGADORES DECLARARON EL MISMO RESULTADO. CONTACTA AL ADMINISTRADOR.';return}
- content.textContent='';
+ if(content.textContent)content.textContent='';
  if(mine){actions.replaceChildren();content.textContent+=' · YA ENVIASTE TU RESULTADO. ESPERANDO AL RIVAL.'}
  else{
  const chatRows=await dailyRpc('daily_classification_get_chat',{p_match_id:renderingMatchId});
@@ -3437,7 +3437,7 @@ async function dailySearchLoop(){
  try{
  const st=await dailyRpc('daily_classification_find');
  if(st.state==='matched'&&st.match_id){dailyMatchId=st.match_id;dailySearching=false;await dailyShowRoom();return}
- dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchVs').hidden=true;dailyEl('dailyMatchSearching').hidden=false;
+ if(!dailyMatchId){dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchVs').hidden=true;dailyEl('dailyMatchSearching').hidden=false;}
  }catch(e){dailyStopPolling();dailyEl('dailyMatchSearching').hidden=true;dailyEl('dailyMatchContent').textContent='NO SE PUDO BUSCAR RIVAL: '+e.message;return}
  dailyPoll=setTimeout(dailySearchLoop,3000);
 }
@@ -3554,7 +3554,7 @@ async function dailyLoadChat(){
  const rows=await dailyRpc('daily_classification_get_chat',{p_match_id:dailyMatchId});
  const box=dailyEl('dailyChatMessages');if(!box)return;
  const oldLast=box.lastElementChild?.dataset.chatId;
- if(oldLast&&String(rows?.at(-1)?.id)===oldLast)return;
+ if((rows?.length||0)===box.children.length&&String(rows?.at(-1)?.id||'')===String(oldLast||''))return;
  box.replaceChildren();
  for(const m of rows||[]){
  const mine=String(m.sender_id)===String(currentUser?.id);
