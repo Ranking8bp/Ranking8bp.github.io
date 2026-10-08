@@ -3375,7 +3375,7 @@ async function dailyHandleInviteFromUrl(){
   const creatorId=String(info.creator_id||info.inviter_id||info.user_id||'');
   const creatorName=String(info.creator_name||'').trim().toLowerCase();
   const myName=String(currentProfile?.account_name||currentProfile?.username||'').trim().toLowerCase();
-  const isCreator=(creatorId&&creatorId===ownId)||(!creatorId&&creatorName&&myName&&creatorName===myName);
+  const isCreator=Boolean(creatorId&&creatorId===ownId);
   if(isCreator){
    dailyEl('dailyInviteModal').hidden=true;
    dailyEl('dailyMatchModal').hidden=false;
