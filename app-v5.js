@@ -3268,7 +3268,7 @@ async function dailyCheckDateRollover(){
  dailyDateRefreshBusy=true;
  try{
   if(currentUser&&supabaseClient)await dailyRefreshStatus();
-  if(dailyEl('dailyRankingModal')?.hidden===false||dailyEl('dailyRankingList')?.offsetParent!==null){
+  if(dailyEl('dailyRankingInfoModal')?.hidden===false){
    await dailyLoadLeaderboard(dailyEl('dailyPreviousResultsBtn')?.dataset.previousDay==='1');
   }
   dailyObservedDate=today;
@@ -3307,11 +3307,68 @@ async function dailyRefreshStatus(){
  }
  }catch(e){console.warn('Daily status',e)}
 }
+
+let dailyWinnerLoadToken=0;
+async function dailyLoadWinner(){
+ const token=++dailyWinnerLoadToken;
+ const name=dailyEl('dailyWinnerName'),position=dailyEl('dailyWinnerGlobalPosition');
+ const points=dailyEl('dailyWinnerPoints'),badge=dailyEl('dailyWinnerBadge');
+ const avatar=dailyEl('dailyWinnerAvatar'),initial=dailyEl('dailyWinnerAvatarFallback');
+ const message=dailyEl('dailyWinnerMessage');
+ if(name)name.textContent='CARGANDO...';
+ if(position)position.textContent='—';
+ if(points)points.textContent='—';
+ if(badge)badge.hidden=true;
+ if(avatar){avatar.hidden=true;avatar.removeAttribute('src');}
+ if(initial)initial.textContent='🎱';
+ if(message)message.hidden=true;
+ try{
+  const winner=await dailyRpc('daily_classification_previous_winner');
+  if(token!==dailyWinnerLoadToken||dailyEl('dailyPreviousResultsBtn')?.dataset.previousDay!=='1')return;
+  if(!winner||!winner.player_id){
+   if(name)name.textContent='SIN GANADOR';
+   if(message){message.textContent='NO HUBO JUGADORES CLASIFICADOS EL DÍA ANTERIOR.';message.hidden=false;}
+   return;
+  }
+  if(name){name.textContent=String(winner.player_name||'JUGADOR');name.title=name.textContent;}
+  if(position)position.textContent=Number(winner.global_position)>0?'#'+String(winner.global_position):'—';
+  if(points)points.textContent=String(Number(winner.points)||0);
+  if(badge){
+   const rank=getRankByElo(Number(winner.elo_points)||0);
+   badge.src=rank.image;badge.alt='Insignia '+rank.name+' del ganador';
+   badge.title=rank.name+' · ELO '+String(winner.elo_points);
+   badge.hidden=false;
+   badge.onerror=()=>{badge.hidden=true};
+  }
+  if(winner.avatar_path&&avatar){
+   try{
+    const url=await getCachedAvatarUrl(winner.avatar_path);
+    if(token!==dailyWinnerLoadToken||!url)return;
+    avatar.onload=()=>{if(token===dailyWinnerLoadToken&&initial)initial.hidden=true};
+    avatar.onerror=()=>{avatar.hidden=true;if(initial)initial.hidden=false};
+    if(initial)initial.hidden=false;
+    avatar.src=url;avatar.hidden=false;
+   }catch(e){console.warn('Foto del ganador:',e)}
+  }
+ }catch(e){
+  console.warn('Ganador del día anterior:',e);
+  if(token!==dailyWinnerLoadToken)return;
+  if(name)name.textContent='SIN DATOS';
+  if(message){message.textContent='NO SE PUDIERON CARGAR LOS RESULTADOS. INTÉNTALO DE NUEVO.';message.hidden=false;}
+ }
+}
+
 async function dailyLoadLeaderboard(previousDay=false){
  const el=dailyEl('dailyRankingList');if(!el||!supabaseClient)return;
+ const modal=dailyEl('dailyRankingInfoModal'),view=dailyEl('dailyWinnerView');
+ if(modal)modal.classList.toggle('is-previous-day',Boolean(previousDay));
+ if(view)view.hidden=!previousDay;
  const clock=dailyEl('dailyLeaderboardCountdown');if(clock)clock.hidden=Boolean(previousDay);
- const previousBtn=dailyEl('dailyPreviousResultsBtn');if(previousBtn){previousBtn.dataset.previousDay=previousDay?'1':'0';previousBtn.querySelector('img').alt=previousDay?'VOLVER A CLASIFICATORIA DE HOY':'RESULTADOS DEL DÍA ANTERIOR';}
- try{const rows=await dailyRpc(previousDay?'daily_classification_previous_leaderboard':'daily_classification_leaderboard');el.replaceChildren();if(!rows?.length){el.textContent='TODAVÍA NO HAY JUGADORES CLASIFICADOS HOY.';return}
+ const previousBtn=dailyEl('dailyPreviousResultsBtn');
+ if(previousBtn){previousBtn.dataset.previousDay=previousDay?'1':'0';const img=previousBtn.querySelector('img');if(img)img.alt=previousDay?'VOLVER A CLASIFICATORIA DE HOY':'RESULTADOS DEL DÍA ANTERIOR';}
+ if(previousDay){await dailyLoadWinner();return;}
+ ++dailyWinnerLoadToken;
+ try{const rows=await dailyRpc('daily_classification_leaderboard');el.replaceChildren();if(!rows?.length){el.textContent='TODAVÍA NO HAY JUGADORES CLASIFICADOS HOY.';return}
  rows.forEach((r,i)=>{
   const item=document.createElement('div');item.className='daily-leaderboard-row';item.dataset.playerId=String(r.player_id||'');
   if(i<3)item.classList.add('daily-leaderboard-podium','daily-leaderboard-podium-'+(i+1));
@@ -3492,6 +3549,8 @@ window.startDailyClassification=async function(){
 document.addEventListener('click',e=>{
  if(e.target.closest('#dailyRankingTableBtn'))dailyLoadLeaderboard(false);
  if(e.target.closest('#dailyPreviousResultsBtn')){const b=dailyEl('dailyPreviousResultsBtn');dailyLoadLeaderboard(b?.dataset.previousDay!=='1');}
+ if(e.target.closest('#dailyWinnerBackToToday')){dailyLoadLeaderboard(false);return}
+ if(e.target.closest('#dailyWinnerClose')){const modal=dailyEl('dailyRankingInfoModal');if(modal)modal.hidden=true;return}
  if(e.target.closest('#dailyMatchClose'))dailyClose();
  if(e.target.closest('#dailyClassificationPlayBtn')){
  if(!currentUser){alert('INICIA SESIÓN PARA PARTICIPAR.');return}
