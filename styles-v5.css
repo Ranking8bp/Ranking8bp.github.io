@@ -2637,3 +2637,5 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 #playerDashboard .daily-match-count-label span{color:#fff!important}
 #playerDashboard .daily-match-count-label em{font-style:normal!important;color:#ffd332!important}
 #playerDashboard .daily-match-count-label em:last-child{color:#32db63!important}
+
+#playerDashboard .daily-match-count-label strong{color:#ffd332!important;font:inherit!important;font-weight:900!important}
