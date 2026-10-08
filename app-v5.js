@@ -3272,7 +3272,7 @@ async function dailyRefreshStatus(){
   if(em[0])em[0].textContent=canReturn?'REGRESAR A LA SALA':String(Math.min(15,(st.played||0)+1));
   if(em[1])em[1].textContent=canReturn?'':'15';
   btn.dataset.returnRoom=canReturn?'1':'0';
-  btn.disabled=!canReturn&&st.remaining===0;
+  btn.disabled=false;btn.dataset.dailyLimitReached=(!canReturn&&Number(st.remaining)<=0)?'1':'0';btn.setAttribute('aria-disabled',btn.dataset.dailyLimitReached==='1'?'true':'false');
   btn.style.opacity=btn.disabled?'.55':'1';
  }
  if(st.match_id&&!st.my_claim&&dailyLastAutoOpenedMatchId!==Number(st.match_id)){dailyLastAutoOpenedMatchId=Number(st.match_id);dailyMatchId=Number(st.match_id);dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyInviteModal').hidden=true;await dailyShowRoom()}
@@ -3461,7 +3461,7 @@ window.startDailyClassification=async function(){
  try{
  const st=await dailyRpc('daily_classification_status');
  if(st.match_id&&!st.my_claim){dailyEl('dailyMatchModal').hidden=false;dailyMatchId=Number(st.match_id);await dailyShowRoom();return}
- if(st.remaining<=0){alert('YA JUGASTE LOS 15 PARTIDOS DE HOY.');return}
+ if(Number(st.remaining)<=0){alert('YA JUGASTE TUS 15 PARTIDOS DE CLASIFICACION DIARIA. LOS PARTIDOS EN REVISION SE ACTUALIZARÁN ANTES QUE TERMINE LA COMPETENCIA.');return}
  dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyMatchActions').replaceChildren();
  if(st.match_id){dailyMatchId=st.match_id;await dailyShowRoom();return}
  dailyMatchId=null;dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchSearching').hidden=false;dailySearching=true;await dailySearchLoop()
@@ -3474,6 +3474,7 @@ document.addEventListener('click',e=>{
  if(!currentUser){alert('INICIA SESIÓN PARA PARTICIPAR.');return}
  if(Number(currentProfile?.elo_points||0)<30){alert('NECESITAS AL MENOS 30 ELO PARA PARTICIPAR.');return}
  if(dailyEl('dailyClassificationPlayBtn')?.dataset.returnRoom==='1'){window.startDailyClassification();return}
+ if(dailyEl('dailyClassificationPlayBtn')?.dataset.dailyLimitReached==='1'){alert('YA JUGASTE TUS 15 PARTIDOS DE CLASIFICACION DIARIA. LOS PARTIDOS EN REVISION SE ACTUALIZARÁN ANTES QUE TERMINE LA COMPETENCIA.');return}
  const key='ranking8bp-daily-rules-ok-'+dailyDate();
  if(localStorage.getItem(key)!=='1'){dailyEl('dailyClassificationRulesModal').hidden=false;return}
  window.startDailyClassification();
