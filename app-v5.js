@@ -3245,6 +3245,17 @@ async function dailyShowRoom(){
  const other=me===1?m.player2_name:m.player1_name;const otherId=me===1?m.player2_game_id:m.player1_game_id;
  dailyEl('dailyMatchTitle').textContent='CLASIFICATORIA DIARIA · MESA MIAMI';
  const content=dailyEl('dailyMatchContent'),actions=dailyEl('dailyMatchActions');dailyEl('dailyMatchSearching').hidden=true;actions.replaceChildren();
+ dailyEl('dailyMatchVs').hidden=false;
+ const myName=me===1?m.player1_name:m.player2_name;
+ const myId=me===1?m.player1_game_id:m.player2_game_id;
+ dailyEl('dailyMyName').textContent=myName||'TÚ';dailyEl('dailyOpponentName').textContent=other||'RIVAL';
+ dailyEl('dailyMyGameId').textContent=myId||'NO REGISTRADO';dailyEl('dailyOpponentGameId').textContent=otherId||'NO REGISTRADO';
+ dailyEl('dailyMyRank').textContent=String(currentProfile?.rank_name||'');
+ dailyEl('dailyOpponentRank').textContent='MIAMI';
+ dailyEl('dailyMyAvatar').textContent=String(myName||'?').slice(0,1).toUpperCase();
+ dailyEl('dailyOpponentAvatar').textContent=String(other||'?').slice(0,1).toUpperCase();
+ dailyLoadChat();
+
  if(m.status==='finished'){content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
  if(m.status==='disputed'){content.textContent='RESULTADO EN REVISIÓN: AMBOS JUGADORES DECLARARON EL MISMO RESULTADO. CONTACTA AL ADMINISTRADOR.';return}
  content.textContent='RIVAL: '+other+' · ID: '+(otherId||'NO REGISTRADO')+' · JUEGA EN MIAMI. ¡GRABA TU PARTIDA!';
@@ -3263,7 +3274,7 @@ async function dailySearchLoop(){
  try{
  const st=await dailyRpc('daily_classification_find');
  if(st.state==='matched'&&st.match_id){dailyMatchId=st.match_id;dailySearching=false;await dailyShowRoom();return}
- dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchSearching').hidden=false;
+ dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchVs').hidden=true;dailyEl('dailyMatchSearching').hidden=false;
  }catch(e){dailyStopPolling();dailyEl('dailyMatchSearching').hidden=true;dailyEl('dailyMatchContent').textContent='NO SE PUDO BUSCAR RIVAL: '+e.message;return}
  dailyPoll=setTimeout(dailySearchLoop,3000);
 }
@@ -3326,3 +3337,19 @@ document.addEventListener('click',async e=>{
  }catch(e){alert(e.message.includes('MIN_30_ELO')?'NECESITAS AL MENOS 30 ELO.':e.message.includes('LIMIT_15')?'YA COMPLETASTE LOS 15 PARTIDOS DE HOY.':'NO SE PUDO CREAR EL LINK: '+e.message)}
 });
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',dailyHandleInviteFromUrl);else dailyHandleInviteFromUrl();
+
+async function dailyLoadChat(){
+ if(!dailyMatchId||!supabaseClient)return;
+ try{const rows=await dailyRpc('daily_classification_get_chat',{p_match_id:dailyMatchId});const box=dailyEl('dailyChatMessages');if(!box)return;
+ const atBottom=box.scrollHeight-box.scrollTop-box.clientHeight<90;box.replaceChildren();
+ for(const m of rows||[]){const el=document.createElement('div');el.className='daily-chat-message';el.style.cssText='padding:8px 10px;margin:5px 0;border-radius:10px;background:'+(m.sender_id===currentUser?.id?'#16456c':'#233346')+';color:white;overflow-wrap:anywhere';const name=document.createElement('strong');name.textContent=m.sender_name+': ';el.append(name,document.createTextNode(m.body));box.appendChild(el)}
+ if(atBottom)box.scrollTop=box.scrollHeight;
+ }catch(e){console.warn('Chat diario',e)}
+}
+document.addEventListener('click',async e=>{
+ if(e.target.closest('#dailyCopyMyId')){navigator.clipboard?.writeText(dailyEl('dailyMyGameId').textContent);return}
+ if(e.target.closest('#dailyCopyOpponentId')){navigator.clipboard?.writeText(dailyEl('dailyOpponentGameId').textContent);return}
+ if(!e.target.closest('#dailyChatSend'))return;
+ const input=dailyEl('dailyChatInput'),body=input?.value.trim();if(!body||!dailyMatchId)return;
+ try{await dailyRpc('daily_classification_send_chat',{p_match_id:dailyMatchId,p_body:body});input.value='';await dailyLoadChat()}catch(err){alert('NO SE PUDO ENVIAR EL MENSAJE: '+err.message)}
+});
