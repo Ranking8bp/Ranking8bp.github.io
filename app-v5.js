@@ -3321,9 +3321,9 @@ async function dailyShowRoom(){
  dailyEl('dailyMatchVs').hidden=false;
  const myName=me===1?m.player1_name:m.player2_name;
  const myId=me===1?m.player1_game_id:m.player2_game_id;
+ const minePrefix=me===1?'player1':'player2',opPrefix=me===1?'player2':'player1';
  if(firstRoomPaint){dailyEl('dailyMyName').textContent=myName||'TÚ';dailyEl('dailyOpponentName').textContent=other||'RIVAL';
  dailyEl('dailyMyGameId').textContent=myId||'NO REGISTRADO';dailyEl('dailyOpponentGameId').textContent=otherId||'NO REGISTRADO';
- const minePrefix=me===1?'player1':'player2',opPrefix=me===1?'player2':'player1';
  dailyEl('dailyMyRank').textContent=m[minePrefix+'_rank']||'LATÓN';
  dailyEl('dailyOpponentRank').textContent=m[opPrefix+'_rank']||'LATÓN';
  dailyEl('dailyMyElo').textContent='ELO '+(m[minePrefix+'_elo']??0);
@@ -3368,7 +3368,7 @@ async function dailyShowRoom(){
    actions.dataset.ready='1';
   }
  }else{
-  if(actions.dataset.ready!=='abandon'){actions.replaceChildren();dailyAction('ABANDONAR VS',dailyAbandonBeforeChat);actions.dataset.ready='abandon'}
+  if(actions.dataset.ready!=='abandon'||actions.children.length!==1){actions.replaceChildren();dailyAction('ABANDONAR VS',dailyAbandonBeforeChat);actions.dataset.ready='abandon'}
   if(content.textContent!=='ESPERANDO MENSAJES DE AMBOS JUGADORES...')content.textContent='ESPERANDO MENSAJES DE AMBOS JUGADORES...';
  }
 }
