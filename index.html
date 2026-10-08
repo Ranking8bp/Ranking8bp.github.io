@@ -1522,7 +1522,162 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
 <script>document.addEventListener('click',function(e){if(e.target.closest('#dailyRankingTableBtn')){document.getElementById('dailyRankingInfoModal').hidden=false;}if(e.target.closest('#dailyRankingInfoClose')){document.getElementById('dailyRankingInfoModal').hidden=true;}});</script>
 <script>(function(){const el=document.getElementById('dailyClassificationClock');if(!el)return;function refresh(){const now=new Date();const parts=new Intl.DateTimeFormat('es-MX',{timeZone:'America/Mexico_City',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now);const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));const secondsLeft=86400-(Number(p.hour)*3600+Number(p.minute)*60+now.getUTCSeconds());const h=Math.floor(secondsLeft/3600),m=Math.floor((secondsLeft%3600)/60),sec=secondsLeft%60;el.textContent='FINALIZA EN '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');const modalClock=document.getElementById('dailyLeaderboardCountdown');if(modalClock)modalClock.textContent=el.textContent;}refresh();setInterval(refresh,1000);})();</script>
 <style>.daily-play-area{width:94%;max-width:760px;margin:12px auto;display:flex;justify-content:center}.daily-classification-play-btn{width:100%;min-height:94px;border-radius:16px;border:3px solid #d6ac50;background:linear-gradient(145deg,#081422,#133c67 58%,#07131e);color:#fff;box-shadow:0 6px 20px #0008;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;cursor:pointer;font-weight:900;letter-spacing:.6px}.daily-classification-play-btn>span{font-size:clamp(12px,3vw,18px);color:#e8bc55}.daily-classification-play-btn>span b{color:white}.daily-classification-play-btn>strong{font-size:clamp(26px,7vw,42px);line-height:1.1}.daily-classification-play-btn em{font-style:normal;color:#f0bd48}.daily-classification-play-btn em:last-child{color:#43b9ff}</style>
-<div id="dailyClassificationRulesModal" class="daily-rules-overlay" hidden><div class="daily-rules-card" role="dialog" aria-modal="true" aria-labelledby="dailyRulesTitle"><h2 id="dailyRulesTitle">REGLA DE CLASIFICACIÓN DIARIA</h2><p>SE JUEGA EN LA MESA MIAMI, DEBES GANAR NORMAL METIENDO TODAS LAS BOLAS DIRECTAS O CON SAQUE DE ORO O EMPUJANDO LA 9 CON LA BOLA QUE TOCA METER, TAL COMO EL JUEGO LO PERMITE.</p><strong>¡GRABA TU PARTIDA!</strong><button type="button" id="dailyRulesOkBtn">OK</button></div></div><style>.daily-rules-overlay:not([hidden]){position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;padding:18px;background:#020915d9}.daily-rules-card{width:min(100%,440px);box-sizing:border-box;border:3px solid #d5aa49;border-radius:18px;background:linear-gradient(150deg,#071b32,#102b46);padding:24px 18px;text-align:center;color:#fff;box-shadow:0 15px 45px #0009}.daily-rules-card h2{font-size:23px;color:#ffd56a;margin:0 0 18px}.daily-rules-card p{font-size:17px;font-weight:750;line-height:1.5}.daily-rules-card strong{display:block;color:#54c5ff;font-size:22px;margin:18px 0}.daily-rules-card button{min-width:150px;padding:13px 30px;background:linear-gradient(#f8d978,#bc8329);border:0;border-radius:12px;color:#101821;font-size:22px;font-weight:900;cursor:pointer}</style><script>document.addEventListener('click',function(e){if(!e.target.closest('#dailyRulesOkBtn'))return;const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Mexico_City',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());const modal=document.getElementById('dailyClassificationRulesModal');const readingOnly=modal?.dataset.rulesOnly==='1';if(modal){modal.hidden=true;delete modal.dataset.rulesOnly;}if(readingOnly)return;try{localStorage.setItem('ranking8bp-daily-rules-ok-'+today,'1')}catch(_){}window.startDailyClassification?.();});</script>
+<div id="dailyClassificationRulesModal" class="daily-rules-overlay" hidden>
+ <section class="daily-rules-card" role="dialog" aria-modal="true" aria-labelledby="dailyRulesTitle" tabindex="-1">
+  <button type="button" id="dailyRulesCloseBtn" class="daily-rules-close" aria-label="Cerrar reglas">×</button>
+  <h2 id="dailyRulesTitle">REGLAS DE LA CLASIFICACIÓN DIARIA</h2>
+  <div class="daily-rules-general">
+   <p>– SE JUEGA EN LA MESA <span class="daily-rules-yellow">MIAMI</span></p>
+   <p>– DEBES <span class="daily-rules-red">GRABAR LA PANTALLA</span><span class="daily-rules-nextline">Y SUBIR LOS ÚLTIMOS <span class="daily-rules-yellow">50 SEGUNDOS</span></span></p>
+   <p>– SOLO JUEGAS <span class="daily-rules-red">15 PARTIDOS</span> DIARIOS</p>
+   <p>– POR CADA <span class="daily-rules-yellow">VICTORIA</span> RECIBES <span class="daily-rules-green">+45 ELO</span></p>
+   <p>– NO BAJAS <span class="daily-rules-green">ELO</span> POR LAS <span class="daily-rules-red">DERROTAS</span></p>
+  </div>
+  <h3>FORMAS VÁLIDAS DE GANAR</h3>
+  <div class="daily-rules-win-methods">
+   <p>– SE VALE GANAR DE SAQUE</p>
+   <p>– SE VALE EMPUJAR LA 9 CON OTRA BOLA</p>
+   <p>– SE PUEDE MOVER LA BOLA BLANCA</p>
+   <p>– GANAS SI TU RIVAL ABANDONA LA PARTIDA MIENTRAS ESTÁN JUGANDO</p>
+   <p>– GANAS SI ERES EL QUE METE LA BOLA 9</p>
+  </div>
+  <button type="button" id="dailyRulesOkBtn" class="daily-rules-understood">ENTENDIDO</button>
+ </section>
+</div>
+<style id="daily-classification-rules-poster">
+#dailyClassificationRulesModal.daily-rules-overlay[hidden]{display:none!important}
+#dailyClassificationRulesModal.daily-rules-overlay:not([hidden]){
+ position:fixed!important;inset:0!important;z-index:999999!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ overflow-y:auto!important;
+ padding:clamp(8px,2.3vw,18px)!important;
+ background:rgba(0,5,14,.87)!important;box-sizing:border-box!important;
+}
+#dailyClassificationRulesModal .daily-rules-card{
+ position:relative!important;
+ flex:0 1 auto!important;
+ width:min(96vw,612px)!important;
+ max-width:612px!important;
+ max-height:94dvh!important;
+ overflow-y:auto!important;
+ box-sizing:border-box!important;
+ padding:clamp(22px,5.2vw,42px) clamp(18px,6.3vw,44px) clamp(20px,4.5vw,34px)!important;
+ border:clamp(3px,.85vw,6px) solid #ffda62!important;
+ border-radius:clamp(28px,8vw,64px)!important;
+ background:#223b65!important;
+ box-shadow:0 18px 50px #000a!important;
+ color:#fff!important;
+ font-family:Arial,Helvetica,sans-serif!important;
+ text-align:left!important;
+ line-height:1.35!important;
+}
+#dailyClassificationRulesModal .daily-rules-card h2,
+#dailyClassificationRulesModal .daily-rules-card h3{
+ display:block!important;
+ text-align:center!important;
+ margin:0!important;
+ font-family:Arial,Helvetica,sans-serif!important;
+ color:#ffe033!important;
+ font-weight:900!important;
+ text-shadow:1px 1px 0 #a94b00,-1px -1px 0 #a94b00,1px -1px 0 #a94b00,-1px 1px 0 #a94b00,0 2px 3px #071025!important;
+}
+#dailyClassificationRulesModal .daily-rules-card h2{
+ font-size:clamp(16px,4vw,27px)!important;
+ white-space:normal!important;
+ padding:4px 15px!important;
+ margin-bottom:clamp(20px,4.5vw,38px)!important;
+ line-height:1.18!important;
+}
+#dailyClassificationRulesModal .daily-rules-card h3{
+ font-size:clamp(17px,4vw,26px)!important;
+ margin:clamp(21px,4.6vw,38px) 0 clamp(16px,4.5vw,34px)!important;
+}
+#dailyClassificationRulesModal .daily-rules-general p,
+#dailyClassificationRulesModal .daily-rules-win-methods p{
+ display:block!important;
+ color:#fff!important;
+ font-family:Arial,Helvetica,sans-serif!important;
+ font-size:clamp(13px,3.5vw,24px)!important;
+ font-weight:800!important;
+ line-height:1.3!important;
+ margin:0 0 clamp(14px,4.8vw,34px)!important;
+ letter-spacing:0!important;
+ word-break:normal!important;
+}
+#dailyClassificationRulesModal .daily-rules-general .daily-rules-nextline{
+ display:block!important;margin-top:2px!important;
+}
+#dailyClassificationRulesModal .daily-rules-general p:last-child,
+#dailyClassificationRulesModal .daily-rules-win-methods p:last-child{margin-bottom:0!important}
+#dailyClassificationRulesModal .daily-rules-win-methods p{
+ text-align:center!important;
+ font-size:clamp(12px,3.35vw,22px)!important;
+ margin-bottom:clamp(20px,5vw,38px)!important;
+}
+#dailyClassificationRulesModal .daily-rules-yellow{color:#ffff00!important}
+#dailyClassificationRulesModal .daily-rules-red{color:#ff2323!important}
+#dailyClassificationRulesModal .daily-rules-green{color:#85c83d!important}
+#dailyClassificationRulesModal .daily-rules-card .daily-rules-close{
+ display:grid!important;place-items:center!important;
+ position:absolute!important;right:clamp(8px,2.5vw,18px)!important;top:clamp(8px,2.5vw,16px)!important;
+ z-index:3!important;
+ width:clamp(28px,7vw,38px)!important;height:clamp(28px,7vw,38px)!important;
+ min-width:0!important;margin:0!important;padding:0!important;
+ border:2px solid #ffe38a!important;border-radius:50%!important;
+ background:#b20f19!important;color:#fff!important;
+ font-size:24px!important;font-weight:500!important;line-height:1!important;
+ cursor:pointer!important;
+}
+#dailyClassificationRulesModal .daily-rules-card .daily-rules-understood{
+ display:block!important;
+ min-width:150px!important;
+ max-width:220px!important;
+ width:55%!important;
+ margin:clamp(12px,4vw,30px) auto 0!important;
+ padding:10px 16px!important;
+ border:2px solid #fddd7c!important;border-radius:14px!important;
+ background:linear-gradient(180deg,#e7ad28,#ffdf69 55%,#d69721)!important;
+ color:#10213b!important;
+ font:900 clamp(14px,3.4vw,19px)/1.15 Arial,Helvetica,sans-serif!important;
+ cursor:pointer!important;
+}
+@media(max-width:420px){
+ #dailyClassificationRulesModal .daily-rules-card{
+  padding:35px 17px 18px!important;
+  border-radius:35px!important;
+ }
+ #dailyClassificationRulesModal .daily-rules-card h2{
+  padding:5px 18px!important;
+  margin-bottom:18px!important;
+  font-size:clamp(15px,4.3vw,18px)!important;
+ }
+ #dailyClassificationRulesModal .daily-rules-general p{margin-bottom:15px!important}
+ #dailyClassificationRulesModal .daily-rules-card h3{margin:23px 0 22px!important}
+ #dailyClassificationRulesModal .daily-rules-win-methods p{margin-bottom:23px!important}
+}
+</style>
+<script>
+document.addEventListener('click',function(e){
+ const modal=document.getElementById('dailyClassificationRulesModal');
+ if(!modal||modal.hidden)return;
+ if(e.target.closest('#dailyRulesCloseBtn')){
+  modal.hidden=true;delete modal.dataset.rulesOnly;return;
+ }
+ if(!e.target.closest('#dailyRulesOkBtn'))return;
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Mexico_City',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const readingOnly=modal.dataset.rulesOnly==='1';
+ modal.hidden=true;delete modal.dataset.rulesOnly;
+ if(readingOnly)return;
+ try{localStorage.setItem('ranking8bp-daily-rules-ok-'+today,'1')}catch(_){}
+ window.startDailyClassification?.();
+});
+document.addEventListener('keydown',function(e){
+ if(e.key!=='Escape')return;
+ const modal=document.getElementById('dailyClassificationRulesModal');
+ if(!modal||modal.hidden)return;
+ e.preventDefault();modal.hidden=true;delete modal.dataset.rulesOnly;
+});
+</script>
 <style>#dailyRankingInfoModal:not([hidden]){display:flex!important;position:fixed!important;inset:0!important;z-index:999990!important;align-items:center!important;justify-content:center!important;background:#020916d9!important;padding:12px!important;overflow-y:auto!important}#dailyRankingInfoModal .dashboard-info-card{width:min(100%,700px)!important;max-height:92vh!important;overflow-y:auto!important}#dailyRankingInfoModal .daily-ranking-card{margin:12px 0!important;width:100%!important;max-width:100%!important}#dailyRankingInfoModal .daily-ranking-header{display:grid!important;grid-template-columns:30px minmax(90px,1fr) 50px 70px 85px!important;gap:4px!important;font-size:11px!important}#dailyRankingInfoModal .daily-ranking-header span{min-width:0!important;text-align:center!important}#dailyRankingInfoModal .ranking-loading{text-align:center!important;padding:28px 6px!important}</style>
 <style>#dashboardMenuGrid .daily-ranking-menu-slot{min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:5px}#dashboardMenuGrid .daily-ranking-menu-slot .dashboard-menu-tile{flex:0 0 auto}#dashboardMenuGrid #dailyClassificationClock{display:block;min-height:16px;text-align:center;font-size:clamp(9px,1.9vw,13px);font-weight:900;letter-spacing:.1px;color:#f4cc65;white-space:nowrap;font-variant-numeric:tabular-nums;text-shadow:0 1px 4px #000}</style>
 <div id="dailyMatchModal" class="matchmaking-backdrop" hidden><section class="matchmaking-card daily-vs-card" role="dialog" aria-modal="true"><button type="button" class="matchmaking-close" id="dailyMatchClose" aria-label="Cerrar">×</button><div class="matchmaking-mode" id="dailyMatchTitle">CLASIFICATORIA DIARIA · MIAMI</div><div id="dailyMatchSearching" class="daily-match-searching" hidden><div class="matchmaking-spinner"></div><h2>BUSCANDO RIVAL</h2><p>Esperando otro jugador para jugar en Miami...</p></div><div id="dailyMatchVs" hidden>
