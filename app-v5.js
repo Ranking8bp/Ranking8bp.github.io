@@ -3274,7 +3274,7 @@ async function dailyRefreshStatus(){
   btn.style.opacity=btn.disabled?'.55':'1';
  }
  if(st.match_id&&!st.my_claim&&dailyLastAutoOpenedMatchId!==Number(st.match_id)){dailyLastAutoOpenedMatchId=Number(st.match_id);dailyMatchId=Number(st.match_id);dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyInviteModal').hidden=true;await dailyShowRoom()}
- if(st.match_id&&dailyEl('dailyMatchModal')?.hidden===false&&!st.my_claim){dailyMatchId=Number(st.match_id);if(!dailySearching)await dailyShowRoom()}
+ if(st.match_id&&dailyEl('dailyMatchModal')?.hidden===false&&!st.my_claim){dailyMatchId=Number(st.match_id)}
  if(st.match_id&&st.my_claim&&dailyEl('dailyMatchModal')?.hidden===false){dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null}
  if(st.pending_invite_token&&!st.match_id&&!dailyPrivateWatchBusy){
   dailyPrivateWatchBusy=true;
@@ -3298,11 +3298,15 @@ async function dailyClose(){
 }
 function dailyAction(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',fn);dailyEl('dailyMatchActions').appendChild(b)}
 let dailyRoomRenderBusy=false;
+let dailyRoomRenderedMatchId=null;
 async function dailyShowRoom(){
  if(!dailyMatchId||dailyEl('dailyMatchModal').hidden||dailyRoomRenderBusy)return;
  dailyRoomRenderBusy=true;
  try{
- const m=await dailyRpc('daily_classification_room',{p_match_id:dailyMatchId});
+ const renderingMatchId=Number(dailyMatchId);
+ const m=await dailyRpc('daily_classification_room',{p_match_id:renderingMatchId});
+ if(Number(dailyMatchId)!==renderingMatchId||dailyEl('dailyMatchModal').hidden)return;
+ if(dailyRoomRenderedMatchId!==renderingMatchId){dailyRoomRenderedMatchId=renderingMatchId;const a=dailyEl('dailyMatchActions');a.replaceChildren();a.dataset.ready='0'}
  const me=m.my_id===m.player1_id?1:2;const mine=me===1?m.player1_claim:m.player2_claim;
  const other=me===1?m.player2_name:m.player1_name;const otherId=me===1?m.player2_game_id:m.player1_game_id;
  dailyEl('dailyMatchTitle').textContent='CLASIFICATORIA DIARIA · MESA MIAMI';
@@ -3331,7 +3335,8 @@ async function dailyShowRoom(){
  content.textContent='';
  if(mine){actions.replaceChildren();content.textContent+=' · YA ENVIASTE TU RESULTADO. ESPERANDO AL RIVAL.'}
  else{
- const chatRows=await dailyRpc('daily_classification_get_chat',{p_match_id:dailyMatchId});
+ const chatRows=await dailyRpc('daily_classification_get_chat',{p_match_id:renderingMatchId});
+ if(Number(dailyMatchId)!==renderingMatchId||dailyEl('dailyMatchModal').hidden)return;
  const senders=new Set((chatRows||[]).map(x=>String(x.sender_id)));
  if(senders.has(String(m.player1_id))&&senders.has(String(m.player2_id))){
   if(actions.dataset.ready!=='1'||actions.children.length!==3){
