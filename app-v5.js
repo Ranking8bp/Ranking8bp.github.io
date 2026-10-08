@@ -3312,7 +3312,7 @@ async function dailyShowRoom(){
  const renderingMatchId=Number(dailyMatchId);
  const m=await dailyRpc('daily_classification_room',{p_match_id:renderingMatchId});
  if(Number(dailyMatchId)!==renderingMatchId||dailyEl('dailyMatchModal').hidden)return;
- if(dailyRoomRenderedMatchId!==renderingMatchId){const a=dailyEl('dailyMatchActions');a.replaceChildren();a.dataset.ready='0'}
+ if(dailyRoomRenderedMatchId!==renderingMatchId){const a=dailyEl('dailyMatchActions');a.replaceChildren();a.dataset.ready='0';a.hidden=false;dailyEvidenceMatchId=null}
  const me=m.my_id===m.player1_id?1:2;const mine=me===1?m.player1_claim:m.player2_claim;
  const other=me===1?m.player2_name:m.player1_name;const otherId=me===1?m.player2_game_id:m.player1_game_id;
  const firstRoomPaint=dailyEl('dailyMatchVs').hidden||dailyRoomRenderedMatchId!==renderingMatchId;
@@ -3348,6 +3348,7 @@ async function dailyShowRoom(){
  }else{if(chatBox)chatBox.hidden=false;const notice=dailyEl('dailyOpponentExitNotice');if(notice)notice.remove()}
 
  const evidenceBox=dailyEl('dailyEvidenceBox');if(evidenceBox&&dailyEvidenceMatchId!==renderingMatchId)evidenceBox.hidden=true;
+ if(dailyEvidenceMatchId===renderingMatchId&&evidenceBox&&!evidenceBox.hidden){return}
 
  if(m.status==='finished'){actions.replaceChildren();content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
  if(m.status==='cancelled'){actions.replaceChildren();content.textContent='VS ANULADO: NINGUNO HIZO TRICKSHOT.';dailyMatchId=null;await dailyRefreshStatus();return}
@@ -3388,6 +3389,7 @@ async function dailyChooseVictoryVideo(){
  dailyEvidenceMatchId=Number(dailyMatchId);
  const box=dailyEl('dailyEvidenceBox');if(box)box.hidden=false;
  const status=dailyEl('dailyEvidenceStatus');if(status)status.textContent='';
+ const actions=dailyEl('dailyMatchActions');if(actions)actions.hidden=true;
  dailyEl('dailyEvidenceSelect')?.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 async function dailyUploadVictoryVideo(){
