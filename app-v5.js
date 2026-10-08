@@ -3577,7 +3577,8 @@ async function dailyClose(){
  dailyStopPolling();dailyEl('dailyMatchSearching').hidden=true;if(!dailyMatchId){try{await dailyRpc('daily_classification_cancel_search')}catch(e){console.warn(e)}}
  dailyEl('dailyMatchModal').hidden=true;await dailyRefreshStatus();
 }
-function dailyAction(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',fn);dailyEl('dailyMatchActions').appendChild(b)}
+let dailyResultSafeAfter=0;
+function dailyAction(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',e=>{const input=dailyEl('dailyChatInput');if(document.activeElement===input||Date.now()<dailyResultSafeAfter){e.preventDefault();e.stopPropagation();showToast('CIERRA EL TECLADO Y ESPERA UN MOMENTO PARA ELEGIR TU RESULTADO.');return}fn(e)});dailyEl('dailyMatchActions').appendChild(b)}
 let dailyEvidenceMatchId=null;
 let dailyRoomRenderBusy=false;
 let dailyRoomRefreshTimer=null;
@@ -3876,6 +3877,7 @@ document.addEventListener('click',async e=>{
  if(e.target.closest('#dailyCopyOpponentId')){navigator.clipboard?.writeText(dailyEl('dailyOpponentGameId').textContent);return}
  if(!e.target.closest('#dailyChatSend'))return;
  e.preventDefault();e.stopPropagation();
+ dailyResultSafeAfter=Date.now()+2500;
  const input=dailyEl('dailyChatInput'),body=input?.value.trim();if(!body||!dailyMatchId)return;
  try{await dailyRpc('daily_classification_send_chat',{p_match_id:dailyMatchId,p_body:body});input.value='';await dailyLoadChat();await dailyShowRoom()}catch(err){alert('NO SE PUDO ENVIAR EL MENSAJE: '+err.message)}
 });
