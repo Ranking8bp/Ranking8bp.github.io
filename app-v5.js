@@ -3287,9 +3287,11 @@ async function dailyRefreshStatus(){
  }
  }catch(e){console.warn('Daily status',e)}
 }
-async function dailyLoadLeaderboard(){
+async function dailyLoadLeaderboard(previousDay=false){
  const el=dailyEl('dailyRankingList');if(!el||!supabaseClient)return;
- try{const rows=await dailyRpc('daily_classification_leaderboard');el.replaceChildren();if(!rows?.length){el.textContent='TODAVÍA NO HAY JUGADORES CLASIFICADOS HOY.';return}
+ const clock=dailyEl('dailyLeaderboardCountdown');if(clock)clock.hidden=Boolean(previousDay);
+ const previousBtn=dailyEl('dailyPreviousResultsBtn');if(previousBtn){previousBtn.dataset.previousDay=previousDay?'1':'0';previousBtn.querySelector('img').alt=previousDay?'VOLVER A CLASIFICATORIA DE HOY':'RESULTADOS DEL DÍA ANTERIOR';}
+ try{const rows=await dailyRpc(previousDay?'daily_classification_previous_leaderboard':'daily_classification_leaderboard');el.replaceChildren();if(!rows?.length){el.textContent='TODAVÍA NO HAY JUGADORES CLASIFICADOS HOY.';return}
  rows.forEach((r,i)=>{
   const item=document.createElement('div');item.className='daily-leaderboard-row';item.dataset.playerId=String(r.player_id||'');
   if(i<3)item.classList.add('daily-leaderboard-podium','daily-leaderboard-podium-'+(i+1));
@@ -3468,7 +3470,8 @@ window.startDailyClassification=async function(){
  }catch(e){alert('ERROR AL INICIAR CLASIFICATORIA: '+e.message)}
 };
 document.addEventListener('click',e=>{
- if(e.target.closest('#dailyRankingTableBtn'))dailyLoadLeaderboard();
+ if(e.target.closest('#dailyRankingTableBtn'))dailyLoadLeaderboard(false);
+ if(e.target.closest('#dailyPreviousResultsBtn')){const b=dailyEl('dailyPreviousResultsBtn');dailyLoadLeaderboard(b?.dataset.previousDay!=='1');}
  if(e.target.closest('#dailyMatchClose'))dailyClose();
  if(e.target.closest('#dailyClassificationPlayBtn')){
  if(!currentUser){alert('INICIA SESIÓN PARA PARTICIPAR.');return}
