@@ -3214,3 +3214,79 @@ document.addEventListener('click',async e=>{
  /* No asumir que está instalado: Android puede conservar temporalmente display-mode tras desinstalar. */
  alert('El navegador todavía no ofrece la instalación.\n\nEn Chrome toca ⋮ y busca “Instalar aplicación” o “Añadir a pantalla de inicio”. Si acabas de desinstalar Ranking8BP, cierra esta pestaña, vuelve a abrir ranking8bp.github.io y prueba otra vez.');
 });
+
+
+/* Clasificatoria Diaria: independent matchmaking, scores and Miami room */
+let dailySearching=false,dailyMatchId=null,dailyPoll=null,dailyBusy=false;
+const dailyEl=id=>document.getElementById(id);
+const dailyDate=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Mexico_City',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+async function dailyRpc(name,args){const {data,error}=await supabaseClient.rpc(name,args);if(error)throw error;return data;}
+async function dailyRefreshStatus(){
+ if(!currentUser||!supabaseClient)return;
+ try{const st=await dailyRpc('daily_classification_status');const btn=dailyEl('dailyClassificationPlayBtn');if(btn){const em=btn.querySelectorAll('em');if(em[0])em[0].textContent=String(Math.min(15,(st.played||0)+1));if(em[1])em[1].textContent='15';btn.disabled=st.remaining===0;btn.style.opacity=st.remaining===0?'.55':'1';}if(st.match_id&&!dailySearching&&dailyEl('dailyMatchModal')?.hidden===false){dailyMatchId=st.match_id;await dailyShowRoom()}}catch(e){console.warn('Daily status',e)}
+}
+async function dailyLoadLeaderboard(){
+ const el=dailyEl('dailyRankingList');if(!el||!supabaseClient)return;
+ try{const rows=await dailyRpc('daily_classification_leaderboard');el.replaceChildren();if(!rows?.length){el.textContent='TODAVÍA NO HAY JUGADORES CLASIFICADOS HOY.';return}
+ rows.forEach((r,i)=>{const item=document.createElement('div');item.className='daily-leaderboard-row';item.style.cssText='display:grid;grid-template-columns:30px minmax(90px,1fr) 50px 70px 85px;gap:4px;align-items:center;padding:10px 4px;border-bottom:1px solid #ffffff22;text-align:center;font-size:12px';const cells=[String(i+1),r.player_name||'JUGADOR',r.country||'🌎',String(r.points),String(r.remaining)+'/15'];cells.forEach((v,j)=>{const cell=document.createElement('span');cell.textContent=v;cell.style.cssText=j===1?'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:bold':'';item.appendChild(cell)});el.appendChild(item)})
+ }catch(e){console.error(e);el.textContent='NO SE PUDO CARGAR LA CLASIFICATORIA DIARIA.'}
+}
+function dailyStopPolling(){dailySearching=false;clearTimeout(dailyPoll);dailyPoll=null}
+async function dailyClose(){
+ dailyStopPolling();if(!dailyMatchId){try{await dailyRpc('daily_classification_cancel_search')}catch(e){console.warn(e)}}
+ dailyEl('dailyMatchModal').hidden=true;await dailyRefreshStatus();
+}
+function dailyAction(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',fn);dailyEl('dailyMatchActions').appendChild(b)}
+async function dailyShowRoom(){
+ if(!dailyMatchId||dailyEl('dailyMatchModal').hidden)return;
+ try{
+ const m=await dailyRpc('daily_classification_room',{p_match_id:dailyMatchId});
+ const me=m.my_id===m.player1_id?1:2;const mine=me===1?m.player1_claim:m.player2_claim;
+ const other=me===1?m.player2_name:m.player1_name;const otherId=me===1?m.player2_game_id:m.player1_game_id;
+ dailyEl('dailyMatchTitle').textContent='CLASIFICATORIA DIARIA · MESA MIAMI';
+ const content=dailyEl('dailyMatchContent'),actions=dailyEl('dailyMatchActions');actions.replaceChildren();
+ if(m.status==='finished'){content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
+ if(m.status==='disputed'){content.textContent='RESULTADO EN REVISIÓN: AMBOS JUGADORES DECLARARON EL MISMO RESULTADO. CONTACTA AL ADMINISTRADOR.';return}
+ content.textContent='RIVAL: '+other+' · ID: '+(otherId||'NO REGISTRADO')+' · JUEGA EN MIAMI. ¡GRABA TU PARTIDA!';
+ if(mine){content.textContent+=' · YA ENVIASTE TU RESULTADO. ESPERANDO AL RIVAL.'}
+ else{dailyAction('GANÉ',()=>dailySubmitClaim('won'));dailyAction('PERDÍ',()=>dailySubmitClaim('lost'))}
+ if(!dailySearching){dailySearching=true;dailyPoll=setTimeout(async()=>{dailySearching=false;if(dailyMatchId&&!dailyEl('dailyMatchModal').hidden)await dailyShowRoom()},3000)}
+ }catch(e){console.error(e);dailyEl('dailyMatchContent').textContent='ERROR AL CARGAR EL PARTIDO: '+e.message}
+}
+async function dailySubmitClaim(claim){
+ if(!dailyMatchId||dailyBusy)return;dailyBusy=true;
+ try{await dailyRpc('daily_classification_claim',{p_match_id:dailyMatchId,p_claim:claim});dailySearching=false;clearTimeout(dailyPoll);await dailyShowRoom()}
+ catch(e){alert('No se pudo enviar el resultado: '+e.message)}finally{dailyBusy=false}
+}
+async function dailySearchLoop(){
+ if(!dailySearching||dailyEl('dailyMatchModal').hidden)return;
+ try{
+ const st=await dailyRpc('daily_classification_find');
+ if(st.state==='matched'&&st.match_id){dailyMatchId=st.match_id;dailySearching=false;await dailyShowRoom();return}
+ dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';
+ }catch(e){dailyStopPolling();dailyEl('dailyMatchContent').textContent='NO SE PUDO BUSCAR RIVAL: '+e.message;return}
+ dailyPoll=setTimeout(dailySearchLoop,3000);
+}
+window.startDailyClassification=async function(){
+ if(!currentUser||!supabaseClient){alert('INICIA SESIÓN PARA JUGAR CLASIFICATORIA DIARIA.');return}
+ if(Number(currentProfile?.elo_points||0)<30){alert('NECESITAS AL MENOS 30 ELO PARA PARTICIPAR EN CLASIFICATORIA DIARIA.');return}
+ try{
+ const st=await dailyRpc('daily_classification_status');
+ if(st.remaining<=0){alert('YA JUGASTE LOS 15 PARTIDOS DE HOY.');return}
+ dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyMatchActions').replaceChildren();
+ if(st.match_id){dailyMatchId=st.match_id;await dailyShowRoom();return}
+ dailyMatchId=null;dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailySearching=true;await dailySearchLoop()
+ }catch(e){alert('ERROR AL INICIAR CLASIFICATORIA: '+e.message)}
+};
+document.addEventListener('click',e=>{
+ if(e.target.closest('#dailyRankingTableBtn'))dailyLoadLeaderboard();
+ if(e.target.closest('#dailyMatchClose'))dailyClose();
+ if(e.target.closest('#dailyClassificationPlayBtn')){
+ if(!currentUser){alert('INICIA SESIÓN PARA PARTICIPAR.');return}
+ if(Number(currentProfile?.elo_points||0)<30){alert('NECESITAS AL MENOS 30 ELO PARA PARTICIPAR.');return}
+ const key='ranking8bp-daily-rules-ok-'+dailyDate();
+ if(localStorage.getItem(key)!=='1'){dailyEl('dailyClassificationRulesModal').hidden=false;return}
+ window.startDailyClassification();
+ }
+});
+setInterval(()=>{if(currentUser&&dailyEl('playerDashboard')&&!dailyEl('playerDashboard').hidden)dailyRefreshStatus()},30000);
