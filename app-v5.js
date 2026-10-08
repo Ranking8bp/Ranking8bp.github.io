@@ -3258,7 +3258,7 @@ let dailySearching=false,dailyMatchId=null,dailyPoll=null,dailyBusy=false;
 const dailyEl=id=>document.getElementById(id);
 const dailyDate=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Mexico_City',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 async function dailyRpc(name,args){const {data,error}=await supabaseClient.rpc(name,args);if(error)throw error;return data;}
-let dailyPrivateWatchBusy=false;
+let dailyPrivateWatchBusy=false;let dailyLastAutoOpenedMatchId=null;
 async function dailyRefreshStatus(){
  if(!currentUser||!supabaseClient)return;
  try{
@@ -3273,6 +3273,7 @@ async function dailyRefreshStatus(){
   btn.disabled=!canReturn&&st.remaining===0;
   btn.style.opacity=btn.disabled?'.55':'1';
  }
+ if(st.match_id&&!st.my_claim&&dailyLastAutoOpenedMatchId!==Number(st.match_id)){dailyLastAutoOpenedMatchId=Number(st.match_id);dailyMatchId=Number(st.match_id);dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyInviteModal').hidden=true;await dailyShowRoom()}
  if(st.match_id&&dailyEl('dailyMatchModal')?.hidden===false&&!st.my_claim){dailyMatchId=Number(st.match_id);if(!dailySearching)await dailyShowRoom()}
  if(st.match_id&&st.my_claim&&dailyEl('dailyMatchModal')?.hidden===false){dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null}
  if(st.pending_invite_token&&!st.match_id&&!dailyPrivateWatchBusy){
