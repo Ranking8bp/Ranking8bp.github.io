@@ -3319,6 +3319,7 @@ async function dailyShowRoom(){
  dailyEl('dailyMatchTitle').textContent='CLASIFICATORIA DIARIA · MESA MIAMI';
  const content=dailyEl('dailyMatchContent'),actions=dailyEl('dailyMatchActions');if(!dailyEl('dailyMatchSearching').hidden)dailyEl('dailyMatchSearching').hidden=true;
  if(dailyEl('dailyMatchVs').hidden)dailyEl('dailyMatchVs').hidden=false;
+ const staleWait=dailyEl('dailyMatchContent');if(staleWait&&staleWait.textContent==='ESPERANDO MENSAJES DE AMBOS JUGADORES...')staleWait.textContent='';
  const myName=me===1?m.player1_name:m.player2_name;
  const myId=me===1?m.player1_game_id:m.player2_game_id;
  const minePrefix=me===1?'player1':'player2',opPrefix=me===1?'player2':'player1';
@@ -3369,7 +3370,8 @@ async function dailyShowRoom(){
   }
  }else{
   if(actions.dataset.ready!=='abandon'||actions.children.length!==1){actions.replaceChildren();dailyAction('ABANDONAR VS',dailyAbandonBeforeChat);actions.dataset.ready='abandon'}
-  if(content.textContent!=='ESPERANDO MENSAJES DE AMBOS JUGADORES...')content.textContent='ESPERANDO MENSAJES DE AMBOS JUGADORES...';
+  // Sin mensaje de espera: evita saltos de altura mientras llegan los primeros chats.
+  if(content.textContent)content.textContent='';
  }
 }
  // Room updates are handled by a dedicated timer, including private invitations.
