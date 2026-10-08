@@ -1165,10 +1165,10 @@ async function refreshPlayersSearchingCount(){
 }
 async function syncRankedSearchPresence(active){
  if(!supabaseClient||!currentUser)return;
- try{await supabaseClient.rpc('set_ranked_search_presence',{p_searching:!!active});if(active){renderLiveSearchingPlayers().catch(()=>{});refreshPlayersSearchingCount().catch(()=>{})}}catch(e){console.error('Presencia búsqueda:',e)}
+ try{await supabaseClient.rpc('set_ranked_search_presence',{p_searching:!!active});if(active&&!document.hidden){renderLiveSearchingPlayers().catch(()=>{});refreshPlayersSearchingCount().catch(()=>{})}}catch(e){console.error('Presencia búsqueda:',e)}
 }
-setInterval(()=>{if(!document.hidden&&currentUser&&rankedSearchActive)syncRankedSearchPresence(true)},60000);
-// Evitar que alguien siga apareciendo como BUSCANDO cuando cerró la pestaña o cambió de app.
+setInterval(()=>{if(currentUser&&rankedSearchActive)syncRankedSearchPresence(true)},60000);
+// Mantener BUSCANDO en segundo plano; retirar la cola solo si se abandona realmente la página.
 // No tocar un VS ya creado: solo retiramos la cola si todavía está buscando.
 let rankedBackgroundCancelRunning=false;
 async function stopHiddenRankedSearch(){
@@ -1188,7 +1188,7 @@ async function stopHiddenRankedSearch(){
  }catch(error){console.warn('Detener búsqueda en segundo plano:',error)}
  finally{rankedBackgroundCancelRunning=false}
 }
-document.addEventListener('visibilitychange',()=>{if(document.hidden)stopHiddenRankedSearch()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser&&rankedSearchActive)syncRankedSearchPresence(true)});
 window.addEventListener('pagehide',()=>{stopHiddenRankedSearch()});
 // El conteo se refresca por eventos de entrada/salida, no al recargar.
 async function startRankedMatchmaking(){
@@ -1229,7 +1229,9 @@ async function startRankedMatchmaking(){
     search.hidden=true;vs.hidden=false;startFreshRankedRoom(Number(m.match_id),Number(m.chat_seconds_left??60));return;
    }
   }catch(e){console.error('Emparejamiento nuevo:',e);rankedSearchActive=false;search.hidden=true;modal.hidden=true;await syncRankedSearchPresence(false);if(String(e?.message||'').includes('DAILY_CLASSIFICATION_PENDING'))alert(PENDING_DAILY_VS_RANKING_NOTICE);else showToast('No se pudo entrar a la cola: '+String(e?.message||'ERROR DE CONEXIÓN'));return}
-  await new Promise(r=>setTimeout(r,5000));
+  // Búsqueda normal: cada 2 s visible, cada 5 s al cambiar de pestaña o aplicación.
+  // Los navegadores pueden ralentizar temporizadores cuando la pestaña está suspendida.
+  await new Promise(r=>setTimeout(r,document.hidden?5000:2000));
  }
 }
 async function leaveRankedRoom(){
