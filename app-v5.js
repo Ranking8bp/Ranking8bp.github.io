@@ -3371,6 +3371,30 @@ async function dailyHandleInviteFromUrl(){
   }
   const info=await dailyRpc('daily_classification_invite_info',{p_token:token});
   if(info.state==='invalid'||info.state==='expired'||info.state==='used'){dailyInviteShow('ESTE LINK YA NO ESTÁ DISPONIBLE. SOLICITA OTRO.');return}
+  const ownId=String(currentUser?.id||'');
+  const creatorId=String(info.creator_id||info.inviter_id||info.user_id||'');
+  const creatorName=String(info.creator_name||'').trim().toLowerCase();
+  const myName=String(currentProfile?.account_name||currentProfile?.username||'').trim().toLowerCase();
+  const isCreator=(creatorId&&creatorId===ownId)||(!creatorId&&creatorName&&myName&&creatorName===myName);
+  if(isCreator){
+   dailyEl('dailyInviteModal').hidden=true;
+   dailyEl('dailyMatchModal').hidden=false;
+   const status=await dailyRpc('daily_classification_status');
+   if(status.match_id){dailyMatchId=Number(status.match_id);await dailyShowRoom();return}
+   dailyMatchId=null;
+   dailyEl('dailyMatchVs').hidden=true;
+   dailyEl('dailyMatchSearching').hidden=false;
+   dailyEl('dailyMatchContent').textContent='ESPERANDO QUE TU RIVAL ABRA LA INVITACIÓN...';
+   clearInterval(dailyInvitePoll);
+   dailyInvitePoll=setInterval(async()=>{
+    if(dailyEl('dailyMatchModal')?.hidden){clearInterval(dailyInvitePoll);return}
+    try{const next=await dailyRpc('daily_classification_invite_info',{p_token:token});
+     if(next.state==='used'&&next.match_id){clearInterval(dailyInvitePoll);dailyMatchId=Number(next.match_id);dailyEl('dailyMatchSearching').hidden=true;history.replaceState({},'',location.pathname);await dailyShowRoom()}
+     else if(next.state==='expired'||next.state==='invalid'){clearInterval(dailyInvitePoll);dailyEl('dailyMatchContent').textContent='LA INVITACIÓN VENCIÓ. CREA OTRA.'}
+    }catch(err){console.warn('Invitación diaria:',err)}
+   },3000);
+   return;
+  }
   const mid=await dailyRpc('daily_classification_accept_invite',{p_token:token});
   clearInterval(dailyInvitePoll);
   dailyEl('dailyInviteModal').hidden=true;
