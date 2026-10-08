@@ -2971,7 +2971,7 @@ async function loadFreshRankedChat(){
   const box=document.getElementById('freshChatMessages');if(!box)return;box.replaceChildren();
   const senders=new Set();
   rows.forEach(m=>{
-   if(m.sender_id&&!m.is_admin)senders.add(String(m.sender_id));
+   if(m.sender_id)senders.add(String(m.sender_id));
    const mine=String(m.sender_id)===String(currentUser?.id);
    const d=document.createElement('div');d.className='ranked-vs-chat-message'+(mine?' mine':'')+(m.is_admin?' admin':'');
    const avatar=document.createElement('span');avatar.className='fresh-chat-avatar';
