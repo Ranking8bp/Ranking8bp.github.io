@@ -3438,8 +3438,11 @@ document.addEventListener('click',async e=>{
  if(!e.target.closest('#dailyClassificationShareBtn'))return;
  if(!currentUser||!supabaseClient){alert('INICIA SESIÓN PARA COPIAR TU LINK PRIVADO.');return}
  try{
- const token=await dailyRpc('daily_classification_create_invite');
- const link='https://ranking8bp.github.io/?dailyinvite='+encodeURIComponent(token);
+ const inviteResult=await dailyRpc('daily_classification_create_invite');
+ const token=typeof inviteResult==='string'?inviteResult:(inviteResult?.token||inviteResult?.invite_token||'');
+ if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(token))){throw new Error('NO SE GENERÓ UN ENLACE VÁLIDO. INTÉNTALO DE NUEVO.')}
+ const link=new URL('/', 'https://ranking8bp.github.io');
+ link.searchParams.set('dailyinvite',String(token));
  const name=currentProfile?.account_name||currentProfile?.username||'UN JUGADOR';
  const message=name+' ESTÁ BUSCANDO RIVAL PARA PARTIDO POR CLASIFICATORIA DIARIA. TOCA EL LINK DE ABAJO PARA JUGAR CON ÉL.\n\n'+link;
  try{await navigator.clipboard.writeText(message)}catch(_){const input=document.createElement('textarea');input.value=message;document.body.appendChild(input);input.select();document.execCommand('copy');input.remove()}
