@@ -3267,9 +3267,11 @@ async function dailyRefreshStatus(){
  const btn=dailyEl('dailyClassificationPlayBtn');
  const canReturn=Boolean(st.match_id&&!st.my_claim&&st.status==='matched');
  if(btn){
-  const em=btn.querySelectorAll('em');
-  if(em[0])em[0].textContent=canReturn?'REGRESAR A LA SALA':String(Math.min(15,(st.played||0)+1));
-  if(em[1])em[1].textContent=canReturn?'':'15';
+  const label=dailyEl('dailyMatchCountLabel');
+  const em=label?.querySelectorAll('em');
+  if(em?.[0])em[0].textContent=String(Math.min(15,(st.played||0)+1));
+  if(em?.[1])em[1].textContent='15';
+  btn.textContent=canReturn?'REGRESAR A LA SALA':'JUGAR';
   btn.dataset.returnRoom=canReturn?'1':'0';
   btn.disabled=!canReturn&&st.remaining===0;
   btn.style.opacity=btn.disabled?'.55':'1';
