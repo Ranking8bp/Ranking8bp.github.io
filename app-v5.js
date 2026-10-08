@@ -1188,7 +1188,7 @@ async function startRankedMatchmaking(){
     }
     const {data:room,error:roomError}=await supabaseClient.rpc('get_fresh_ranked_room',{p_match_id:Number(st.out_match_id)});if(roomError)throw roomError;
     const m=Array.isArray(room)?room[0]:room;if(!m)throw new Error('ROOM_NOT_READY');
-    currentRankedMatchId=Number(m.match_id);try{localStorage.setItem('ranking8bp-private-match-id',String(m.match_id))}catch(_){}rankedSearchActive=false;syncRankedSearchPresence(false);
+    currentRankedMatchId=Number(m.match_id);/* Un VS normal NUNCA se marca como invitación privada. */try{if(localStorage.getItem('ranking8bp-private-match-id')===String(m.match_id))localStorage.removeItem('ranking8bp-private-match-id')}catch(_){}rankedSearchActive=false;syncRankedSearchPresence(false);
     document.getElementById('freshMe').textContent=String(m.my_name||'TÚ').toUpperCase();
     document.getElementById('freshOpponent').textContent=String(m.opponent_name||'RIVAL').toUpperCase();
     document.getElementById('freshMyElo').textContent='ELO '+m.my_elo;
@@ -2517,6 +2517,8 @@ if(adminPlayersTab)adminPlayersTab.addEventListener('click',showAdminPlayers);
 if(adminModerationTab)adminModerationTab.addEventListener('click',showAdminModeration);
 
 async function openPrivateInviteRoom(matchId){
+ /* Solo los VS nacidos de invitación guardan esta marca en el navegador. */
+ try{localStorage.setItem('ranking8bp-private-match-id',String(matchId))}catch(_){}
  const {data:room,error}=await supabaseClient.rpc('get_fresh_ranked_room',{p_match_id:Number(matchId)});if(error)throw error;
  const m=Array.isArray(room)?room[0]:room;if(!m)throw new Error('ROOM_NOT_READY');
  currentRankedMatchId=Number(m.match_id);rankedSearchActive=false;syncRankedSearchPresence(false).catch?.(()=>{});
