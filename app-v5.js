@@ -3300,10 +3300,14 @@ async function dailyClose(){
 function dailyAction(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',fn);dailyEl('dailyMatchActions').appendChild(b)}
 let dailyEvidenceMatchId=null;
 let dailyRoomRenderBusy=false;
+let dailyRoomRefreshTimer=null;
+function dailyEnsureRoomRefresh(){if(dailyRoomRefreshTimer)return;dailyRoomRefreshTimer=setInterval(()=>{if(dailyMatchId&&!dailyEl('dailyMatchModal')?.hidden)dailyShowRoom()},2000)}
+
 let dailyRoomRenderedMatchId=null;
 async function dailyShowRoom(){
  if(!dailyMatchId||dailyEl('dailyMatchModal').hidden||dailyRoomRenderBusy)return;
  dailyRoomRenderBusy=true;
+ dailyEnsureRoomRefresh();
  try{
  const renderingMatchId=Number(dailyMatchId);
  const m=await dailyRpc('daily_classification_room',{p_match_id:renderingMatchId});
@@ -3367,7 +3371,7 @@ async function dailyShowRoom(){
   if(content.textContent!=='ESPERANDO MENSAJES DE AMBOS JUGADORES...')content.textContent='ESPERANDO MENSAJES DE AMBOS JUGADORES...';
  }
 }
- if(!dailySearching){dailySearching=true;dailyPoll=setTimeout(async()=>{dailySearching=false;if(dailyMatchId&&!dailyEl('dailyMatchModal').hidden)await dailyShowRoom()},3000)}
+ // Room updates are handled by a dedicated timer, including private invitations.
  }catch(e){console.error(e);dailyEl('dailyMatchContent').textContent='ERROR AL CARGAR EL PARTIDO: '+e.message}
  finally{dailyRoomRenderBusy=false}
 }
@@ -3574,7 +3578,7 @@ document.addEventListener('click',async e=>{
  if(e.target.closest('#dailyCopyOpponentId')){navigator.clipboard?.writeText(dailyEl('dailyOpponentGameId').textContent);return}
  if(!e.target.closest('#dailyChatSend'))return;
  const input=dailyEl('dailyChatInput'),body=input?.value.trim();if(!body||!dailyMatchId)return;
- try{await dailyRpc('daily_classification_send_chat',{p_match_id:dailyMatchId,p_body:body});input.value='';await dailyLoadChat()}catch(err){alert('NO SE PUDO ENVIAR EL MENSAJE: '+err.message)}
+ try{await dailyRpc('daily_classification_send_chat',{p_match_id:dailyMatchId,p_body:body});input.value='';await dailyLoadChat();await dailyShowRoom()}catch(err){alert('NO SE PUDO ENVIAR EL MENSAJE: '+err.message)}
 });
 
 
