@@ -3333,8 +3333,8 @@ async function dailyLoadWinner(){
   if(name){
    name.textContent=String(winner.player_name||'JUGADOR');
    name.title=name.textContent;
-   const nameLength=[...name.textContent].length;
-   name.style.fontSize=nameLength>25?'clamp(9px,2.05cqw,25px)':nameLength>16?'clamp(10px,2.5cqw,30px)':'clamp(10px,3.15cqw,33px)';
+   // Utilizar el tamaño elegido en el editor visual, sin sobreescribirlo.
+   name.style.removeProperty('font-size');
   }
   if(position)position.textContent=Number(winner.global_position)>0?'#'+String(winner.global_position):'—';
   if(points)points.textContent=String(Number(winner.points)||0);
