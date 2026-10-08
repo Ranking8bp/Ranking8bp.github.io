@@ -1343,7 +1343,7 @@ async function loadAdminMatches(){
   const filteredRows=!q?sourceRows:sourceRows.filter(m=>[m.player1_name,m.player2_name,m.player1_game_id,m.player2_game_id,m.match_id].some(v=>String(v??'').toLowerCase().includes(q)));
   const rows=adminMatchView==='proofs'?filteredRows.slice(0,6):filteredRows;
   adminMatchList.replaceChildren();
-  if(!rows.length){adminMatchList.innerHTML='<div class="admin-empty">'+(adminMatchView==='proofs'?'No hay VS con pruebas pendientes.':'No hay partidos en espera.')+'</div>';return}
+  if(!rows.length){adminMatchList.innerHTML='<div class="admin-empty">'+(adminMatchView==='proofs'?'No hay VS con pruebas pendientes.':'No hay partidos ELO en espera.')+'</div>';}
   for(const m of rows){
    const row=document.createElement('article');row.className='admin-match '+m.status;
    const title=document.createElement('div');title.className='admin-match-vs admin-match-vs-rich';
@@ -1390,6 +1390,7 @@ async function loadAdminMatches(){
    }
    adminMatchList.appendChild(row);
   }
+  if(adminMatchView!=='proofs')await loadAdminDailyVs();
   if(adminMatchView==='proofs'&&filteredRows.length>rows.length){
     const more=document.createElement('button');more.type='button';more.className='admin-refresh';more.textContent='VER MÁS PRUEBAS ('+(filteredRows.length-rows.length)+')';
     more.onclick=()=>{showToast('Mostrando primero las 6 pruebas más recientes para evitar sobrecargar el sitio.')};
@@ -1399,6 +1400,42 @@ async function loadAdminMatches(){
  finally{adminMatchesLoading=false}
 }
 
+
+async function loadAdminDailyVs(){
+ if(!adminMatchList||!supabaseClient)return;
+ try{
+ const {data,error}=await supabaseClient.rpc('admin_daily_classification_matches');if(error)throw error;
+ const q=String(adminVsSearchInput?.value||'').trim().toLowerCase();
+ const rows=(data||[]).filter(m=>!q||[m.player1_name,m.player2_name,m.player1_game_id,m.player2_game_id,m.match_id].some(v=>String(v||'').toLowerCase().includes(q)));
+ if(!rows.length)return;
+ const heading=document.createElement('h3');heading.textContent='🎱 CLASIFICATORIA DIARIA · MIAMI ('+rows.length+')';heading.style.cssText='color:#f0bd48;text-align:center;margin:20px 0 12px';adminMatchList.prepend(heading);
+ for(const m of rows){
+ const card=document.createElement('article');card.className='admin-match matched';card.style.cssText='border:2px solid #dbb64c;border-radius:14px;padding:14px;margin:12px 0';
+ const title=document.createElement('strong');title.textContent='CLASIFICATORIA DIARIA · MIAMI · VS #'+m.match_id;title.style.color='#f0bd48';card.appendChild(title);
+ const players=document.createElement('div');players.className='admin-match-vs admin-match-vs-rich';
+ for(const side of ['player1','player2']){
+ if(side==='player2'){const vs=document.createElement('b');vs.className='admin-vs-word';vs.textContent='VS';players.appendChild(vs)}
+ const p=document.createElement('div');p.className='admin-vs-player';const avatar=document.createElement('div');avatar.className='admin-vs-avatar';const path=m[side+'_avatar_path'];if(path){const src=/^https?:\/\//.test(path)?path:supabaseClient.storage.from('profile-photos').getPublicUrl(String(path).replace(/^profile-photos\//,'')).data.publicUrl;avatar.style.backgroundImage='url("'+src+'")'}else avatar.textContent=String(m[side+'_name']||'?').slice(0,1).toUpperCase();
+ const info=document.createElement('div');info.className='admin-vs-info';const name=document.createElement('strong');name.textContent=m[side+'_name'];const id=document.createElement('span');id.textContent='ID '+(m[side+'_game_id']||'--');const claim=document.createElement('b');claim.textContent='TOCÓ: '+(m[side+'_claim']==='won'?'GANÉ':m[side+'_claim']==='lost'?'PERDÍ':'NADA');info.append(name,id,claim);p.append(avatar,info);players.appendChild(p)}
+ card.appendChild(players);
+ const status=document.createElement('p');status.textContent='ESTADO: '+(m.status==='disputed'?'EN REVISIÓN':'JUGANDO')+' · '+new Date(m.created_at).toLocaleString('es-MX');card.appendChild(status);
+ const actions=document.createElement('div');actions.className='admin-match-actions';
+ const chat=document.createElement('button');chat.className='admin-chat-btn';chat.textContent='VER CHAT';chat.onclick=async()=>{
+ const modal=document.getElementById('adminVsChatModal'),box=document.getElementById('adminVsChatMessages');if(!modal||!box)return;
+ modal.hidden=false;modal.style.display='grid';modal.style.zIndex='2147483647';document.getElementById('adminVsChatTitle').textContent='CLASIFICATORIA DIARIA · '+m.player1_name+' VS '+m.player2_name;
+ box.textContent='Cargando chat...';try{const messages=await dailyRpc('admin_daily_classification_chat',{p_match_id:m.match_id});box.replaceChildren();if(!messages?.length)box.textContent='No hay mensajes todavía.';for(const msg of messages||[]){const line=document.createElement('div');line.className='admin-vs-chat-message';const n=document.createElement('b');n.textContent=msg.sender_name+' · '+new Date(msg.created_at).toLocaleTimeString('es-MX');const body=document.createElement('p');body.textContent=msg.body;line.append(n,body);box.appendChild(line)}}catch(e){box.textContent=e.message}
+ const send=document.getElementById('adminVsChatSend');if(send)send.disabled=true;
+ };
+ actions.appendChild(chat);
+ const decide=async(action,winner,name)=>{
+ if(!confirm(action==='cancel'?'¿ANULAR ESTE PARTIDO DIARIO SIN SUMAR PUNTOS?':'¿DAR VICTORIA DIARIA A '+name+' (+15 / −15)?'))return;
+ try{await dailyRpc('admin_daily_classification_decide',{p_match_id:m.match_id,p_action:action,p_winner_id:winner});adminMatchesCache=[];await loadAdminMatches();showToast('Partido diario actualizado')}catch(e){showToast('ERROR: '+e.message)}
+ };
+ for(const side of ['player1','player2']){const b=document.createElement('button');b.className='admin-winner-btn';b.textContent='GANA '+m[side+'_name'];b.onclick=()=>decide('winner',m[side+'_id'],m[side+'_name']);actions.appendChild(b)}
+ const cancel=document.createElement('button');cancel.className='cancel';cancel.textContent='ANULAR VS';cancel.onclick=()=>decide('cancel',null);actions.appendChild(cancel);card.appendChild(actions);heading.after(card);
+ }
+ }catch(e){console.error('VS diarios admin:',e);const err=document.createElement('p');err.textContent='No se pudieron cargar los VS diarios.';adminMatchList.appendChild(err)}
+}
 function normalizeUsername(value){return value.trim().toLowerCase()}
 function usernameToInternalEmail(value){return normalizeUsername(value)+'@login.rankingikar8bp.com'}
 function validUsername(value){return /^[a-zA-Z0-9._-]{3,30}$/.test(value)}
