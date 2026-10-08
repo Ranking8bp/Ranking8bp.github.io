@@ -2473,7 +2473,7 @@ async function openPrivateInviteRoom(matchId){
  document.getElementById('freshMyRank').textContent=String(getRankByElo(m.my_elo).name).toUpperCase();document.getElementById('freshOpponentRank').textContent=String(getRankByElo(m.opponent_elo).name).toUpperCase();
  document.getElementById('freshMyPosition').textContent='RANKING #'+(m.my_position||'--');document.getElementById('freshOpponentPosition').textContent='RANKING #'+(m.opponent_position||'--');
  renderRankBadgeOn(document.getElementById('freshOpponentRankBadge'),Number(m.opponent_elo)||0);
- await restorePersistentFreshRoom(Number(m.match_id));startFreshRankedRoom(Number(m.match_id),Number(m.chat_seconds_left??0));setTimeout(()=>restorePersistentFreshRoom(Number(m.match_id)),100);
+ await restorePersistentFreshRoom(Number(m.match_id));startFreshRankedRoom(Number(m.match_id),Number(m.chat_seconds_left??0),true);setTimeout(()=>restorePersistentFreshRoom(Number(m.match_id)),100);
 }
 function stopPrivateInvitePoll(){if(privateInvitePollTimer){clearInterval(privateInvitePollTimer);privateInvitePollTimer=null}}
 async function pollPrivateInvite(token){
@@ -3008,10 +3008,10 @@ async function restorePersistentFreshRoom(id){
  }catch(e){console.error('Restaurar estado persistente VS:',e)}
 }
 async function awaitRestoreFreshRoom(id){try{await restorePersistentFreshRoom(id)}catch(e){console.error(e)}}
-function startFreshRankedRoom(id,secondsLeft=60){
+function startFreshRankedRoom(id,secondsLeft=60,isPrivateRoom=false){
  freshRoomMatchId=id;stopFreshRoomRealtime().catch(()=>{});freshRoomExpiresAt=Date.now()+Math.max(0,Number(secondsLeft)||0)*1000;
  clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);
- const warning=document.getElementById('freshResponseWarning');if(warning)warning.hidden=false;
+ const warning=document.getElementById('freshResponseWarning');if(warning)warning.hidden=!!isPrivateRoom;
  const oldNotice=document.getElementById('freshOpponentClaimNotice');if(oldNotice){oldNotice.hidden=true;oldNotice.textContent=''}
  const freshChat=document.getElementById('freshRankedChat');if(freshChat)freshChat.hidden=false;
  const abandon=document.getElementById('freshAbandonPending');if(abandon){abandon.hidden=false;abandon.disabled=false}
@@ -3031,7 +3031,7 @@ function startFreshRankedRoom(id,secondsLeft=60){
  const roomBody=document.querySelector('#freshMatchmakingModal .fresh-match-body')||document.querySelector('#freshMatchmakingModal .fresh-room-body');
  if(roomBody)roomBody.style.visibility='hidden';
  awaitRestoreFreshRoom(id).finally(()=>{if(roomBody)roomBody.style.visibility='visible'});
- const tick=()=>{const left=Math.max(0,Math.ceil((freshRoomExpiresAt-Date.now())/1000)),t=document.getElementById('freshChatTimer');if(t)t.textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');if(left<=0){clearInterval(freshRoomTimer);freshRoomTimer=null;(async()=>{try{const {data,error}=await supabaseClient.rpc('auto_cancel_unanswered_ranked_chat',{p_match_id:freshRoomMatchId,p_force:false});if(error)throw error;if(data==='cancelled'){clearInterval(freshRoomChatPoll);freshRoomChatPoll=null;freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS anulado: ambos jugadores debían enviar un mensaje antes de terminar el minuto.')}}catch(e){console.error('Auto cancelar VS:',e)}})()}};
+ const tick=()=>{if(isPrivateRoom)return;const left=Math.max(0,Math.ceil((freshRoomExpiresAt-Date.now())/1000)),t=document.getElementById('freshChatTimer');if(t)t.textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');if(left<=0){clearInterval(freshRoomTimer);freshRoomTimer=null;(async()=>{try{const {data,error}=await supabaseClient.rpc('auto_cancel_unanswered_ranked_chat',{p_match_id:freshRoomMatchId,p_force:false});if(error)throw error;if(data==='cancelled'){clearInterval(freshRoomChatPoll);freshRoomChatPoll=null;freshRoomMatchId=null;const modal=document.getElementById('freshMatchmakingModal');if(modal)modal.hidden=true;showToast('VS anulado: ambos jugadores debían enviar un mensaje antes de terminar el minuto.')}}catch(e){console.error('Auto cancelar VS:',e)}})()}};
  // If the room was restored while the match is already under REVIEW, the other
  // player must answer the result immediately; do not restart the 1-minute chat phase.
  (async()=>{try{
@@ -3050,7 +3050,7 @@ function startFreshRankedRoom(id,secondsLeft=60){
      await loadFreshRankedChat();
      return;
    }
-   tick();freshRoomTimer=setInterval(tick,250);await loadFreshRankedChat();
+   tick();if(!isPrivateRoom)freshRoomTimer=setInterval(tick,250);await loadFreshRankedChat();
  }catch(e){console.error('Estado inicial sala:',e);tick();freshRoomTimer=setInterval(tick,250);loadFreshRankedChat()}})();
  freshRoomChatPoll=setInterval(async()=>{if(!freshRoomMatchId)return;const checkingId=Number(freshRoomMatchId);try{const {data:status,error}=await supabaseClient.rpc('get_ranked_match_live_status',{p_match_id:checkingId});if(error)throw error;
 const liveStatus=String(status||'');
