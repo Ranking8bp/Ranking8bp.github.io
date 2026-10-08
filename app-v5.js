@@ -3258,6 +3258,26 @@ document.addEventListener('click',async e=>{
 let dailySearching=false,dailyMatchId=null,dailyPoll=null,dailyBusy=false;
 const dailyEl=id=>document.getElementById(id);
 const dailyDate=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Mexico_City',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+// El servidor separa la clasificación por fecha de México; refrescar al cambiar el día
+// sin borrar resultados históricos ni alterar partidas generales.
+let dailyObservedDate=dailyDate();
+let dailyDateRefreshBusy=false;
+async function dailyCheckDateRollover(){
+ const today=dailyDate();
+ if(today===dailyObservedDate||dailyDateRefreshBusy)return;
+ dailyDateRefreshBusy=true;
+ try{
+  if(currentUser&&supabaseClient)await dailyRefreshStatus();
+  if(dailyEl('dailyRankingModal')?.hidden===false||dailyEl('dailyRankingList')?.offsetParent!==null){
+   await dailyLoadLeaderboard(dailyEl('dailyPreviousResultsBtn')?.dataset.previousDay==='1');
+  }
+  dailyObservedDate=today;
+ }catch(error){console.warn('Reinicio diario pendiente de actualización:',error)}
+ finally{dailyDateRefreshBusy=false}
+}
+setInterval(dailyCheckDateRollover,1000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)dailyCheckDateRollover()});
+
 async function dailyRpc(name,args){const {data,error}=await supabaseClient.rpc(name,args);if(error)throw error;return data;}
 let dailyPrivateWatchBusy=false;let dailyLastAutoOpenedMatchId=null;
 async function dailyRefreshStatus(){
