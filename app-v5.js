@@ -3317,8 +3317,8 @@ async function dailyShowRoom(){
  const other=me===1?m.player2_name:m.player1_name;const otherId=me===1?m.player2_game_id:m.player1_game_id;
  const firstRoomPaint=dailyRoomRenderedMatchId!==renderingMatchId;
  dailyEl('dailyMatchTitle').textContent='CLASIFICATORIA DIARIA · MESA MIAMI';
- const content=dailyEl('dailyMatchContent'),actions=dailyEl('dailyMatchActions');dailyEl('dailyMatchSearching').hidden=true;
- dailyEl('dailyMatchVs').hidden=false;
+ const content=dailyEl('dailyMatchContent'),actions=dailyEl('dailyMatchActions');if(!dailyEl('dailyMatchSearching').hidden)dailyEl('dailyMatchSearching').hidden=true;
+ if(dailyEl('dailyMatchVs').hidden)dailyEl('dailyMatchVs').hidden=false;
  const myName=me===1?m.player1_name:m.player2_name;
  const myId=me===1?m.player1_game_id:m.player2_game_id;
  const minePrefix=me===1?'player1':'player2',opPrefix=me===1?'player2':'player1';
@@ -3554,8 +3554,10 @@ async function dailyLoadChat(){
  const box=dailyEl('dailyChatMessages');if(!box)return;
  const oldLast=box.lastElementChild?.dataset.chatId;
  if((rows?.length||0)===box.children.length&&String(rows?.at(-1)?.id||'')===String(oldLast||''))return;
- box.replaceChildren();
+ const existingIds=new Set([...box.children].map(el=>el.dataset.chatId));
+ if((rows||[]).some(m=>!existingIds.has(String(m.id)))===false&&box.children.length!==(rows?.length||0))box.replaceChildren();
  for(const m of rows||[]){
+ if(existingIds.has(String(m.id)))continue;
  const mine=String(m.sender_id)===String(currentUser?.id);
  const d=document.createElement('div');d.className='ranked-vs-chat-message'+(mine?' mine':'');d.dataset.chatId=String(m.id);
  const avatar=document.createElement('span');avatar.className='fresh-chat-avatar';
@@ -3569,7 +3571,7 @@ async function dailyLoadChat(){
  if(mine){const seen=document.createElement('small');seen.className='fresh-chat-seen';seen.textContent='✓ ENVIADO';d.appendChild(seen)}
  box.appendChild(d);
  }
- requestAnimationFrame(()=>{box.scrollTop=box.scrollHeight});
+ if(document.activeElement!==dailyEl('dailyChatInput'))requestAnimationFrame(()=>{box.scrollTop=box.scrollHeight});
  }catch(e){console.warn('Chat diario',e)}
 }
 setInterval(()=>{if(dailyMatchId&&!dailyEl('dailyMatchModal')?.hidden)dailyLoadChat()},2500);
