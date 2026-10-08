@@ -1168,6 +1168,28 @@ async function syncRankedSearchPresence(active){
  try{await supabaseClient.rpc('set_ranked_search_presence',{p_searching:!!active});if(active){renderLiveSearchingPlayers().catch(()=>{});refreshPlayersSearchingCount().catch(()=>{})}}catch(e){console.error('Presencia búsqueda:',e)}
 }
 setInterval(()=>{if(!document.hidden&&currentUser&&rankedSearchActive)syncRankedSearchPresence(true)},60000);
+// Evitar que alguien siga apareciendo como BUSCANDO cuando cerró la pestaña o cambió de app.
+// No tocar un VS ya creado: solo retiramos la cola si todavía está buscando.
+let rankedBackgroundCancelRunning=false;
+async function stopHiddenRankedSearch(){
+ if(rankedBackgroundCancelRunning||!currentUser||!supabaseClient||!rankedSearchActive||currentRankedMatchId||freshRoomMatchId)return;
+ rankedBackgroundCancelRunning=true;
+ rankedSearchActive=false;
+ stopRankedSearchLoop();
+ const search=document.getElementById('freshSearching');
+ const modal=document.getElementById('freshMatchmakingModal');
+ if(search)search.hidden=true;
+ if(modal)modal.hidden=true;
+ try{
+  await Promise.allSettled([
+   supabaseClient.rpc('set_ranked_search_presence',{p_searching:false}),
+   supabaseClient.rpc('matchmaking_v2_cancel')
+  ]);
+ }catch(error){console.warn('Detener búsqueda en segundo plano:',error)}
+ finally{rankedBackgroundCancelRunning=false}
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopHiddenRankedSearch()});
+window.addEventListener('pagehide',()=>{stopHiddenRankedSearch()});
 // El conteo se refresca por eventos de entrada/salida, no al recargar.
 async function startRankedMatchmaking(){
  if(!currentUser||!supabaseClient||matchmakingStartLoading)return;
