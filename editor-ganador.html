@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Editor visual del ganador · Ranking8BP</title>
+<style>
+:root{color-scheme:dark;font-family:Arial,Helvetica,sans-serif;background:#071019;color:#eaf2ff}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 40% 0%,#162c3c 0%,#071019 60%);min-height:100vh}
+header{padding:17px 16px 13px;border-bottom:1px solid #385166;background:#071420c9;position:sticky;top:0;z-index:5;backdrop-filter:blur(8px)}
+header .inner{max-width:1210px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:14px}
+h1{margin:0;font-size:clamp(18px,3.4vw,25px);color:#ffd56b}
+.sub{margin:4px 0 0;color:#bfd0d8;font-size:13px;line-height:1.4}
+a{color:#ffdf91;text-underline-offset:3px}
+main{max-width:1210px;margin:16px auto 35px;padding:0 12px}
+.notice{border:1px solid #796237;border-radius:13px;padding:12px 14px;margin-bottom:12px;background:#30251085;color:#f6dca0;font-size:13px;line-height:1.5}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 322px;align-items:start;gap:17px}
+.preview-panel,.control-panel,.export-panel{background:#0b1824;border:1px solid #31506b;border-radius:16px;padding:13px;box-shadow:0 10px 30px #0005}
+h2{font-size:16px;color:#fff;margin:4px 0 10px}
+.helper{font-size:12px;color:#aebbc6;margin:0 0 10px;line-height:1.55}
+.stage-wrap{width:100%;display:flex;justify-content:center;align-items:flex-start;padding:8px 0 3px;background:repeating-linear-gradient(45deg,#08121a,#08121a 13px,#0d1b25 13px,#0d1b25 26px);border:1px solid #263b4c;border-radius:13px}
+#stage{position:relative;container-type:inline-size;aspect-ratio:2048 / 1971;width:min(100%,740px);isolation:isolate;touch-action:pan-y;color:#fff;user-select:none}
+#background{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+.part{position:absolute;display:flex;align-items:center;justify-content:center;user-select:none;touch-action:none;cursor:grab;border:1.5px solid transparent;min-width:6px;min-height:6px;overflow:visible}
+.part:active{cursor:grabbing}
+.part.active{outline:2px dashed #16f9eb;outline-offset:1px;background:#16f9eb0e;z-index:4!important}
+.part img{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;user-select:none;-webkit-user-drag:none}
+#part-foto{border-radius:50%;overflow:hidden;background:#120d0c;z-index:2}
+#part-foto img{object-fit:cover;border-radius:50%}
+#part-insignia{z-index:2;filter:drop-shadow(0 5px 9px #000a)}
+.text-part{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:Arial,Helvetica,sans-serif;font-weight:1000;line-height:1.03;text-shadow:0 2px 5px #000,0 1px 2px #000}
+#part-nombre{color:#fff;z-index:3;padding:0 1%;font-weight:900}
+#part-posicion{color:#ffbf0a;z-index:3;text-shadow:0 4px 4px #290e00,0 1px 0 #e48700}
+#part-puntos{color:#ffbf00;z-index:3;text-shadow:0 3px 5px #0d0600}
+.tiny-note{font-size:11px;color:#adb9c5;text-align:center;margin:8px 0 0}
+.control-panel{position:relative}
+.part-list{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:13px}
+.part-list button{font-size:12px;font-weight:900;line-height:1.25;background:#132c40;color:#fff;border:1px solid #45627a;border-radius:10px;min-height:40px;padding:8px 6px;cursor:pointer}
+.part-list button.active{background:#124e5b;border-color:#1bfbdc;color:#e8ffff}
+.selected-name{color:#ffd56b;font-size:14px;font-weight:900;margin:7px 0 11px}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+label{display:block;color:#c6d5e1;font-size:12px;font-weight:700}
+label input{margin-top:4px}
+input[type="number"],input[type="text"]{display:block;width:100%;min-width:0;padding:10px 9px;border:1px solid #54728a;border-radius:9px;background:#07131d;color:#fff;font:600 15px Arial}
+input:disabled{opacity:.55}
+.small-help{font-size:11px;color:#9fb4c4;line-height:1.45;margin:6px 0 12px}
+.resize-note{font-size:11px;color:#b0c7d3;margin:11px 0 4px}
+.move-controls{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,39px);gap:5px;justify-content:center;margin:12px 0}
+.move-controls button{background:#243e54;color:#fff;border:1px solid #6a8495;border-radius:9px;font-size:20px;cursor:pointer}
+.move-controls [data-step="up"]{grid-column:2;grid-row:1}
+.move-controls [data-step="left"]{grid-column:1;grid-row:2}
+.move-controls [data-step="down"]{grid-column:2;grid-row:2}
+.move-controls [data-step="right"]{grid-column:3;grid-row:2}
+.move-controls .center{grid-column:1;grid-row:1;font-size:11px;line-height:1.2;border:0;background:transparent;color:#91a7b6;display:grid;place-items:center}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.actions button, .copy-main{min-height:43px;border:1px solid #d9a84f;border-radius:10px;background:#543b16;color:#fff;font-weight:900;cursor:pointer;padding:9px}
+.actions button.secondary{background:#122b3f;border-color:#6c92ac}
+.copy-main{width:100%;background:linear-gradient(135deg,#12a685,#1476a3);border:2px solid #74efcb;font-size:15px;min-height:51px}
+#status{font-size:12px;color:#b5d5cf;min-height:16px;margin:8px 0;text-align:center}
+.export-panel{margin-top:13px}
+textarea{width:100%;height:198px;display:block;resize:vertical;padding:12px;border-radius:10px;border:1px solid #52738e;background:#030a10;color:#c8f6e8;font:12px/1.48 monospace;overflow:auto}
+.controls-foot{font-size:11px;color:#8fa5b7;line-height:1.6;margin-top:10px}
+[hidden]{display:none!important}
+@media(max-width:830px){.layout{grid-template-columns:1fr}.preview-panel,.control-panel,.export-panel{padding:10px}.control-panel{order:2}.preview-panel{order:1}.export-panel{order:3}}
+@media(max-width:440px){header{position:static}main{margin-top:8px;padding:0 6px}.preview-panel{padding:6px}.stage-wrap{padding:3px 0}h1{font-size:19px}#stage{width:100%}}
+</style>
+</head>
+<body>
+<header><div class="inner"><div><h1>🎱 EDITOR VISUAL · GANADOR DEL DÍA</h1><p class="sub">Mueve las piezas y copia sus posiciones para Ranking8BP.</p></div><a href="./" target="_blank" rel="noopener">Abrir Ranking</a></div></header>
+<main>
+ <div class="notice">⚠️ <strong>SIMULADOR:</strong> mover los elementos aquí <strong>NO modifica tu sitio público</strong>. Cuando termines, pulsa <strong>COPIAR POSICIONES</strong> y pégalas en nuestro chat para aplicarlas.</div>
+ <div class="layout">
+  <section class="preview-panel">
+   <h2>Vista previa real</h2>
+   <p class="helper">Toca una pieza y arrástrala a su lugar. Puedes moverla con el dedo o el mouse. Usa el panel para cambiar tamaño y ajustar con precisión.</p>
+   <div class="stage-wrap">
+    <div id="stage" aria-label="Diseño interactivo del ganador">
+     <img id="background" src="./Diaanterior.fondo.png?v=f9ebc2c5" alt="Fondo original del ganador" draggable="false">
+     <div class="part" id="part-insignia" data-id="insignia" tabindex="0" role="button" aria-label="Mover insignia"><img src="https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/PlataIV.png" alt="Insignia de ejemplo Plata IV" draggable="false"></div>
+     <div class="part" id="part-foto" data-id="foto" tabindex="0" role="button" aria-label="Mover fotografía"><img src="https://xcrzxnshhamribnimsxc.supabase.co/storage/v1/object/public/profile-photos/4d5d5644-5696-4c8c-aff4-ce4724fb5ce8/avatar-1791188136073.jpg" alt="Foto de SOMBRA" draggable="false"></div>
+     <div class="part text-part" id="part-nombre" data-id="nombre" tabindex="0" role="button" aria-label="Mover nombre">🐦‍🔥⃤⃟⃝👑𝖘𝖔𝖒𝖇𝖗𝖆💜🤠💙</div>
+     <div class="part text-part" id="part-posicion" data-id="posicion" tabindex="0" role="button" aria-label="Mover posición">#17</div>
+     <div class="part text-part" id="part-puntos" data-id="puntos" tabindex="0" role="button" aria-label="Mover puntos">15</div>
+    </div>
+   </div>
+   <p class="tiny-note" id="assetStatus">Cargando las imágenes originales...</p>
+  </section>
+  <aside class="control-panel">
+   <h2>Selecciona qué quieres mover</h2>
+   <div class="part-list" id="partList">
+    <button type="button" data-select="foto">📷 FOTO</button>
+    <button type="button" data-select="insignia">🏅 INSIGNIA</button>
+    <button type="button" data-select="nombre">✍️ NOMBRE</button>
+    <button type="button" data-select="posicion">🏆 # RANKING</button>
+    <button type="button" data-select="puntos">⭐ PUNTOS</button>
+   </div>
+   <p class="selected-name" id="selectedName">FOTO</p>
+   <div class="field-grid">
+    <label>Izquierda (X %) <input type="number" id="fieldX" step="0.1" inputmode="decimal"></label>
+    <label>Arriba (Y %) <input type="number" id="fieldY" step="0.1" inputmode="decimal"></label>
+    <label>Ancho (%) <input type="number" id="fieldW" step="0.1" min="5" max="120" inputmode="decimal"></label>
+    <label>Alto (%) <input type="number" id="fieldH" step="0.1" min="3" max="120" inputmode="decimal"></label>
+    <label id="fontLabel">Letra (% ancho) <input type="number" id="fieldFont" step="0.05" min="1" max="20" inputmode="decimal"></label>
+   </div>
+   <p class="small-help" id="fieldHelp">Las coordenadas son porcentajes del cartel, por eso sirven en celular y computadora.</p>
+   <div class="move-controls">
+    <div class="center">Paso<br>0.2 %</div>
+    <button type="button" data-step="up" title="Subir">↑</button>
+    <button type="button" data-step="left" title="Izquierda">←</button>
+    <button type="button" data-step="down" title="Bajar">↓</button>
+    <button type="button" data-step="right" title="Derecha">→</button>
+   </div>
+   <div class="actions"><button id="reset" type="button" class="secondary">↻ Restablecer</button><button id="saveFile" type="button">↓ Guardar JSON</button></div>
+   <button id="copy" type="button" class="copy-main">📋 COPIAR POSICIONES PARA CHATGPT</button>
+   <p id="status" role="status"></p>
+   <p class="controls-foot">Los cambios quedan guardados solo en este navegador. También puedes usar las flechas del teclado; mantén Shift para mover 1 %.</p>
+  </aside>
+ </div>
+ <section class="export-panel">
+  <h2>Posiciones listas para copiar</h2>
+  <p class="helper">Si el botón de copiar no funciona, selecciona todo el texto de abajo y pégalo en el chat.</p>
+  <textarea id="exportText" aria-label="Posiciones del diseño" spellcheck="false" readonly></textarea>
+ </section>
+</main>
+<script>
+(function(){
+ 'use strict';
+ const STORAGE_KEY='ranking8bp-winner-visual-editor-v1';
+ const DEFAULTS={
+  insignia:{x:15.7,y:25.7,w:37,h:52,label:'INSIGNIA'},
+  foto:{x:59.9,y:19.3,w:29.6,h:null,label:'FOTO'},
+  nombre:{x:52,y:52.2,w:38.7,h:6.2,font:3.15,label:'NOMBRE'},
+  posicion:{x:45,y:58,w:17,h:10,font:7.4,label:'# EN EL RANKING'},
+  puntos:{x:54.1,y:74.9,w:24.5,h:13,font:9.5,label:'PUNTOS'}
+ };
+ const order=['foto','insignia','nombre','posicion','puntos'];
+ const selectors={foto:'.daily-winner-avatar',insignia:'.daily-winner-badge',nombre:'.daily-winner-name',posicion:'.daily-winner-rank-position',puntos:'.daily-winner-points'};
+ const defaults=()=>JSON.parse(JSON.stringify(DEFAULTS));
+ const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
+ const r=(n)=>Math.round(Number(n)*100)/100;
+ const stage=document.getElementById('stage');
+ const fields={x:document.getElementById('fieldX'),y:document.getElementById('fieldY'),w:document.getElementById('fieldW'),h:document.getElementById('fieldH'),font:document.getElementById('fieldFont')};
+ let values=defaults();
+ let selected='foto',drag=null;
+ try{
+  const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
+  if(saved&&typeof saved==='object'){
+   for(const id of order){
+    if(saved[id]&&typeof saved[id]==='object'){
+     for(const key of ['x','y','w','h','font']){
+      const n=Number(saved[id][key]);
+      if(saved[id][key]!=null&&Number.isFinite(n)){
+       if(key==='x'||key==='y')values[id][key]=clamp(r(n),-20,120);
+       if(key==='w')values[id][key]=clamp(r(n),5,120);
+       if(key==='h'&&id!=='foto')values[id][key]=clamp(r(n),3,120);
+       if(key==='font'&&DEFAULTS[id].font)values[id][key]=clamp(r(n),1,20);
+      }
+     }
+    }
+   }
+  }
+ }catch(e){console.warn('No se pudo recuperar editor:',e)}
+ function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(values))}catch(e){}}
+ function paint(){
+  for(const id of order){
+   const item=values[id],el=document.getElementById('part-'+id);
+   el.style.left=item.x+'%';el.style.top=item.y+'%';el.style.width=item.w+'%';
+   if(id==='foto'){el.style.height='';el.style.aspectRatio='1'}
+   else{el.style.height=item.h+'%'}
+   if(item.font){
+    const lower=id==='nombre'?9:id==='posicion'?16:21;
+    const upper=id==='nombre'?33:id==='posicion'?74:95;
+    el.style.fontSize='clamp('+lower+'px,'+item.font+'cqw,'+upper+'px)';
+   }
+   el.classList.toggle('active',id===selected);
+  }
+  document.querySelectorAll('[data-select]').forEach(btn=>{
+   btn.classList.toggle('active',btn.dataset.select===selected);
+   btn.setAttribute('aria-pressed',String(btn.dataset.select===selected));
+  });
+  document.getElementById('selectedName').textContent='EDITANDO: '+values[selected].label;
+  for(const k of ['x','y','w'])fields[k].value=values[selected][k];
+  fields.h.disabled=selected==='foto';
+  fields.h.value=selected==='foto'?'':values[selected].h;
+  fields.h.placeholder=selected==='foto'?'Automático':'';
+  const hasFont=Boolean(DEFAULTS[selected].font);
+  document.getElementById('fontLabel').hidden=!hasFont;
+  fields.font.value=hasFont?values[selected].font:'';
+  document.getElementById('fieldHelp').textContent=selected==='foto'?'La FOTO mantiene su forma circular. Ajusta el ANCHO para agrandarla.':'Todos los valores son porcentajes de la imagen de fondo, excepto el tamaño de letra (ancho del cartel).';
+  updateExport();
+ }
+ function choose(id){if(!values[id])return;selected=id;paint()}
+ function cssValue(id){
+  const p=values[id];
+  let result='left:'+p.x+'%;top:'+p.y+'%;width:'+p.w+'%;';
+  result+=id==='foto'?'aspect-ratio:1;':'height:'+p.h+'%;';
+  if(p.font){
+   const min=id==='nombre'?9:id==='posicion'?16:21;
+   const max=id==='nombre'?33:id==='posicion'?74:95;
+   result+='font-size:clamp('+min+'px,'+p.font+'cqw,'+max+'px);';
+  }
+  return result;
+ }
+ function exportText(){
+  let msg='POSICIONES DEFINITIVAS DEL GANADOR DEL DÍA — RANKING8BP\n';
+  msg+='Fondo: Diaanterior.fondo.png\n';
+  msg+='Tomar estas coordenadas como porcentajes del cartel completo.\n\n';
+  for(const id of order){msg+=values[id].label+': '+cssValue(id)+'\n'}
+  msg+='\nCSS PARA APLICAR EN EL SITIO:\n';
+  for(const id of order){msg+='#dailyRankingInfoModal '+selectors[id]+'{'+cssValue(id)+'}\n'}
+  return msg;
+ }
+ function updateExport(){document.getElementById('exportText').value=exportText()}
+ function changed(){persist();paint()}
+ function setField(key,raw){
+  if(raw===''||raw==='-'||raw==='.'){return}
+  let n=Number(String(raw).replace(',','.'));if(!Number.isFinite(n))return;
+  n=r(n);
+  values[selected][key]=(key==='x'||key==='y')?clamp(n,-20,120):key==='font'?clamp(n,1,20):key==='w'?clamp(n,5,120):clamp(n,3,120);
+  changed();
+ }
+ for(const key of Object.keys(fields)){
+  fields[key].addEventListener('input',e=>setField(key,e.target.value));
+  fields[key].addEventListener('change',()=>paint());
+ }
+ document.querySelectorAll('[data-select]').forEach(el=>el.addEventListener('click',()=>choose(el.dataset.select)));
+ document.querySelectorAll('.part').forEach(el=>{
+  el.addEventListener('click',()=>choose(el.dataset.id));
+  el.addEventListener('pointerdown',e=>{
+   if(e.button!==0)return;
+   e.preventDefault();choose(el.dataset.id);
+   drag={id:el.dataset.id,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,x:values[el.dataset.id].x,y:values[el.dataset.id].y};
+   el.setPointerCapture(e.pointerId);
+  });
+  el.addEventListener('pointermove',e=>{
+   if(!drag||drag.id!==el.dataset.id||drag.pointerId!==e.pointerId)return;
+   e.preventDefault();
+   const rect=stage.getBoundingClientRect();
+   values[drag.id].x=r(clamp(drag.x+((e.clientX-drag.startX)/rect.width)*100,-20,120));
+   values[drag.id].y=r(clamp(drag.y+((e.clientY-drag.startY)/rect.height)*100,-20,120));
+   changed();
+  });
+  const finish=e=>{if(drag&&drag.pointerId===e.pointerId){drag=null;persist()}};
+  el.addEventListener('pointerup',finish);el.addEventListener('pointercancel',finish);
+  el.addEventListener('lostpointercapture',()=>{drag=null});
+  el.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))move(e.key,e.shiftKey?1:.2,e)});
+ });
+ function move(key,amount,event){
+  if(event)event.preventDefault();
+  if(key==='ArrowUp')values[selected].y=r(values[selected].y-amount);
+  if(key==='ArrowDown')values[selected].y=r(values[selected].y+amount);
+  if(key==='ArrowLeft')values[selected].x=r(values[selected].x-amount);
+  if(key==='ArrowRight')values[selected].x=r(values[selected].x+amount);
+  changed();
+ }
+ document.querySelectorAll('[data-step]').forEach(button=>{
+  button.addEventListener('click',()=>{
+   const ids={up:'ArrowUp',down:'ArrowDown',left:'ArrowLeft',right:'ArrowRight'};
+   move(ids[button.dataset.step],.2);
+  });
+ });
+ document.addEventListener('keydown',e=>{
+  if(!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))return;
+  if(e.target.closest('input,textarea,button,.part'))return;
+  move(e.key,e.shiftKey?1:.2,e);
+ });
+ document.getElementById('reset').addEventListener('click',()=>{
+  if(!confirm('¿Restablecer todas las posiciones originales del simulador?'))return;
+  values=defaults();selected='foto';changed();showStatus('Posiciones restauradas.');
+ });
+ function showStatus(text){document.getElementById('status').textContent=text}
+ document.getElementById('copy').addEventListener('click',async()=>{
+  const text=exportText();
+  let okay=false;
+  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);okay=true}}catch(e){}
+  if(!okay){
+   const box=document.getElementById('exportText');box.focus();box.select();
+   try{okay=document.execCommand('copy')}catch(e){}
+  }
+  showStatus(okay?'✅ Posiciones copiadas. ¡Pégalas en ChatGPT!':'Selecciona y copia el texto del recuadro de abajo.');
+ });
+ document.getElementById('saveFile').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify({screen:'ganador-dia-anterior',parts:values,css:exportText()},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='posiciones-ganador-ranking8bp.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  showStatus('Archivo JSON descargado. Puedes compartirlo en el chat.');
+ });
+ const background=document.getElementById('background');
+ background.onload=()=>{document.getElementById('assetStatus').textContent='✓ Fondo real cargado: Diaanterior.fondo.png'};
+ background.onerror=()=>{document.getElementById('assetStatus').textContent='⚠ Fondo no cargó. Comprueba que GitHub Pages ya publicó Diaanterior.fondo.png.'};
+ if(background.complete&&background.naturalWidth)background.onload();
+ paint();
+})();
+</script>
+</body>
+</html>
