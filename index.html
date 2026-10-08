@@ -686,7 +686,22 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
 <button type="button" class="dashboard-menu-tile" data-menu="rangos"><img src="Botones/Botonderangos.png" alt="RANGOS"></button>
 <button type="button" class="dashboard-menu-tile" data-menu="temporada"><img src="Botones/botondetemporadas.png" alt="TEMPORADA"></button>
  <div class="daily-ranking-menu-slot"><button type="button" class="dashboard-menu-tile" id="dailyRankingTableBtn" aria-label="Ver tabla de Clasificatoria Diaria"><img src="assets/clasificatoriadiaria.png" alt="CLASIFICATORIA DIARIA"></button><div id="dailyClassificationClock" role="timer" aria-label="Tiempo restante para finalizar la Clasificatoria Diaria">FINALIZA EN --:--:--</div></div>
-</div><div class="dashboard-info-modal" id="dailyRankingInfoModal" hidden><div class="dashboard-info-card daily-results-layout"><div class="daily-results-banner"><img src="assets/clasificatoriadiaria2.png" alt="CLASIFICATORIA DIARIA" class="daily-results-title-image"><button type="button" id="dailyRankingInfoClose" aria-label="Cerrar">×</button></div><div class="daily-results-toolbar"><p id="dailyLeaderboardCountdown" role="timer">FINALIZA EN --:--:--</p><button type="button" id="dailyPreviousResultsBtn" aria-label="Resultados del día anterior"><img src="assets/resultadodeldiaanterior.png" alt="RESULTADOS DEL DÍA ANTERIOR"></button></div><div class="ranking-card daily-ranking-card"><div class="ranking-header daily-ranking-header"><span>#</span><span>JUGADOR</span><span>PAÍS</span><span>PUNTOS</span><span>RESTANTES</span></div><div class="ranking-list" id="dailyRankingList"><div class="ranking-loading">Cargando tabla diaria...</div></div></div></div></div><style id="daily-results-banner-layout">
+</div><div class="dashboard-info-modal" id="dailyRankingInfoModal" hidden><div class="dashboard-info-card daily-results-layout"><div class="daily-results-banner"><img src="assets/clasificatoriadiaria2.png" alt="CLASIFICATORIA DIARIA" class="daily-results-title-image"><button type="button" id="dailyRankingInfoClose" aria-label="Cerrar">×</button></div><div class="daily-results-toolbar"><p id="dailyLeaderboardCountdown" role="timer">FINALIZA EN --:--:--</p><button type="button" id="dailyPreviousResultsBtn" aria-label="Resultados del día anterior"><img src="assets/resultadodeldiaanterior.png" alt="RESULTADOS DEL DÍA ANTERIOR"></button></div><div class="ranking-card daily-ranking-card"><div class="ranking-header daily-ranking-header"><span>#</span><span>JUGADOR</span><span>PAÍS</span><span>PUNTOS</span><span>RESTANTES</span></div><div class="ranking-list" id="dailyRankingList"><div class="ranking-loading">Cargando tabla diaria...</div></div></div>
+<section class="daily-winner-view" id="dailyWinnerView" aria-label="Ganador del día anterior" hidden>
+ <div class="daily-winner-stage" id="dailyWinnerStage">
+  <img class="daily-winner-background" src="Diaanterior.fondo.png?v=f9ebc2c5" alt="Presentación de ganador del día anterior" decoding="async">
+  <img class="daily-winner-badge" id="dailyWinnerBadge" alt="" hidden>
+  <div class="daily-winner-avatar" id="dailyWinnerAvatarShell">
+   <span id="dailyWinnerAvatarFallback">?</span><img id="dailyWinnerAvatar" alt="Foto del ganador" hidden>
+  </div>
+  <strong class="daily-winner-name" id="dailyWinnerName">CARGANDO...</strong>
+  <strong class="daily-winner-rank-position" id="dailyWinnerGlobalPosition">—</strong>
+  <strong class="daily-winner-points" id="dailyWinnerPoints">—</strong>
+  <p class="daily-winner-message" id="dailyWinnerMessage" role="status" hidden></p>
+  <button type="button" class="daily-winner-close" id="dailyWinnerClose" aria-label="Cerrar resultados del día anterior">×</button>
+ </div>
+ <button type="button" class="daily-winner-back" id="dailyWinnerBackToToday">← VOLVER A CLASIFICATORIA DE HOY</button>
+</section></div></div><style id="daily-results-banner-layout">
 #dailyRankingInfoModal .daily-results-layout{background:#050a10!important;padding:10px!important;max-width:780px!important}
 #dailyRankingInfoModal .daily-results-banner{display:flex;align-items:flex-start;gap:8px;width:100%;margin:0 0 4px}
 #dailyRankingInfoModal .daily-results-title-image{display:block;width:calc(100% - 48px);height:auto;object-fit:contain;max-height:180px}
@@ -717,7 +732,110 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
 #dailyRankingInfoModal .daily-leaderboard-country span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #dailyRankingInfoModal .daily-leaderboard-points,#dailyRankingInfoModal .daily-leaderboard-remaining{font-size:14px}
 @media(max-width:430px){#dailyRankingInfoModal .dashboard-info-card{padding:8px!important}#dailyRankingInfoModal .daily-ranking-header,#dailyRankingInfoModal .daily-leaderboard-row{grid-template-columns:24px minmax(0,1.5fr) minmax(0,.85fr) 40px 49px!important;gap:3px!important;padding-left:5px!important;padding-right:5px!important}#dailyRankingInfoModal .daily-leaderboard-avatar{width:31px;height:31px;flex-basis:31px}#dailyRankingInfoModal .daily-leaderboard-country{font-size:10px}}
-</style><div id="rankingInstallArea" style="display:block!important;width:94%;max-width:760px;margin:10px auto 14px!important;visibility:visible!important;opacity:1!important"><button type="button" id="installRankingAppBtn" style="display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;min-height:62px!important;border:2px solid #d6aa4b!important;border-radius:14px!important;background:#142534!important;color:#fff!important;font-size:19px!important;font-weight:900!important">📲 INSTALAR RANKING8BP</button></div><div class="dashboard-info-modal" id="achievementsModal" hidden><div class="dashboard-info-card"><header><strong>🏆 LOGROS</strong><button type="button" id="achievementsModalClose" aria-label="Cerrar logros">×</button></header><div class="dynamic-wins-profile" id="dynamicWinsProfile">🏆 DINÁMICAS GANADAS: <b>0</b></div><div id="competitiveAchievements"></div></div></div><div class="rules-image-modal" id="rulesImageModal" hidden>
+</style>
+<style id="daily-winner-screen-styles">
+#dailyRankingInfoModal .daily-winner-view[hidden]{display:none!important}
+#dailyRankingInfoModal.is-previous-day{align-items:flex-start!important}
+#dailyRankingInfoModal.is-previous-day .daily-results-banner,
+#dailyRankingInfoModal.is-previous-day .daily-results-toolbar,
+#dailyRankingInfoModal.is-previous-day .daily-ranking-card{display:none!important}
+#dailyRankingInfoModal.is-previous-day .daily-results-layout{
+  box-sizing:border-box!important;
+  width:min(96vw,740px,85vh)!important;
+  max-width:none!important;
+  max-height:none!important;
+  padding:0!important;
+  margin:auto!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  overflow:visible!important;
+  box-shadow:none!important;
+}
+#dailyRankingInfoModal.is-previous-day .daily-winner-view{display:block!important;width:100%;text-align:center}
+#dailyRankingInfoModal .daily-winner-stage{
+  position:relative;
+  display:block;
+  container-type:inline-size;
+  aspect-ratio:2048/1971;
+  width:100%;
+  overflow:visible;
+  isolation:isolate;
+  color:white;
+}
+#dailyRankingInfoModal .daily-winner-background{
+  position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:fill;pointer-events:none;
+}
+#dailyRankingInfoModal .daily-winner-badge{
+  position:absolute;
+  left:15.7%;top:25.7%;width:37%;height:52%;
+  object-fit:contain;
+  filter:drop-shadow(0 5px 12px #000b);
+  pointer-events:none;
+}
+#dailyRankingInfoModal .daily-winner-badge[hidden]{display:none!important}
+#dailyRankingInfoModal .daily-winner-avatar{
+  position:absolute;
+  left:58.1%;top:19.7%;width:28.3%;aspect-ratio:1;
+  display:grid;place-items:center;
+  overflow:hidden;border-radius:50%;
+  background:#1a1210;color:#d6ad57;
+  font-family:Arial,sans-serif;font-weight:900;
+  font-size:7cqw;
+}
+#dailyRankingInfoModal .daily-winner-avatar img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  border-radius:50%;display:block;
+}
+#dailyRankingInfoModal .daily-winner-avatar img[hidden]{display:none!important}
+#dailyRankingInfoModal .daily-winner-name,
+#dailyRankingInfoModal .daily-winner-rank-position,
+#dailyRankingInfoModal .daily-winner-points{
+  position:absolute;display:flex;align-items:center;justify-content:center;
+  font-family:Arial,Helvetica,sans-serif;font-weight:1000;line-height:1.03;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  text-shadow:0 2px 5px #000,0 1px 2px #000;
+}
+#dailyRankingInfoModal .daily-winner-name{
+  left:52%;top:54.4%;width:38.7%;height:6.2%;
+  color:#fff;font-size:clamp(10px,3.15cqw,33px);padding:0 1%;
+}
+#dailyRankingInfoModal .daily-winner-rank-position{
+  left:45%;top:61.3%;width:17%;height:10%;
+  color:#ffbf0a;font-size:clamp(18px,7.4cqw,74px);
+  text-shadow:0 4px 4px #290e00,0 1px 0 #e48700;
+}
+#dailyRankingInfoModal .daily-winner-points{
+  left:54.8%;top:75.7%;width:24.5%;height:13%;
+  color:#ffbf00;font-size:clamp(23px,9.5cqw,95px);
+  text-shadow:0 3px 5px #0d0600;
+}
+#dailyRankingInfoModal .daily-winner-message{
+  position:absolute;left:53%;top:72.5%;width:29%;max-height:16%;
+  padding:4px;background:#080907e6;color:#f5ce7a;font-weight:900;
+  font-size:clamp(10px,2.4cqw,19px);line-height:1.3;overflow:auto;
+}
+#dailyRankingInfoModal .daily-winner-message[hidden]{display:none!important}
+#dailyRankingInfoModal .daily-winner-close{
+  position:absolute;top:7.6%;right:2.3%;z-index:2;
+  display:grid;place-items:center;width:5%;min-width:23px;aspect-ratio:1;
+  border:2px solid #f7ce64;border-radius:50%;padding:0;
+  color:#fff;background:#a20a11;font-size:clamp(13px,3cqw,27px);line-height:1;cursor:pointer;
+  box-shadow:0 3px 10px #000b;
+}
+#dailyRankingInfoModal .daily-winner-back{
+  display:block;margin:9px auto 3px;max-width:96%;min-height:34px;
+  padding:8px 15px;border:1px solid #edbd46;border-radius:16px;
+  background:#aa0b15;color:#fff;font-size:clamp(10px,2vw,15px);
+  font-weight:900;cursor:pointer;
+}
+@media(max-width:480px){
+ #dailyRankingInfoModal.is-previous-day{padding:5px!important}
+ #dailyRankingInfoModal.is-previous-day .daily-results-layout{width:min(98vw,85vh)!important}
+ #dailyRankingInfoModal .daily-winner-back{min-height:30px}
+}
+</style>
+<div id="rankingInstallArea" style="display:block!important;width:94%;max-width:760px;margin:10px auto 14px!important;visibility:visible!important;opacity:1!important"><button type="button" id="installRankingAppBtn" style="display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;min-height:62px!important;border:2px solid #d6aa4b!important;border-radius:14px!important;background:#142534!important;color:#fff!important;font-size:19px!important;font-weight:900!important">📲 INSTALAR RANKING8BP</button></div><div class="dashboard-info-modal" id="achievementsModal" hidden><div class="dashboard-info-card"><header><strong>🏆 LOGROS</strong><button type="button" id="achievementsModalClose" aria-label="Cerrar logros">×</button></header><div class="dynamic-wins-profile" id="dynamicWinsProfile">🏆 DINÁMICAS GANADAS: <b>0</b></div><div id="competitiveAchievements"></div></div></div><div class="rules-image-modal" id="rulesImageModal" hidden>
   <div class="rules-image-stage">
     <img src="Botones/VentanaReglas.png" alt="Reglas del modo Ranking" class="rules-image-art">
     <button type="button" class="rules-hotspot rules-hotspot-close" id="rulesImageClose" aria-label="Cerrar reglas"></button>
@@ -1037,7 +1155,7 @@ html.auth-checking #guestTopbar,html.auth-checking #guestEmpty{visibility:hidden
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261008-daily-yesterday-results"></script>
+  <script src="app-v5.js?v=20261008-daily-winner-poster-v1"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer>
 <div id="privateInviteFullNotice" hidden style="position:fixed;inset:0;z-index:2147483647;background:rgba(2,8,19,.94);display:none;align-items:center;justify-content:center;padding:20px"><div style="width:min(94vw,430px);padding:35px 22px;border:2px solid #f0bd46;border-radius:22px;background:#111e30;text-align:center;color:white"><div style="font-size:66px">😢</div><h2 style="font-size:27px;color:#ffce5a;margin:12px 0">LLEGASTE TARDE</h2><p style="font-size:21px;font-weight:900">YA ENTRÓ ALGUIEN</p><div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:18px"><button type="button" id="privateInviteFullClose" style="padding:13px 25px;border:0;border-radius:12px;background:#d62828;color:#fff;font-weight:900">ENTENDIDO</button><button type="button" id="privateInviteFullCopy" class="dashboard-share-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 12px;border:2px solid #51aeff;border-radius:12px;background:#126fe0;color:#fff;font-weight:900"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.2M8.7 13.3l6.6 4.2"/></svg><span>COPIAR LINK PARA SALA PRIVADA</span></button></div></div></div>
 <div id="privateInviteExpiredNotice" hidden style="position:fixed;inset:0;z-index:2147483647;background:rgba(2,8,19,.94);display:none;align-items:center;justify-content:center;padding:20px"><div style="width:min(94vw,430px);padding:35px 22px;border:2px solid #f0bd46;border-radius:22px;background:#111e30;text-align:center;color:white"><div style="font-size:66px">😢</div><h2 style="font-size:27px;color:#ffce5a;margin:12px 0">SALA EXPIRADA 😢</h2><div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:22px"><button type="button" id="privateInviteExpiredClose" style="padding:13px 25px;border:0;border-radius:12px;background:#d62828;color:#fff;font-weight:900">ENTENDIDO</button><button type="button" id="privateInviteExpiredCopy" class="dashboard-share-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 12px;border:2px solid #51aeff;border-radius:12px;background:#126fe0;color:#fff;font-weight:900"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.2M8.7 13.3l6.6 4.2"/></svg><span>COPIAR LINK PARA SALA PRIVADA</span></button></div></div></div>
