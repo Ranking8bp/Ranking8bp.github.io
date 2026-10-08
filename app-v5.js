@@ -3649,7 +3649,7 @@ async function dailyShowRoom(){
    actions.dataset.ready='1';
   }
  }else{
-  if(actions.dataset.ready!=='abandon'||actions.children.length!==1){actions.replaceChildren();dailyAction('ABANDONAR VS',dailyAbandonBeforeChat);actions.dataset.ready='abandon'}
+  if(actions.dataset.ready!=='abandon'||actions.children.length!==1){actions.replaceChildren();dailyAction('SALIR Y ANULAR VS (SIN GANADOR)',dailyAbandonBeforeChat);actions.dataset.ready='abandon'}
   if(content.textContent==='ESPERANDO MENSAJES DE AMBOS JUGADORES...')content.textContent='';
  }
 }
@@ -3659,7 +3659,7 @@ async function dailyShowRoom(){
 }
 async function dailyAbandonBeforeChat(){
  if(!dailyMatchId||dailyBusy)return;
- if(!confirm('¿ABANDONAR ESTE VS? SE ANULARÁ LA PARTIDA PARA AMBOS JUGADORES.'))return;
+ if(!confirm('¿SALIR DE ESTA SALA WEB Y ANULAR EL VS SIN GANADOR? ESTO NO SIGNIFICA ABANDONAR LA PARTIDA EN 8 BALL POOL.'))return;
  dailyBusy=true;
  try{await dailyRpc('daily_classification_abandon_before_chat',{p_match_id:dailyMatchId});dailyStopPolling();dailyMatchId=null;dailyEl('dailyMatchModal').hidden=true;await dailyRefreshStatus()}
  catch(e){alert('NO SE PUDO ABANDONAR: '+e.message);await dailyShowRoom()}
