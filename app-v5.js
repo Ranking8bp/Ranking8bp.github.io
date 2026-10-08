@@ -3320,7 +3320,7 @@ async function dailyLoadWinner(){
  if(points)points.textContent='—';
  if(badge)badge.hidden=true;
  if(avatar){avatar.hidden=true;avatar.removeAttribute('src');}
- if(initial)initial.textContent='🎱';
+ if(initial){initial.textContent='🎱';initial.hidden=false;}
  if(message)message.hidden=true;
  try{
   const winner=await dailyRpc('daily_classification_previous_winner');
@@ -3330,7 +3330,12 @@ async function dailyLoadWinner(){
    if(message){message.textContent='NO HUBO JUGADORES CLASIFICADOS EL DÍA ANTERIOR.';message.hidden=false;}
    return;
   }
-  if(name){name.textContent=String(winner.player_name||'JUGADOR');name.title=name.textContent;}
+  if(name){
+   name.textContent=String(winner.player_name||'JUGADOR');
+   name.title=name.textContent;
+   const nameLength=[...name.textContent].length;
+   name.style.fontSize=nameLength>25?'clamp(9px,2.05cqw,25px)':nameLength>16?'clamp(10px,2.5cqw,30px)':'clamp(10px,3.15cqw,33px)';
+  }
   if(position)position.textContent=Number(winner.global_position)>0?'#'+String(winner.global_position):'—';
   if(points)points.textContent=String(Number(winner.points)||0);
   if(badge){
