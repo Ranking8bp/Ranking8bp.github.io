@@ -1206,7 +1206,7 @@ async function startRankedMatchmaking(){
     
     search.hidden=true;vs.hidden=false;startFreshRankedRoom(Number(m.match_id),Number(m.chat_seconds_left??60));return;
    }
-  }catch(e){console.error('Emparejamiento nuevo:',e);rankedSearchActive=false;search.hidden=true;modal.hidden=true;showToast('No se pudo entrar a la cola: '+String(e?.message||'ERROR DE CONEXIÓN'));return}
+  }catch(e){console.error('Emparejamiento nuevo:',e);rankedSearchActive=false;search.hidden=true;modal.hidden=true;await syncRankedSearchPresence(false);if(String(e?.message||'').includes('DAILY_CLASSIFICATION_PENDING'))alert(PENDING_DAILY_VS_RANKING_NOTICE);else showToast('No se pudo entrar a la cola: '+String(e?.message||'ERROR DE CONEXIÓN'));return}
   await new Promise(r=>setTimeout(r,5000));
  }
 }
@@ -2570,7 +2570,31 @@ document.addEventListener('click',(e)=>{if(!e.target.closest?.('#privateInviteFu
 document.addEventListener('click',async(e)=>{const btn=e.target.closest?.('#privateInviteFullCopy');if(!btn)return;e.preventDefault();const box=document.getElementById('privateInviteFullNotice');if(box){box.hidden=true;box.style.display='none'}if(!currentUser){showToast('Regístrate o inicia sesión para crear tu propia sala privada.');document.getElementById('registerBtn')?.click();return}await sharePrivateRankedInvite();});
 if(dashboardShareBtn)dashboardShareBtn.addEventListener('click',sharePrivateRankedInvite);
 
-if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{if(!window.rankingRulesAccepted){window.openRankingRules?.(true);return;}
+const PENDING_DAILY_VS_RANKING_NOTICE='TIENES UNA PARTIDA DE CLASIFICATORIA DIARIA PENDIENTE. REGRESA A ESA SALA Y FINALIZA TU PARTIDA ANTES DE JUGAR POR RANKING.';
+let rankingPendingDailyCheck=false;
+async function preventRankingWhileDailyVsPending(){
+ if(!currentUser||!supabaseClient)return false;
+ try{
+  const {data,error}=await supabaseClient.rpc('daily_classification_status');
+  if(error)throw error;
+  if(data?.match_id&&data?.status==='matched'&&!data?.my_claim){
+   alert(PENDING_DAILY_VS_RANKING_NOTICE);
+   return true;
+  }
+  return false;
+ }catch(error){
+  console.error('No se pudo comprobar la sala de clasificatoria pendiente:',error);
+  alert('NO SE PUDO VERIFICAR SI TIENES UNA PARTIDA DE CLASIFICATORIA DIARIA PENDIENTE. INTÉNTALO NUEVAMENTE.');
+  return true;
+ }
+}
+if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{
+ if(rankingPendingDailyCheck)return;
+ rankingPendingDailyCheck=true;
+ try{
+  if(await preventRankingWhileDailyVsPending())return;
+ }finally{rankingPendingDailyCheck=false;}
+ if(!window.rankingRulesAccepted){window.openRankingRules?.(true);return;}
   // A pending unanswered VS must be reopened directly, never sent through matchmaking.
   try{
     if(currentUser&&supabaseClient){
