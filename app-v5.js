@@ -1188,7 +1188,7 @@ async function startRankedMatchmaking(){
     }
     const {data:room,error:roomError}=await supabaseClient.rpc('get_fresh_ranked_room',{p_match_id:Number(st.out_match_id)});if(roomError)throw roomError;
     const m=Array.isArray(room)?room[0]:room;if(!m)throw new Error('ROOM_NOT_READY');
-    currentRankedMatchId=Number(m.match_id);rankedSearchActive=false;syncRankedSearchPresence(false);
+    currentRankedMatchId=Number(m.match_id);try{localStorage.setItem('ranking8bp-private-match-id',String(m.match_id))}catch(_){}rankedSearchActive=false;syncRankedSearchPresence(false);
     document.getElementById('freshMe').textContent=String(m.my_name||'TÚ').toUpperCase();
     document.getElementById('freshOpponent').textContent=String(m.opponent_name||'RIVAL').toUpperCase();
     document.getElementById('freshMyElo').textContent='ELO '+m.my_elo;
@@ -3013,9 +3013,10 @@ async function restorePersistentFreshRoom(id){
 }
 async function awaitRestoreFreshRoom(id){try{await restorePersistentFreshRoom(id)}catch(e){console.error(e)}}
 function startFreshRankedRoom(id,secondsLeft=60,isPrivateRoom=false){
+ isPrivateRoom=isPrivateRoom||(()=>{try{return localStorage.getItem('ranking8bp-private-match-id')===String(id)}catch(_){return false}})();
  freshRoomMatchId=id;stopFreshRoomRealtime().catch(()=>{});freshRoomExpiresAt=Date.now()+Math.max(0,Number(secondsLeft)||0)*1000;
  clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);
- const warning=document.getElementById('freshResponseWarning');if(warning)warning.hidden=!!isPrivateRoom;
+ const warning=document.getElementById('freshResponseWarning');if(warning){warning.hidden=!!isPrivateRoom;warning.style.display=isPrivateRoom?'none':'';}
  const oldNotice=document.getElementById('freshOpponentClaimNotice');if(oldNotice){oldNotice.hidden=true;oldNotice.textContent=''}
  const freshChat=document.getElementById('freshRankedChat');if(freshChat)freshChat.hidden=false;
  const abandon=document.getElementById('freshAbandonPending');if(abandon){abandon.hidden=false;abandon.disabled=false}
