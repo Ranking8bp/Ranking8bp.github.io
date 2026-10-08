@@ -3449,7 +3449,6 @@ window.startDailyClassification=async function(){
  if(st.match_id&&!st.my_claim){dailyEl('dailyMatchModal').hidden=false;dailyMatchId=Number(st.match_id);await dailyShowRoom();return}
  if(st.remaining<=0){alert('YA JUGASTE LOS 15 PARTIDOS DE HOY.');return}
  dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyMatchActions').replaceChildren();
- if(st.match_id&&st.my_claim){alert('YA ENVIASTE TU RESULTADO. NO PUEDES REGRESAR A ESA SALA.');dailyEl('dailyMatchModal').hidden=true;return}
  if(st.match_id){dailyMatchId=st.match_id;await dailyShowRoom();return}
  dailyMatchId=null;dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchSearching').hidden=false;dailySearching=true;await dailySearchLoop()
  }catch(e){alert('ERROR AL INICIAR CLASIFICATORIA: '+e.message)}
