@@ -1429,7 +1429,7 @@ async function loadAdminDailyVs(){
  actions.appendChild(chat);
  const decide=async(action,winner,name)=>{
  if(!confirm(action==='cancel'?'¿ANULAR ESTE PARTIDO DIARIO SIN SUMAR PUNTOS?':'¿DAR VICTORIA DIARIA A '+name+' (+15 / −15)?'))return;
- try{await dailyRpc('admin_daily_classification_decide',{p_match_id:m.match_id,p_action:action,p_winner_id:winner});adminMatchesCache=[];await loadAdminMatches();showToast('Partido diario actualizado')}catch(e){showToast('ERROR: '+e.message)}
+ try{await dailyRpc('admin_daily_classification_decide',{p_match_id:m.match_id,p_action:action,p_winner_id:winner});adminMatchesCache=[];await loadAdminMatches();if(action==='winner')await dailyRefreshGlobalRanking();showToast('Partido diario actualizado')}catch(e){showToast('ERROR: '+e.message)}
  };
  for(const side of ['player1','player2']){const b=document.createElement('button');b.className='admin-winner-btn';b.textContent='GANA '+m[side+'_name'];b.onclick=()=>decide('winner',m[side+'_id'],m[side+'_name']);actions.appendChild(b)}
  const cancel=document.createElement('button');cancel.className='cancel';cancel.textContent='ANULAR VS';cancel.onclick=()=>decide('cancel',null);actions.appendChild(cancel);card.appendChild(actions);heading.after(card);
@@ -2354,12 +2354,12 @@ async function loadLatestRankingResult(){
  }
 }
 
-async function loadRanking(){
+async function loadRanking(forceFresh=false){
  if(!rankingList||!rankingCount||!supabaseClient||rankingLoading)return;
  const cached=readPublicCache('ranking8bp_full_ranking');
  if(cached?.length){rankingPlayersCache=cached;renderFilteredRanking()}
  else{rankingList.innerHTML='<div class="ranking-loading">Cargando clasificación...</div>';rankingCount.textContent=''}
- if(cached?.length&&publicCacheFresh('ranking8bp_full_ranking')&&totalRegisteredPlayers>100)return;
+ if(!forceFresh&&cached?.length&&publicCacheFresh('ranking8bp_full_ranking')&&totalRegisteredPlayers>100)return;
  rankingLoading=true;
  try{
   if(cached?.length)await burstJitter();
@@ -3297,6 +3297,22 @@ async function dailyCheckDateRollover(){
 setInterval(dailyCheckDateRollover,1000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)dailyCheckDateRollover()});
 
+async function dailyRefreshGlobalRanking(){
+ if(!currentUser||!supabaseClient)return;
+ try{
+  const profile=await getProfile(currentUser.id);
+  if(profile&&currentUser?.id===profile.id){
+   currentProfile={...currentProfile,...profile};
+   const currentElo=Number(profile.elo_points)||0;
+   if(dashboardElo)dashboardElo.textContent=String(currentElo);
+   const rank=getRankByElo(currentElo);
+   const rankName=document.getElementById('dashboardRankName');
+   if(rankName)rankName.textContent=String(rank.name||'').toUpperCase();
+   await renderRankBadge(rank);
+  }
+ }catch(error){console.warn('ELO actual tras clasificatoria diaria:',error)}
+ await loadRanking(true).catch(error=>console.warn('Actualizar ranking tras VS diario:',error));
+}
 async function dailyRpc(name,args){const {data,error}=await supabaseClient.rpc(name,args);if(error)throw error;return data;}
 let dailyPrivateWatchBusy=false;let dailyLastAutoOpenedMatchId=null;
 async function dailyRefreshStatus(){
@@ -3467,7 +3483,7 @@ async function dailyShowRoom(){
  const evidenceBox=dailyEl('dailyEvidenceBox');if(evidenceBox&&dailyEvidenceMatchId!==renderingMatchId)evidenceBox.hidden=true;
  if(dailyEvidenceMatchId===renderingMatchId&&evidenceBox&&!evidenceBox.hidden){return}
 
- if(m.status==='finished'){actions.replaceChildren();content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
+ if(m.status==='finished'){actions.replaceChildren();content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +45 ELO Y +45 PUNTOS EN CLASIFICACIÓN DIARIA.':'PARTIDA TERMINADA. NO PIERDES ELO; SOLO CONSUMISTE 1 DE TUS 15 PARTIDAS.');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();await dailyRefreshGlobalRanking();return}
  if(m.status==='cancelled'){actions.replaceChildren();content.textContent='VS ANULADO: NINGUNO HIZO TRICKSHOT.';dailyMatchId=null;await dailyRefreshStatus();return}
  if(m.status==='disputed'){actions.replaceChildren();content.textContent='RESULTADO EN REVISIÓN: AMBOS JUGADORES DECLARARON EL MISMO RESULTADO. CONTACTA AL ADMINISTRADOR.';return}
  if(content.textContent)content.textContent='';
@@ -3546,7 +3562,7 @@ async function dailyUploadVictoryVideo(){
 }
 async function dailySubmitClaim(claim){
  if(!dailyMatchId||dailyBusy)return;dailyBusy=true;
- try{await dailyRpc('daily_classification_claim',{p_match_id:dailyMatchId,p_claim:claim});dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard()}
+ try{await dailyRpc('daily_classification_claim',{p_match_id:dailyMatchId,p_claim:claim});dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();await dailyRefreshGlobalRanking()}
  catch(e){alert('No se pudo enviar el resultado: '+e.message)}finally{dailyBusy=false}
 }
 async function dailySearchLoop(){
