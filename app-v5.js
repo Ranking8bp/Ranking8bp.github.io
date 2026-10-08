@@ -3382,7 +3382,7 @@ async function dailyShowRoom(){
   }
  }else{
   if(actions.dataset.ready!=='abandon'||actions.children.length!==1){actions.replaceChildren();dailyAction('ABANDONAR VS',dailyAbandonBeforeChat);actions.dataset.ready='abandon'}
-  if(content.textContent!=='ESPERANDO MENSAJES DE AMBOS JUGADORES...')content.textContent='ESPERANDO MENSAJES DE AMBOS JUGADORES...';
+  if(content.textContent==='ESPERANDO MENSAJES DE AMBOS JUGADORES...')content.textContent='';
  }
 }
  // Room updates are handled by a dedicated timer, including private invitations.
