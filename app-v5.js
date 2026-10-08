@@ -2997,7 +2997,7 @@ async function loadFreshRankedChat(){
   const lastMessage=box.lastElementChild;
   if(lastMessage){requestAnimationFrame(()=>{box.scrollTop=box.scrollHeight;});}
   const bothMessaged=senders.size>=2;
-  const abandon=document.getElementById('freshAbandonPending');if(abandon)abandon.hidden=bothMessaged;
+  const abandon=document.getElementById('freshAbandonPending');if(abandon){abandon.hidden=bothMessaged;abandon.style.display=bothMessaged?'none':'';abandon.disabled=bothMessaged}
   if(bothMessaged){
    clearInterval(freshRoomTimer);freshRoomTimer=null;
    const w=document.getElementById('freshResponseWarning');if(w)w.hidden=true;
@@ -3054,9 +3054,10 @@ function startFreshRankedRoom(id,secondsLeft=60,isPrivateRoom=false){
  freshRoomMatchId=id;stopFreshRoomRealtime().catch(()=>{});freshRoomExpiresAt=Date.now()+Math.max(0,Number(secondsLeft)||0)*1000;
  clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);
  const warning=document.getElementById('freshResponseWarning');if(warning){warning.hidden=!!isPrivateRoom;warning.style.display=isPrivateRoom?'none':'';}
+ const privateTimer=document.getElementById('freshChatTimer');if(privateTimer&&isPrivateRoom)privateTimer.hidden=true;
  const oldNotice=document.getElementById('freshOpponentClaimNotice');if(oldNotice){oldNotice.hidden=true;oldNotice.textContent=''}
  const freshChat=document.getElementById('freshRankedChat');if(freshChat)freshChat.hidden=false;
- const abandon=document.getElementById('freshAbandonPending');if(abandon){abandon.hidden=false;abandon.disabled=false}
+ const abandon=document.getElementById('freshAbandonPending');if(abandon){abandon.hidden=false;abandon.disabled=false;abandon.style.display=''}
  const ready=document.getElementById('freshReadyActions');if(ready){ready.hidden=true;ready.classList.remove('fresh-actions-chat-place')}
  const results=document.getElementById('freshResultActions');if(results)results.hidden=true;
  const evidence=document.getElementById('freshEvidenceBox');if(evidence)evidence.hidden=true; /* persistent renderer restores it only when WON is confirmed */
@@ -3354,6 +3355,7 @@ async function dailyShowRoom(){
  if(Number(dailyMatchId)!==renderingMatchId||dailyEl('dailyMatchModal').hidden)return;
  const senders=new Set((chatRows||[]).map(x=>String(x.sender_id)));
  if(senders.has(String(m.player1_id))&&senders.has(String(m.player2_id))){
+  const extraAbandon=dailyEl('dailyMatchActions')?.querySelectorAll('button');extraAbandon?.forEach(b=>{if(/ABANDONAR/i.test(b.textContent||''))b.remove()});
   if(actions.dataset.ready!=='1'||actions.children.length!==3){
    actions.replaceChildren();dailyAction('🏆 GANÉ',dailyChooseVictoryVideo);
    dailyAction('PERDÍ',()=>dailySubmitClaim('lost'));
@@ -3421,7 +3423,7 @@ async function dailyUploadVictoryVideo(){
 }
 async function dailySubmitClaim(claim){
  if(!dailyMatchId||dailyBusy)return;dailyBusy=true;
- try{await dailyRpc('daily_classification_claim',{p_match_id:dailyMatchId,p_claim:claim});await dailyRpc('daily_classification_leave',{p_match_id:dailyMatchId,p_action:claim});dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus()}
+ try{await dailyRpc('daily_classification_claim',{p_match_id:dailyMatchId,p_claim:claim});dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus()}
  catch(e){alert('No se pudo enviar el resultado: '+e.message)}finally{dailyBusy=false}
 }
 async function dailySearchLoop(){
