@@ -3306,9 +3306,10 @@ async function dailyShowRoom(){
  const renderingMatchId=Number(dailyMatchId);
  const m=await dailyRpc('daily_classification_room',{p_match_id:renderingMatchId});
  if(Number(dailyMatchId)!==renderingMatchId||dailyEl('dailyMatchModal').hidden)return;
- if(dailyRoomRenderedMatchId!==renderingMatchId){dailyRoomRenderedMatchId=renderingMatchId;const a=dailyEl('dailyMatchActions');a.replaceChildren();a.dataset.ready='0'}
+ if(dailyRoomRenderedMatchId!==renderingMatchId){const a=dailyEl('dailyMatchActions');a.replaceChildren();a.dataset.ready='0'}
  const me=m.my_id===m.player1_id?1:2;const mine=me===1?m.player1_claim:m.player2_claim;
  const other=me===1?m.player2_name:m.player1_name;const otherId=me===1?m.player2_game_id:m.player1_game_id;
+ const firstRoomPaint=dailyEl('dailyMatchVs').hidden||dailyRoomRenderedMatchId!==renderingMatchId;
  dailyEl('dailyMatchTitle').textContent='CLASIFICATORIA DIARIA · MESA MIAMI';
  const content=dailyEl('dailyMatchContent'),actions=dailyEl('dailyMatchActions');dailyEl('dailyMatchSearching').hidden=true;
  dailyEl('dailyMatchVs').hidden=false;
@@ -3324,9 +3325,10 @@ async function dailyShowRoom(){
  dailyEl('dailyMyPosition').textContent='CLASIFICATORIA DIARIA';
  dailyEl('dailyOpponentPosition').textContent='CLASIFICATORIA DIARIA';
  const avatar=(id,path,name)=>{const el=dailyEl(id);if(!el)return;el.replaceChildren();const fallback=()=>{el.replaceChildren();const t=document.createElement('span');t.textContent=String(name||'?').slice(0,1).toUpperCase();el.appendChild(t)};if(!path){fallback();return}let src=path;if(!/^https?:\/\//i.test(path)){const clean=String(path).replace(/^profile-photos\//,'').replace(/^\/+/, '');src=supabaseClient.storage.from('profile-photos').getPublicUrl(clean).data.publicUrl}const img=document.createElement('img');img.src=src;img.alt=name||'Jugador';img.onerror=fallback;el.appendChild(img)};
- avatar('dailyMyAvatar',m[minePrefix+'_avatar_path'],myName);
- avatar('dailyOpponentAvatar',m[opPrefix+'_avatar_path'],other);
- const rankBadge=dailyEl('dailyOpponentRankBadge');if(rankBadge&&typeof renderRankBadgeOn==='function')renderRankBadgeOn(rankBadge,Number(m[opPrefix+'_elo'])||0);
+ if(firstRoomPaint){avatar('dailyMyAvatar',m[minePrefix+'_avatar_path'],myName);
+ avatar('dailyOpponentAvatar',m[opPrefix+'_avatar_path'],other);}
+ const rankBadge=dailyEl('dailyOpponentRankBadge');if(firstRoomPaint&&rankBadge&&typeof renderRankBadgeOn==='function')renderRankBadgeOn(rankBadge,Number(m[opPrefix+'_elo'])||0);
+ dailyRoomRenderedMatchId=renderingMatchId;
  dailyLoadChat();
 
  if(m.status==='finished'){actions.replaceChildren();content.textContent=(m.winner_id===m.my_id?'¡GANASTE! +15 PUNTOS':'PARTIDA TERMINADA. −15 PUNTOS (MÍNIMO 0).');dailyMatchId=null;await dailyRefreshStatus();await dailyLoadLeaderboard();return}
@@ -3345,11 +3347,22 @@ async function dailyShowRoom(){
    dailyAction('NADIE HIZO TRICKSHOT CON LA 8',()=>dailySubmitClaim('none'));
    actions.dataset.ready='1';
   }
- }else{actions.replaceChildren();actions.dataset.ready='0';content.textContent='AMBOS JUGADORES DEBEN ENVIAR UN MENSAJE PARA ACTIVAR LOS RESULTADOS.'}
+ }else{
+  if(actions.dataset.ready!=='abandon'){actions.replaceChildren();dailyAction('ABANDONAR VS',dailyAbandonBeforeChat);actions.dataset.ready='abandon'}
+  if(content.textContent!=='ESPERANDO MENSAJES DE AMBOS JUGADORES...')content.textContent='ESPERANDO MENSAJES DE AMBOS JUGADORES...';
+ }
 }
  if(!dailySearching){dailySearching=true;dailyPoll=setTimeout(async()=>{dailySearching=false;if(dailyMatchId&&!dailyEl('dailyMatchModal').hidden)await dailyShowRoom()},3000)}
  }catch(e){console.error(e);dailyEl('dailyMatchContent').textContent='ERROR AL CARGAR EL PARTIDO: '+e.message}
  finally{dailyRoomRenderBusy=false}
+}
+async function dailyAbandonBeforeChat(){
+ if(!dailyMatchId||dailyBusy)return;
+ if(!confirm('¿ABANDONAR ESTE VS? SE ANULARÁ LA PARTIDA PARA AMBOS JUGADORES.'))return;
+ dailyBusy=true;
+ try{await dailyRpc('daily_classification_abandon_before_chat',{p_match_id:dailyMatchId});dailyStopPolling();dailyMatchId=null;dailyEl('dailyMatchModal').hidden=true;await dailyRefreshStatus()}
+ catch(e){alert('NO SE PUDO ABANDONAR: '+e.message);await dailyShowRoom()}
+ finally{dailyBusy=false}
 }
 async function dailySubmitClaim(claim){
  if(!dailyMatchId||dailyBusy)return;dailyBusy=true;
