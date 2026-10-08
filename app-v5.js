@@ -3355,7 +3355,7 @@ async function dailyShowRoom(){
  if(exitNotice?.left){
   if(chatBox)chatBox.hidden=true;
   const name=exitNotice.name||'TU RIVAL';
-  const msg=exitNotice.action==='won_video'?name+' TOCÓ GANÉ, SUBIÓ PRUEBAS Y SALIÓ DEL CHAT.':exitNotice.action==='forgot'?name+' TOCÓ GANÉ, LUEGO OLVIDÉ GRABAR Y SALIÓ DEL CHAT.':exitNotice.action==='lost'?name+' TOCÓ PERDÍ Y SALIÓ DEL CHAT.':exitNotice.action==='none'?name+' TOCÓ NADIE HIZO TRICKSHOT CON LA 8 Y SALIÓ DEL CHAT.':name+' SALIÓ DEL CHAT.';
+  const msg=exitNotice.action==='won_video'?name+' TOCÓ GANÉ, SUBIÓ PRUEBAS Y SALIÓ DEL CHAT.':exitNotice.action==='forgot'?name+' TOCÓ GANÉ, LUEGO OLVIDÉ GRABAR Y SALIÓ DEL CHAT.':exitNotice.action==='lost'?name+' TOCÓ PERDÍ Y SALIÓ DEL CHAT.':exitNotice.action==='none'?name+' TOCÓ NADIE GANÓ, SALIR Y SALIÓ DEL CHAT.':name+' SALIÓ DEL CHAT.';
   let notice=dailyEl('dailyOpponentExitNotice');if(!notice){notice=document.createElement('div');notice.id='dailyOpponentExitNotice';notice.className='daily-opponent-exit-notice';chatBox?.insertAdjacentElement('afterend',notice)}
   if(notice)notice.textContent=msg;
  }else{if(chatBox)chatBox.hidden=false;const notice=dailyEl('dailyOpponentExitNotice');if(notice)notice.remove()}
@@ -3377,7 +3377,7 @@ async function dailyShowRoom(){
   if(actions.dataset.ready!=='1'||actions.children.length!==3){
    actions.replaceChildren();dailyAction('🏆 GANÉ',dailyChooseVictoryVideo);
    dailyAction('PERDÍ',()=>dailySubmitClaim('lost'));
-   dailyAction('NADIE HIZO TRICKSHOT CON LA 8',()=>dailySubmitClaim('none'));
+   dailyAction('NADIE GANÓ, SALIR',()=>dailySubmitClaim('none'));
    actions.dataset.ready='1';
   }
  }else{
