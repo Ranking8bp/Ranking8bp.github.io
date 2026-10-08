@@ -1652,6 +1652,8 @@ async function setPlayerUI(profile,user){
   // La clasificación debe aparecer de inmediato; loadRanking pinta primero el caché local y refresca detrás.
   loadRanking().catch(()=>{});
   maybeOpenDirectMatchmaking();
+  // Si alguien recargó mientras tenía rival, abrir su VS en vez de dejarlo esperando.
+  setTimeout(()=>{if(currentUser?.id===uiUserId)recoverPendingRankedRoomAutomatically()},400);
   // El punto rojo de mensajes debe restaurarse inmediatamente al recargar la página.
   refreshInboxBadge().catch(e=>console.error('Carga inicial contador mensajes:',e));
   // Una sola carga de dinámicas al restaurar la sesión; evita 5 RPC por usuario.
@@ -2516,6 +2518,83 @@ if(adminVsTab)adminVsTab.addEventListener('click',showAdminVs);
 if(adminPlayersTab)adminPlayersTab.addEventListener('click',showAdminPlayers);
 if(adminModerationTab)adminModerationTab.addEventListener('click',showAdminModeration);
 
+// Reabrir el VS correcto después de recargar, volver a la pestaña o tocar JUGAR.
+// Nunca crear otro emparejamiento mientras exista una sala de ranking pendiente.
+let rankedRoomRecoveryInFlight=null;
+let lastRankedAutoRecoveryAt=0;
+async function openPendingFreshRankedRoom(matchId){
+ const id=Number(matchId||0);
+ if(!id||!currentUser||!supabaseClient)return false;
+ const userId=String(currentUser.id);
+ const [{data:room,error:roomError},{data:isPrivate,error:privateError}]=await Promise.all([
+  supabaseClient.rpc('get_fresh_ranked_room',{p_match_id:id}),
+  supabaseClient.rpc('is_ranked_match_from_invite',{p_match_id:id})
+ ]);
+ if(roomError)throw roomError;
+ if(privateError)throw privateError;
+ const m=Array.isArray(room)?room[0]:room;
+ if(!m||String(currentUser?.id)!==userId)return false;
+ if(Boolean(isPrivate)){
+  try{localStorage.setItem('ranking8bp-private-match-id',String(id))}catch(_){}
+ }else{
+  try{if(localStorage.getItem('ranking8bp-private-match-id')===String(id))localStorage.removeItem('ranking8bp-private-match-id')}catch(_){}
+ }
+ const modal=document.getElementById('freshMatchmakingModal'),search=document.getElementById('freshSearching'),vs=document.getElementById('freshVersus');
+ if(!modal||!search||!vs)return false;
+ currentRankedMatchId=id;rankedSearchActive=false;stopRankedSearchLoop();
+ modal.hidden=false;search.hidden=true;vs.hidden=false;
+ const setText=(nodeId,text)=>{const node=document.getElementById(nodeId);if(node)node.textContent=String(text)};
+ setText('freshMe',String(m.my_name||'TÚ').toUpperCase());
+ setText('freshOpponent',String(m.opponent_name||'RIVAL').toUpperCase());
+ setText('freshMyElo','ELO '+m.my_elo);
+ setText('freshOpponentElo','ELO '+m.opponent_elo);
+ setText('freshMyId',m.my_game_id||'NO REGISTRADO');
+ setText('freshOpponentId',m.opponent_game_id||'NO REGISTRADO');
+ setText('freshMyRank',String(m.my_rank_name||getRankByElo(m.my_elo).name).toUpperCase());
+ setText('freshOpponentRank',String(m.opponent_rank_name||getRankByElo(m.opponent_elo).name).toUpperCase());
+ setText('freshMyPosition','RANKING #'+(m.my_position||'--'));
+ setText('freshOpponentPosition','RANKING #'+(m.opponent_position||'--'));
+ const myStreak=document.getElementById('freshMyStreak'),oppStreak=document.getElementById('freshOpponentStreak');
+ if(myStreak){myStreak.textContent='🔥 RACHA +'+Number(m.my_streak||0);myStreak.hidden=Number(m.my_streak||0)<=0}
+ if(oppStreak){oppStreak.textContent='🔥 RACHA +'+Number(m.opponent_streak||0);oppStreak.hidden=Number(m.opponent_streak||0)<=0}
+ const avatar=(nodeId,path,name)=>{
+  const el=document.getElementById(nodeId);if(!el)return;
+  el.replaceChildren();
+  const fallback=()=>{el.replaceChildren();const first=document.createElement('span');first.textContent=String(name||'?').charAt(0).toUpperCase();el.appendChild(first)};
+  if(!path){fallback();return}
+  const img=document.createElement('img');let url=String(path).trim();
+  if(!/^https?:\/\//i.test(url)){
+   const clean=url.replace(/^profile-photos\//,'').replace(/^\/+/, '');
+   url=supabaseClient.storage.from('profile-photos').getPublicUrl(clean).data?.publicUrl||'';
+  }
+  if(!url){fallback();return}
+  img.src=url;img.alt=String(name||'Jugador');img.onerror=fallback;el.appendChild(img);
+ };
+ avatar('freshMyAvatar',m.my_avatar_path,m.my_name);
+ avatar('freshOpponentAvatar',m.opponent_avatar_path,m.opponent_name);
+ renderRankBadgeOn(document.getElementById('freshOpponentRankBadge'),Number(m.opponent_elo)||0);
+ startFreshRankedRoom(id,Number(m.chat_seconds_left??0),Boolean(isPrivate));
+ setTimeout(()=>{if(Number(freshRoomMatchId)===id)restorePersistentFreshRoom(id)},100);
+ return true;
+}
+async function recoverPendingRankedRoomAutomatically(){
+ if(!currentUser||!supabaseClient||document.hidden||rankedSearchActive||freshRoomMatchId||currentRankedMatchId)return;
+ const modal=document.getElementById('freshMatchmakingModal');
+ if(!modal||!modal.hidden||document.getElementById('dailyMatchModal')?.hidden===false)return;
+ if(rankedRoomRecoveryInFlight)return rankedRoomRecoveryInFlight;
+ if(Date.now()-lastRankedAutoRecoveryAt<3500)return;
+ lastRankedAutoRecoveryAt=Date.now();
+ const requestedUser=String(currentUser.id);
+ rankedRoomRecoveryInFlight=(async()=>{
+  const {data:pending,error}=await supabaseClient.rpc('get_my_pending_ranked_room');
+  if(error)throw error;
+  if(!Number(pending)||String(currentUser?.id)!==requestedUser||document.hidden||rankedSearchActive||freshRoomMatchId||!modal.hidden)return;
+  if(await openPendingFreshRankedRoom(Number(pending)))showToast('TIENES UN RIVAL ESPERANDO. SE RECUPERÓ TU SALA DE RANKING.');
+ })();
+ try{await rankedRoomRecoveryInFlight}
+ catch(error){console.error('Recuperar sala VS pendiente automáticamente:',error)}
+ finally{rankedRoomRecoveryInFlight=null}
+}
 async function openPrivateInviteRoom(matchId){
  /* Solo los VS nacidos de invitación guardan esta marca en el navegador. */
  try{localStorage.setItem('ranking8bp-private-match-id',String(matchId))}catch(_){}
@@ -2602,36 +2681,8 @@ if(dashboardPlayBtn)dashboardPlayBtn.addEventListener('click',async()=>{
     if(currentUser&&supabaseClient){
       const {data:pendingId,error}=await supabaseClient.rpc('get_my_pending_ranked_room');
       if(!error&&Number(pendingId)>0){
-        const matchId=Number(pendingId);
-        const {data:room,error:roomError}=await supabaseClient.rpc('get_fresh_ranked_room',{p_match_id:matchId});
-        if(roomError)throw roomError;
-        const m=Array.isArray(room)?room[0]:room;
-        if(m){
-          currentRankedMatchId=matchId;rankedSearchActive=false;
-          const modal=document.getElementById('freshMatchmakingModal'),search=document.getElementById('freshSearching'),vs=document.getElementById('freshVersus');
-          if(modal)modal.hidden=false;if(search)search.hidden=true;if(vs)vs.hidden=false;
-          document.getElementById('freshMe').textContent=String(m.my_name||'TÚ').toUpperCase();
-          document.getElementById('freshOpponent').textContent=String(m.opponent_name||'RIVAL').toUpperCase();
-          document.getElementById('freshMyElo').textContent='ELO '+m.my_elo;
-          document.getElementById('freshOpponentElo').textContent='ELO '+m.opponent_elo;const ms=document.getElementById('freshMyStreak'),os=document.getElementById('freshOpponentStreak');if(ms){ms.textContent='🔥 RACHA +'+Number(m.my_streak||0);ms.hidden=Number(m.my_streak||0)<=0}if(os){os.textContent='🔥 RACHA +'+Number(m.opponent_streak||0);os.hidden=Number(m.opponent_streak||0)<=0}
-          document.getElementById('freshMyId').textContent='ID: '+(m.my_game_id||'NO REGISTRADO');
-          document.getElementById('freshOpponentId').textContent='ID: '+(m.opponent_game_id||'NO REGISTRADO');
-          const paintAvatar=(el,path,name)=>{if(!el)return;el.replaceChildren();const fallback=()=>{el.replaceChildren();const s=document.createElement('span');s.textContent=String(name||'?').charAt(0).toUpperCase();el.appendChild(s)};if(!path)return fallback();const img=document.createElement('img');let src=String(path).trim();if(!/^https?:\/\//i.test(src)){const clean=src.replace(/^profile-photos\//,'').replace(/^\/+/, '');src=supabaseClient.storage.from('profile-photos').getPublicUrl(clean).data?.publicUrl||''}img.src=src;img.alt=String(name||'Jugador');img.onerror=fallback;el.appendChild(img)};
-          const rankFile=(rank)=>{const k=String(rank||'LATÓN').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,'_');const a=['LATON','BRONCE_I','BRONCE_II','BRONCE_III','PLATA_I','PLATA_II','PLATA_III','ORO_I','ORO_II','ORO_III','AMATISTA_I','AMATISTA_II','AMATISTA_III','ESMERALDA_I','ESMERALDA_II','ESMERALDA_III','DIAMANTE_I','DIAMANTE_II','DIAMANTE_III','DIAMANTE_NEGRO'];const files=['01_Laton.png','02_Bronce_I.png','03_Bronce_II.png','04_Bronce_III.png','05_Plata_I.png','06_Plata_II.png','07_Plata_III.png','08_Oro_I.png','09_Oro_II.png','10_Oro_III.png','11_Amatista_I.png','12_Amatista_II.png','13_Amatista_III.png','14_Esmeralda_I.png','15_Esmeralda_II.png','16_Esmeralda_III.png','17_Diamante_I.png','18_Diamante_II.png','19_Diamante_III.png','20_Diamante_Negro.png'];return files[Math.max(0,a.indexOf(k))]};
-          const paintRank=(el,rank)=>{if(!el)return;el.replaceChildren();const img=document.createElement('img');img.src='assets/ranks/'+rankFile(rank);img.alt=String(rank||'LATÓN');el.appendChild(img)};
-          paintAvatar(document.getElementById('freshMyAvatar'),m.my_avatar_path,m.my_name);
-          paintAvatar(document.getElementById('freshOpponentAvatar'),m.opponent_avatar_path,m.opponent_name);
-          renderRankBadgeOn(document.getElementById('freshOpponentRankBadge'),Number(m.opponent_elo)||0);
-          
-          document.getElementById('freshMyRank').textContent=String(m.my_rank_name||'LATÓN').toUpperCase();
-          document.getElementById('freshOpponentRank').textContent=String(m.opponent_rank_name||'LATÓN').toUpperCase();
-          document.getElementById('freshMyPosition').textContent='RANKING #'+(m.my_position||'--');
-          document.getElementById('freshOpponentPosition').textContent='RANKING #'+(m.opponent_position||'--');
-          await restorePersistentFreshRoom(matchId);
-          startFreshRankedRoom(matchId,Number(m.chat_seconds_left??0));
-          setTimeout(()=>restorePersistentFreshRoom(matchId),50);
-          return;
-        }
+        await openPendingFreshRankedRoom(Number(pendingId));
+        return;
       }
     }
   }catch(e){console.error('Regresar a sala pendiente:',e);showToast('No se pudo recuperar la sala. Intenta nuevamente.');return}
@@ -2732,6 +2783,9 @@ function startNotificationRefresh(){
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser){loadNotifications().catch(()=>{});updateRankedDailyStatus().catch(()=>{})}});
 window.addEventListener('pageshow',()=>{if(currentUser){updateRankedDailyStatus().catch(()=>{})}});
 window.addEventListener('focus',()=>{if(currentUser)updateRankedDailyStatus().catch(()=>{})});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentUser)recoverPendingRankedRoomAutomatically()});
+window.addEventListener('pageshow',()=>{if(currentUser)recoverPendingRankedRoomAutomatically()});
+window.addEventListener('focus',()=>{if(currentUser)recoverPendingRankedRoomAutomatically()});
 async function restoreActiveRankedVs(){
  if(!currentUser||!supabaseClient)return;
  try{
@@ -3096,7 +3150,7 @@ async function restorePersistentFreshRoom(id){
 async function awaitRestoreFreshRoom(id){try{await restorePersistentFreshRoom(id)}catch(e){console.error(e)}}
 function startFreshRankedRoom(id,secondsLeft=60,isPrivateRoom=false){
  isPrivateRoom=isPrivateRoom||(()=>{try{return localStorage.getItem('ranking8bp-private-match-id')===String(id)}catch(_){return false}})();
- freshRoomMatchId=id;stopFreshRoomRealtime().catch(()=>{});freshRoomExpiresAt=Date.now()+Math.max(0,Number(secondsLeft)||0)*1000;
+ freshRoomMatchId=id;startFreshRoomRealtime(id).catch(err=>console.warn('Aviso de chat en tiempo real:',err));freshRoomExpiresAt=Date.now()+Math.max(0,Number(secondsLeft)||0)*1000;
  clearInterval(freshRoomTimer);clearInterval(freshRoomChatPoll);
  const warning=document.getElementById('freshResponseWarning');if(warning){warning.hidden=!!isPrivateRoom;warning.style.display=isPrivateRoom?'none':'';}
  const privateTimer=document.getElementById('freshChatTimer');if(privateTimer&&isPrivateRoom)privateTimer.hidden=true;
