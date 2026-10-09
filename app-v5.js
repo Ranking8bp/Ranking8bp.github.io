@@ -804,10 +804,13 @@ async function getVideoDuration(file){
    return d;
   }));
  }
- return await Promise.race([
-  Promise.any(readers),
-  new Promise((_,reject)=>setTimeout(()=>reject(new Error('NO SE PUDO COMPROBAR LA DURACIÓN DEL VIDEO. PRUEBA GUARDARLO COMO MP4 EN TU GALERÍA.')),25000)),
- ]);
+ let deadline;
+ try{
+  return await Promise.race([
+   Promise.any(readers),
+   new Promise((_,reject)=>{deadline=setTimeout(()=>reject(new Error('NO SE PUDO COMPROBAR LA DURACIÓN DEL VIDEO. PRUEBA GUARDARLO COMO MP4 EN TU GALERÍA.')),25000)}),
+  ]);
+ }finally{clearTimeout(deadline)}
 }
 async function uploadLargeRankedEvidence(file,path,onProgress){
  const {data:{session}}=await supabaseClient.auth.getSession();
