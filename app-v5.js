@@ -3748,9 +3748,10 @@ let dailyEvidenceMatchId=null;
 let dailyRoomRenderBusy=false;
 let dailyRoomRefreshTimer=null;
 
-// Prueba privada: ?edgerooms=1. Las acciones, resultados y puntos nunca pasan por Cloudflare.
-// Ante un fallo de autenticación/WebSocket, vuelven automáticamente los sondeos habituales.
-const DAILY_EDGE_ROOM_CANARY = new URLSearchParams(window.location.search).get('edgerooms')==='1';
+// Producción: Cloudflare notifica cambios en salas diarias; acciones, resultados y ELO quedan en Supabase.
+// Modo de emergencia ?edgerooms=0: usa los sondeos originales (sala 5s, chat 4s).
+// Si falla WebSocket, los sondeos originales regresan automáticamente.
+const DAILY_EDGE_ROOM_ENABLED = new URLSearchParams(window.location.search).get('edgerooms')!=='0';
 let dailyEdgeRoomId=null,dailyEdgeRoomUnwatch=null,dailyEdgeConnected=false,dailyEdgeWatchEpoch=0;
 let dailyEdgeLastRoomPoll=0,dailyEdgeLastChatPoll=0;
 function dailyStopEdgeRoom(){
@@ -3760,7 +3761,7 @@ function dailyStopEdgeRoom(){
  if(stop)try{stop()}catch(e){console.warn('Detener aviso de sala diaria',e)}
 }
 function dailyEdgePollDue(which){
- if(!DAILY_EDGE_ROOM_CANARY||!dailyEdgeConnected)return true;
+ if(!DAILY_EDGE_ROOM_ENABLED||!dailyEdgeConnected)return true;
  const now=Date.now();
  const last=which==='chat'?dailyEdgeLastChatPoll:dailyEdgeLastRoomPoll;
  if(now-last<30000)return false;
@@ -3769,7 +3770,7 @@ function dailyEdgePollDue(which){
  return true;
 }
 async function dailyEnsureEdgeRoom(){
- if(!DAILY_EDGE_ROOM_CANARY||!currentUser||!dailyMatchId||dailyEl('dailyMatchModal')?.hidden){
+ if(!DAILY_EDGE_ROOM_ENABLED||!currentUser||!dailyMatchId||dailyEl('dailyMatchModal')?.hidden){
   if(dailyEdgeRoomId!==null)dailyStopEdgeRoom();
   return;
  }
