@@ -263,7 +263,7 @@ const RANKING8BP_EDGE_URL='https://ranking8bp-server.ikarsolismonedas.workers.de
 let ranking8bpEdgeClientPromise=null;
 function ranking8bpGetEdgeClient(){
   if(!ranking8bpEdgeClientPromise){
-    ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-ranked-persistent-search1')
+    ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-daily-queue-v2')
       .then(({Ranking8bpEdgeClient})=>new Ranking8bpEdgeClient({baseUrl:RANKING8BP_EDGE_URL,supabase:supabaseClient}));
   }
   return ranking8bpEdgeClientPromise;
@@ -3584,6 +3584,16 @@ document.addEventListener('click',async e=>{
 
 /* Clasificatoria Diaria: independent matchmaking, scores and Miami room */
 let dailySearching=false,dailyMatchId=null,dailyPoll=null,dailyBusy=false;
+// Cloudflare daily queue is preferred; ?dailyedge=0 forces the legacy fallback.
+const DAILY_EDGE_QUEUE_ENABLED=new URLSearchParams(location.search).get('dailyedge')!=='0';
+let dailyEdgeSearchAbort=null,dailyEdgeSearchAttempted=false,dailyEdgeSearchFallback=false;
+setInterval(()=>{
+ if(!DAILY_EDGE_QUEUE_ENABLED||!dailySearching||dailyEdgeSearchFallback||document.hidden||!currentUser)return;
+ supabaseClient?.rpc('edge_daily_queue_heartbeat').catch(e=>console.warn('Cola diaria heartbeat:',e));
+},60000);
+window.addEventListener('pagehide',()=>{
+ if(dailySearching&&dailyEdgeSearchAbort)dailyEdgeSearchAbort.abort();
+});
 const dailyEl=id=>document.getElementById(id);
 const dailyDate=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Mexico_City',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 // El servidor separa la clasificación por fecha de México; refrescar al cambiar el día
@@ -3642,7 +3652,7 @@ async function dailyRefreshStatus(){
   btn.disabled=false;btn.dataset.dailyLimitReached=(!canReturn&&Number(st.remaining)<=0)?'1':'0';btn.setAttribute('aria-disabled',btn.dataset.dailyLimitReached==='1'?'true':'false');
   btn.style.opacity=btn.disabled?'.55':'1';
  }
- if(st.match_id&&!st.my_claim&&dailyLastAutoOpenedMatchId!==Number(st.match_id)){dailyLastAutoOpenedMatchId=Number(st.match_id);dailyMatchId=Number(st.match_id);dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyInviteModal').hidden=true;await dailyShowRoom()}
+ if(st.match_id&&!st.my_claim&&dailyLastAutoOpenedMatchId!==Number(st.match_id)){dailyLastAutoOpenedMatchId=Number(st.match_id);dailyMatchId=Number(st.match_id);dailyStopPolling();dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyInviteModal').hidden=true;await dailyShowRoom()}
  if(st.match_id&&dailyEl('dailyMatchModal')?.hidden===false&&!st.my_claim){dailyMatchId=Number(st.match_id)}
  if(st.match_id&&st.my_claim&&dailyEl('dailyMatchModal')?.hidden===false){dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null}
  if(st.pending_invite_token&&!st.match_id&&!dailyPrivateWatchBusy){
@@ -3780,10 +3790,19 @@ async function dailyLoadLeaderboard(previousDay=false){
  })
  }catch(e){console.error(e);el.textContent='NO SE PUDO CARGAR LA CLASIFICATORIA DIARIA.'}
 }
-function dailyStopPolling(){dailySearching=false;clearTimeout(dailyPoll);dailyPoll=null}
+function dailyStopPolling(){
+ dailySearching=false;
+ clearTimeout(dailyPoll);dailyPoll=null;
+ if(dailyEdgeSearchAbort){dailyEdgeSearchAbort.abort();dailyEdgeSearchAbort=null}
+}
 async function dailyClose(){
  dailyStopEdgeRoom();
- dailyStopPolling();dailyEl('dailyMatchSearching').hidden=true;if(!dailyMatchId){try{await dailyRpc('daily_classification_cancel_search')}catch(e){console.warn(e)}}
+ const wasDailyEdge=DAILY_EDGE_QUEUE_ENABLED&&dailyEdgeSearchAttempted&&!dailyEdgeSearchFallback;
+ dailyStopPolling();dailyEl('dailyMatchSearching').hidden=true;
+ if(!dailyMatchId){
+  try{await dailyRpc(wasDailyEdge?'edge_daily_queue_cancel':'daily_classification_cancel_search')}
+  catch(e){console.warn('Cancelar cola diaria:',e)}
+ }
  dailyEl('dailyMatchModal').hidden=true;await dailyRefreshStatus();
 }
 let dailyResultSafeAfter=0;
@@ -4037,13 +4056,41 @@ async function dailySubmitClaim(claim){
  catch(e){alert('No se pudo enviar el resultado: '+e.message)}finally{dailyBusy=false}
 }
 async function dailySearchLoop(){
- if(!dailySearching||dailyEl('dailyMatchModal').hidden)return;
+ if(!dailySearching||dailyEl('dailyMatchModal')?.hidden)return;
  try{
- const st=await dailyRpc('daily_classification_find');
- if(st.state==='matched'&&st.match_id){dailyMatchId=st.match_id;dailySearching=false;await dailyShowRoom();return}
- if(!dailyMatchId){dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchVs').hidden=true;dailyEl('dailyMatchSearching').hidden=false;}
- }catch(e){dailyStopPolling();dailyEl('dailyMatchSearching').hidden=true;dailyEl('dailyMatchContent').textContent='NO SE PUDO BUSCAR RIVAL: '+e.message;return}
- dailyPoll=setTimeout(dailySearchLoop,3000);
+  let st;
+  if(DAILY_EDGE_QUEUE_ENABLED&&!dailyEdgeSearchAttempted&&!dailyEdgeSearchFallback){
+   dailyEdgeSearchAttempted=true;
+   const abort=new AbortController();dailyEdgeSearchAbort=abort;
+   try{
+    st=await (await ranking8bpGetEdgeClient()).waitForDailyMatch(abort.signal);
+   }catch(error){
+    if(abort.signal.aborted||!dailySearching||dailyEl('dailyMatchModal')?.hidden)return;
+    console.warn('Cola diaria Cloudflare no disponible; usando emparejador Supabase:',error);
+    dailyEdgeSearchFallback=true;
+   }finally{if(dailyEdgeSearchAbort===abort)dailyEdgeSearchAbort=null}
+  }
+  if(!dailySearching||dailyEl('dailyMatchModal')?.hidden)return;
+  if(!st)st=await dailyRpc('daily_classification_find');
+  if(st?.state==='matched'&&st.match_id){
+   dailyMatchId=Number(st.match_id);
+   dailyStopPolling();
+   await dailyShowRoom();
+   return;
+  }
+  if(!dailyMatchId){
+   dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';
+   dailyEl('dailyMatchVs').hidden=true;
+   dailyEl('dailyMatchSearching').hidden=false;
+  }
+ }catch(error){
+  if(!dailySearching)return;
+  dailyStopPolling();
+  dailyEl('dailyMatchSearching').hidden=true;
+  dailyEl('dailyMatchContent').textContent='NO SE PUDO BUSCAR RIVAL: '+String(error?.message||error);
+  return;
+ }
+ if(dailySearching)dailyPoll=setTimeout(dailySearchLoop,3000);
 }
 window.startDailyClassification=async function(){
  if(!currentUser||!supabaseClient){alert('INICIA SESIÓN PARA JUGAR CLASIFICATORIA DIARIA.');return}
@@ -4054,7 +4101,7 @@ window.startDailyClassification=async function(){
  if(Number(st.remaining)<=0){alert('YA JUGASTE TUS 15 PARTIDOS DE CLASIFICACION DIARIA. LOS PARTIDOS EN REVISION SE ACTUALIZARÁN ANTES QUE TERMINE LA COMPETENCIA.');return}
  dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyMatchActions').replaceChildren();
  if(st.match_id){dailyMatchId=st.match_id;await dailyShowRoom();return}
- dailyMatchId=null;dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchSearching').hidden=false;dailySearching=true;await dailySearchLoop()
+ dailyMatchId=null;dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchSearching').hidden=false;dailySearching=true;dailyEdgeSearchAttempted=false;dailyEdgeSearchFallback=false;await dailySearchLoop()
  }catch(e){alert('ERROR AL INICIAR CLASIFICATORIA: '+e.message)}
 };
 document.addEventListener('click',e=>{
