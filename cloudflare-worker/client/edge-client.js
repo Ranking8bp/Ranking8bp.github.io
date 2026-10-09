@@ -68,7 +68,7 @@ export class Ranking8bpEdgeClient {
       try {
         return await this.waitForQueueMatchOnce(mode, signal);
       } catch (error) {
-        if (signal?.aborted || attempt >= 3) throw error;
+        if (signal?.aborted || attempt >= 3 || String(error?.message).includes("QUEUE_NOT_DEPLOYED")) throw error;
         const ms = Math.min(1200 * 2 ** attempt, 5000);
         await new Promise((resolve, reject) => {
           const abort = () => {
@@ -98,6 +98,7 @@ export class Ranking8bpEdgeClient {
       body: "{}",
       signal: AbortSignal.any([signal || new AbortController().signal, AbortSignal.timeout(15000)]),
     });
+    if (response.status === 404 && mode === "daily") throw Error("QUEUE_NOT_DEPLOYED");
     if (!response.ok) throw Error("Cloudflare queue unavailable");
     const result = await response.json();
     if (result.state !== "connect" || !result.ticket) throw Error("Cloudflare queue not ready");
