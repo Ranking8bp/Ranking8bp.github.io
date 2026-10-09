@@ -179,23 +179,27 @@ export default {
       return internalHub(env, "public", "/ws", { headers: { Upgrade: "websocket" } });
     }
 
-    if (path === "/api/ranked/search" && request.method === "POST") {
+    if ((path === "/api/ranked/search" || path === "/api/ranked/ready") && request.method === "POST") {
       const bearer = request.headers.get("authorization") || "";
       const jwt = bearer.startsWith("Bearer ") ? bearer.slice(7) : "";
       if (!jwt || !env.TICKET_SECRET) return addCors(json({ error: "Authorization required" }, 401), request, env);
       try {
         const user = await supabaseRequest(env, "/auth/v1/user", jwt);
         if (!user?.id) return addCors(json({ error: "Invalid session" }, 401), request, env);
+        if (path === "/api/ranked/search") {
+          // Only a signed ticket: no DB waiting row exists until the socket is open.
+          return addCors(json({ state: "connect", ticket: await issueSearchTicket(user.id, env.TICKET_SECRET) }), request, env);
+        }
+        const parsed = await request.json().catch(() => ({}));
+        const ticket = await verifySearchTicket(parsed.ticket, env.TICKET_SECRET);
+        if (!ticket || ticket.userId !== user.id)
+          return addCors(json({ error: "Invalid search ticket" }, 403), request, env);
         const response = await internalHub(env, "ranked:queue", "/ranked/search", {
           method: "POST", headers: { "content-type": "application/json" },
           body: JSON.stringify({ userId: user.id, jwt }),
         });
         if (!response.ok) return addCors(response, request, env);
-        const result = await response.json();
-        if (result.state === "searching") {
-          result.ticket = await issueSearchTicket(user.id, env.TICKET_SECRET);
-        }
-        return addCors(json(result), request, env);
+        return addCors(json(await response.json()), request, env);
       } catch (_) {
         return addCors(json({ error: "Search gateway temporarily unavailable" }, 503), request, env);
       }
@@ -303,9 +307,12 @@ export class EventHub {
     if (!entry || !["searching", "matched"].includes(entry.state))
       throw Error("Invalid ranked queue entry");
     const now = Date.now();
+    // A disconnected player must not be chosen as a Cloudflare candidate.
+    if (this.state.getWebSockets("ranked:" + playerId).length === 0) throw Error("Queue socket is not open");
     let queue = (await this.state.storage.get("ranked:waiters")) || [];
     const previous = queue.find(item => item.userId === playerId);
-    queue = queue.filter(item => item.userId !== playerId && now - item.joinedAt < 3_600_000);
+    queue = queue.filter(item => item.userId !== playerId &&
+      now - item.joinedAt < 3_600_000 && this.state.getWebSockets("ranked:" + item.userId).length > 0);
     if (entry.state === "matched")
       return this.rankedQueueFinish(playerId, jwt, Number(entry.out_match_id), queue, now);
 
