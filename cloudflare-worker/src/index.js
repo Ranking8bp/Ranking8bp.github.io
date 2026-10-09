@@ -76,9 +76,9 @@ async function verifyTicket(ticket, secret) {
   } catch (_) { return null; }
 }
 // Search tickets are short-lived, scoped to one authenticated player's queue socket.
-async function issueSearchTicket(userId, secret) {
+async function issueSearchTicket(userId, secret, mode = "ranked") {
   const payload = asBase64url(encoder.encode(JSON.stringify({
-    kind: "ranked-search", userId, nonce: crypto.randomUUID(), exp: Date.now() + 45_000,
+    kind: mode + "-search", userId, nonce: crypto.randomUUID(), exp: Date.now() + 45_000,
   })));
   return payload + "." + await ticketSignature(payload, secret);
 }
@@ -89,7 +89,7 @@ async function verifySearchTicket(ticket, secret) {
       !safeEquals(await ticketSignature(message, secret), signature)) return null;
   try {
     const data = JSON.parse(new TextDecoder().decode(fromBase64url(message)));
-    if (data.kind !== "ranked-search" ||
+    if (!["ranked-search", "daily-search"].includes(data.kind) ||
         !/^[0-9a-f-]{36}$/i.test(data.nonce) ||
         !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(data.userId) ||
         !Number.isFinite(data.exp) || data.exp < Date.now() ||
@@ -139,7 +139,7 @@ export default {
       status: "ok", service: "ranking8bp-server",
       supabaseConfigured: !!(env.SUPABASE_URL && env.SUPABASE_ANON_KEY),
       eventsConfigured: !!env.EVENT_SECRET, ticketsConfigured: !!env.TICKET_SECRET,
-      rankedQueueCanary: true,
+      rankedQueueCanary: true, dailyQueueCanary: true,
     });
     if (path === "/internal/event" && request.method === "POST") {
       if (!safeEquals(request.headers.get("x-event-secret"), env.EVENT_SECRET)) return json({ error: "Forbidden" }, 403);
@@ -181,23 +181,27 @@ export default {
       return internalHub(env, "public", "/ws", { headers: { Upgrade: "websocket" } });
     }
 
-    if (["/api/ranked/search", "/api/ranked/ready", "/api/ranked/cancel"].includes(path) && request.method === "POST") {
+    const queueApi = path.match(/^\/api\/(ranked|daily)\/(search|ready|cancel)$/);
+    if (queueApi && request.method === "POST") {
+      const queueMode = queueApi[1];
+      const queueAction = queueApi[2];
       const bearer = request.headers.get("authorization") || "";
       const jwt = bearer.startsWith("Bearer ") ? bearer.slice(7) : "";
       if (!jwt || !env.TICKET_SECRET) return addCors(json({ error: "Authorization required" }, 401), request, env);
       try {
         const user = await supabaseRequest(env, "/auth/v1/user", jwt);
         if (!user?.id) return addCors(json({ error: "Invalid session" }, 401), request, env);
-        if (path === "/api/ranked/search") {
-          // Only a signed ticket: no DB waiting row exists until the socket is open.
-          return addCors(json({ state: "connect", ticket: await issueSearchTicket(user.id, env.TICKET_SECRET) }), request, env);
+        if (queueAction === "search") {
+          // No database queue row is created until an authenticated WebSocket opens.
+          return addCors(json({ state: "connect", ticket: await issueSearchTicket(user.id, env.TICKET_SECRET, queueMode) }), request, env);
         }
         const parsed = await request.json().catch(() => ({}));
         const ticket = await verifySearchTicket(parsed.ticket, env.TICKET_SECRET);
-        if (!ticket || ticket.userId !== user.id)
+        if (!ticket || ticket.userId !== user.id || ticket.kind !== queueMode + "-search")
           return addCors(json({ error: "Invalid search ticket" }, 403), request, env);
-        const cancel = path === "/api/ranked/cancel";
-        const response = await internalHub(env, "ranked:queue", cancel ? "/ranked/cancel" : "/ranked/search", {
+        const cancel = queueAction === "cancel";
+        const response = await internalHub(env, queueMode + ":queue",
+          cancel ? "/" + queueMode + "/cancel" : "/" + queueMode + "/search", {
           method: "POST", headers: { "content-type": "application/json" },
           body: JSON.stringify({ userId: user.id, jwt, nonce: ticket.nonce }),
         });
@@ -207,12 +211,14 @@ export default {
         return addCors(json({ error: "Search gateway temporarily unavailable" }, 503), request, env);
       }
     }
-    if (path === "/ws/ranked-search" && request.method === "GET") {
+    const queueSocket = path.match(/^\/ws\/(ranked|daily)-search$/);
+    if (queueSocket && request.method === "GET") {
       if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket")
         return json({ error: "WebSocket expected" }, 426);
+      const mode = queueSocket[1];
       const info = await verifySearchTicket(url.searchParams.get("ticket"), env.TICKET_SECRET);
-      if (!info) return json({ error: "Invalid search ticket" }, 401);
-      return internalHub(env, "ranked:queue", "/ranked/ws", {
+      if (!info || info.kind !== mode + "-search") return json({ error: "Invalid search ticket" }, 401);
+      return internalHub(env, mode + ":queue", "/" + mode + "/ws", {
         headers: { Upgrade: "websocket", "x-ranked-player": info.userId, "x-ranked-nonce": info.nonce },
       });
     }
@@ -368,8 +374,117 @@ export class EventHub {
     await this.state.storage.put("ranked:waiters", queue);
     return { state: "searching" };
   }
+
+  // Daily classification queue uses an isolated Durable Object and the same
+  // advisory lock as the original daily matcher. SQL remains authoritative.
+  async dailyQueueFinish(playerId, jwt, matchId, queue, now) {
+    if (!Number.isSafeInteger(matchId) || matchId < 1) throw Error("Invalid daily match");
+    const m = await supabaseRequest(this.env, "/rest/v1/rpc/daily_classification_room", jwt, { p_match_id: matchId });
+    if (Number(m?.id) !== matchId || m.my_id !== playerId)
+      throw Error("Daily match membership not verified");
+    const opponent = m.player1_id === playerId ? m.player2_id : m.player1_id;
+    queue = queue.filter(x => x.userId !== playerId && x.userId !== opponent);
+    await this.state.storage.put("daily:waiters", queue);
+    let assignments = (await this.state.storage.get("daily:assignments")) || {};
+    for (const id of [playerId, opponent]) assignments[id] = { matchId, createdAt: now };
+    assignments = Object.fromEntries(Object.entries(assignments).filter(([, v]) => now - v.createdAt < 120_000));
+    await this.state.storage.put("daily:assignments", assignments);
+    for (const id of [playerId, opponent]) {
+      for (const socket of this.state.getWebSockets("daily:" + id)) {
+        try { socket.send(JSON.stringify({ type: "match.found", matchId })); } catch (_) {}
+      }
+    }
+    return { state: "matched", out_match_id: matchId };
+  }
+  async dailyQueueCancel(playerId, jwt, nonce) {
+    const now = Date.now();
+    const markers = (await this.state.storage.get("daily:cancelled-tickets")) || {};
+    for (const [key, at] of Object.entries(markers))
+      if (now - Number(at) > 90_000) delete markers[key];
+    markers[nonce] = now;
+    await this.state.storage.put("daily:cancelled-tickets", markers);
+    const raw = await supabaseRequest(this.env, "/rest/v1/rpc/edge_daily_queue_cancel", jwt, {});
+    const outcome = Array.isArray(raw) ? raw[0] : raw;
+    if (!outcome || !["cancelled","matched"].includes(outcome.state)) throw Error("Invalid daily cancel");
+    const queue = (await this.state.storage.get("daily:waiters")) || [];
+    await this.state.storage.put("daily:waiters", queue.filter(x => x.userId !== playerId));
+    return { state: outcome.state, out_match_id: outcome.out_match_id || null };
+  }
+  async dailyQueueSearch(playerId, jwt, nonce) {
+    const markers = (await this.state.storage.get("daily:cancelled-tickets")) || {};
+    if (Date.now() - Number(markers[nonce] || 0) < 90_000)
+      return { state: "cancelled" };
+    if (!this.state.getWebSockets("daily-ticket:" + nonce).length)
+      return { state: "cancelled" };
+    const raw = await supabaseRequest(this.env, "/rest/v1/rpc/edge_daily_queue_enter", jwt, {});
+    const entry = Array.isArray(raw) ? raw[0] : raw;
+    if (!entry || !["searching","matched"].includes(entry.state)) throw Error("Invalid daily queue entry");
+    const now = Date.now();
+    const cancelled = (await this.state.storage.get("daily:cancelled-tickets")) || {};
+    if (Date.now() - Number(cancelled[nonce] || 0) < 90_000 ||
+        !this.state.getWebSockets("daily-ticket:" + nonce).length) {
+      await supabaseRequest(this.env, "/rest/v1/rpc/edge_daily_queue_cancel", jwt, {});
+      return { state: "cancelled" };
+    }
+    let queue = (await this.state.storage.get("daily:waiters")) || [];
+    const previous = queue.find(x => x.userId === playerId);
+    queue = queue.filter(x => x.userId !== playerId &&
+       now-x.joinedAt < 3_600_000 && this.state.getWebSockets("daily:" + x.userId).length > 0);
+    if (entry.state === "matched")
+      return this.dailyQueueFinish(playerId, jwt, Number(entry.out_match_id), queue, now);
+    for (const candidate of queue) {
+      const response = await supabaseRequest(this.env,"/rest/v1/rpc/edge_daily_queue_pair",jwt,{
+        p_opponent_id: candidate.userId,
+      });
+      const outcome = Array.isArray(response) ? response[0] : response;
+      if (outcome?.state === "matched" && Number(outcome.out_match_id) > 0)
+        return this.dailyQueueFinish(playerId, jwt, Number(outcome.out_match_id), queue, now);
+      if (outcome?.state !== "ineligible") throw Error("Invalid daily pairing response");
+    }
+    queue.push({ userId: playerId, joinedAt: previous?.joinedAt || now });
+    queue.sort((a,b)=>a.joinedAt-b.joinedAt);
+    await this.state.storage.put("daily:waiters", queue);
+    return { state:"searching" };
+  }
   async fetch(request) {
     const path = new URL(request.url).pathname;
+    if (path === "/daily/search" && request.method === "POST") {
+      let data;
+      try { data = await request.json(); } catch (_) { return json({error:"Bad request"},400); }
+      if (!data?.userId || typeof data.jwt !== "string" || !/^[0-9a-f-]{36}$/i.test(data.nonce))
+        return json({ error:"Bad request" },400);
+      const prior = this.dailyQueueLock || Promise.resolve();
+      const action = prior.catch(()=>{}).then(()=>this.dailyQueueSearch(data.userId,data.jwt,data.nonce));
+      this.dailyQueueLock = action.catch(()=>{});
+      try { return json(await action); } catch (_) { return json({error:"Daily matching unavailable"},503); }
+    }
+    if (path === "/daily/cancel" && request.method === "POST") {
+      let data;
+      try { data = await request.json(); } catch (_) { return json({error:"Bad request"},400); }
+      if (!data?.userId || typeof data.jwt !== "string" || !/^[0-9a-f-]{36}$/i.test(data.nonce))
+        return json({ error:"Bad request" },400);
+      const prior=this.dailyQueueLock || Promise.resolve();
+      const action=prior.catch(()=>{}).then(()=>this.dailyQueueCancel(data.userId,data.jwt,data.nonce));
+      this.dailyQueueLock=action.catch(()=>{});
+      try { return json(await action); } catch (_) { return json({error:"Daily cancel unavailable"},503); }
+    }
+    if (path === "/daily/ws") {
+      if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket")
+        return json({error:"WebSocket expected"},426);
+      const userId=request.headers.get("x-ranked-player")||"";
+      const nonce=request.headers.get("x-ranked-nonce")||"";
+      if (!/^[0-9a-f-]{36}$/i.test(userId)||!/^[0-9a-f-]{36}$/i.test(nonce))
+        return json({error:"Invalid daily ticket"},403);
+      const pair=new WebSocketPair();
+      this.state.acceptWebSocket(pair[1],["daily:"+userId,"daily-ticket:"+nonce]);
+      pair[1].serializeAttachment({kind:"daily-search",userId,nonce});
+      const assignments=(await this.state.storage.get("daily:assignments"))||{};
+      const match=assignments[userId];
+      if (match&&Date.now()-match.createdAt<120_000) {
+        try {pair[1].send(JSON.stringify({type:"match.found",matchId:match.matchId}))}catch(_){}
+      }
+      return new Response(null,{status:101,webSocket:pair[0]});
+    }
     if (path === "/ranked/search" && request.method === "POST") {
       let data;
       try { data = await request.json(); } catch (_) { return json({ error: "Bad request" }, 400); }
@@ -453,6 +568,19 @@ export class EventHub {
     // Only the Durable Object's connection list is cleaned up here. A browser's
     // explicit cancel/pagehide still uses its authenticated Supabase cancel RPC.
     const attachment = socket.deserializeAttachment?.();
+    if (attachment?.kind === "daily-search" && attachment.userId) {
+      const id=attachment.userId;
+      if (this.state.getWebSockets("daily:"+id).length===0) {
+        const prior=this.dailyQueueLock||Promise.resolve();
+        const action=prior.catch(()=>{}).then(async()=>{
+          if (this.state.getWebSockets("daily:"+id).length) return;
+          const waiters=await this.state.storage.get("daily:waiters");
+          if (Array.isArray(waiters))
+            await this.state.storage.put("daily:waiters",waiters.filter(x=>x.userId!==id));
+        });
+        this.dailyQueueLock=action.catch(()=>{});
+      }
+    }
     if (attachment?.kind === "ranked-search" && attachment.userId) {
       const id = attachment.userId;
       if (this.state.getWebSockets("ranked:" + id).length === 0) {
