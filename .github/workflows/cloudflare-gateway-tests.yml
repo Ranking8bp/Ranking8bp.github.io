@@ -3,10 +3,14 @@ on:
   push:
     paths:
       - "cloudflare-worker/**"
+      - "app-v5.js"
+      - "index.html"
       - ".github/workflows/cloudflare-gateway-tests.yml"
   pull_request:
     paths:
       - "cloudflare-worker/**"
+      - "app-v5.js"
+      - "index.html"
       - ".github/workflows/cloudflare-gateway-tests.yml"
 jobs:
   test:
@@ -16,6 +20,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Check browser JavaScript syntax
+        run: |
+          node --check app-v5.js
+          node --input-type=module --check < cloudflare-worker/client/edge-client.js
       - name: Run gateway and relay tests
         working-directory: cloudflare-worker
         run: npm test
