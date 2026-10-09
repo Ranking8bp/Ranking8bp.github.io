@@ -42,8 +42,7 @@ begin
  insert into daily_classification_matches(day,player1_id,player2_id) values(d,opp,me) returning id into mid;
  update daily_classification_queue set match_id=mid where player_id in(me,opp);
  return jsonb_build_object('state','matched','match_id',mid);
-end $function$
-
+end $function$;
 
 CREATE OR REPLACE FUNCTION public.daily_classification_accept_invite(p_token uuid)
  RETURNS bigint
@@ -84,5 +83,4 @@ begin
  update daily_classification_invites set accepted_by=me,match_id=mid where token=p_token;
  delete from daily_classification_queue where player_id in(me,i.creator_id);
  return mid;
-end $function$
-
+end $function$;
