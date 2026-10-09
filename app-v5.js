@@ -1,3 +1,17 @@
+/* Premio de temporada: imagen Informe1.png en ventana accesible desde PREMIO. */
+document.addEventListener('DOMContentLoaded',()=>{
+ const modal=document.getElementById('rankingPrizeInfoModal');
+ const tile=document.querySelector('[data-menu="premio"]');
+ const close=document.getElementById('rankingPrizeInfoClose');
+ if(!modal||!tile||!close)return;
+ const open=()=>{modal.hidden=false;modal.style.display='flex';document.body.style.overflow='hidden'};
+ const dismiss=()=>{modal.hidden=true;modal.style.display='none';document.body.style.removeProperty('overflow')};
+ tile.addEventListener('click',open);
+ close.addEventListener('click',dismiss);
+ modal.addEventListener('click',event=>{if(event.target===modal)dismiss()});
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!modal.hidden)dismiss()});
+});
+
 /* Ventana de LOGROS desde el botón cuadrado */
 document.addEventListener('DOMContentLoaded',()=>{
  const modal=document.getElementById('achievementsModal');
