@@ -3738,7 +3738,48 @@ async function dailyRefreshGlobalRanking(){
  }catch(error){console.warn('ELO actual tras clasificatoria diaria:',error)}
  await loadRanking(true).catch(error=>console.warn('Actualizar ranking tras VS diario:',error));
 }
-async function dailyRpc(name,args){const {data,error}=await supabaseClient.rpc(name,args);if(error)throw error;return data;}
+// La UI puede seguir abierta aun si Supabase ha perdido el token.
+ // Nunca iniciar búsqueda diaria mientras auth.uid() esté vacío.
+let dailyAuthNoticePending=false;
+async function dailyRequireActiveSession({promptLogin=false}={}){
+  if(!supabaseClient)return false;
+  let session;
+  try{
+    const {data,error}=await supabaseClient.auth.getSession();
+    if(error)throw error;
+    session=data?.session||null;
+  }catch(error){
+    console.warn('No se pudo verificar la sesión de clasificatoria:',error);
+    if(promptLogin)showToast('No se pudo verificar tu sesión. Vuelve a intentarlo.');
+    return false; // No cerrar una sesión por un error temporal de red.
+  }
+  if(session?.access_token&&session?.user?.id){
+    currentUser=session.user;
+    dailyAuthNoticePending=false;
+    return true;
+  }
+  // El token realmente desapareció: evitar solicitudes anónimas cada 15 s.
+  if(!dailyAuthNoticePending){
+    dailyAuthNoticePending=true;
+    setGuestUI();
+    showToast('Tu sesión ha caducado. Inicia sesión nuevamente.');
+  }
+  if(promptLogin&&loginModal&&!loginModal.classList.contains('open')){
+    openModal(loginModal,loginUsername);
+  }
+  return false;
+}
+async function dailyRpc(name,args){
+  const {data,error}=await supabaseClient.rpc(name,args);
+  if(error){
+    if(/AUTH_REQUIRED|JWT expired|invalid JWT/i.test(String(error?.message||''))){
+      // No interpretar un problema de autorización como un fallo de Cloudflare.
+      throw Object.assign(new Error('TU SESIÓN HA CADUCADO. VUELVE A INICIAR SESIÓN.'),{code:'DAILY_SESSION_REQUIRED'});
+    }
+    throw error;
+  }
+  return data;
+}
 let dailyPrivateWatchBusy=false;let dailyLastAutoOpenedMatchId=null;
 // Evitar que el sondeo de estado diario acumule peticiones mientras Supabase está saturado.
 let dailyStatusRefreshBusy=false;
@@ -3768,7 +3809,11 @@ async function dailyRefreshStatus(){
    if(info.state==='used'&&info.match_id){dailyMatchId=Number(info.match_id);dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyInviteModal').hidden=true;await dailyShowRoom()}
   }finally{dailyPrivateWatchBusy=false}
  }
- }catch(e){console.warn('Daily status',e)}
+ }catch(e){
+  if(e?.code==='DAILY_SESSION_REQUIRED'){
+    await dailyRequireActiveSession();
+  }else console.warn('Daily status',e);
+ }
  finally{dailyStatusRefreshBusy=false}
 }
 
@@ -4204,13 +4249,29 @@ window.startDailyClassification=async function(){
  if(!currentUser||!supabaseClient){alert('INICIA SESIÓN PARA JUGAR CLASIFICATORIA DIARIA.');return}
  dailyStartBusy=true;
  try{
- const st=await dailyRpc('daily_classification_status');
+ // La interfaz puede conservar el perfil cuando el token ya no existe.
+ // Verificar auth real antes de consultar el estado o abrir la cola Cloudflare.
+ if(!await dailyRequireActiveSession({promptLogin:true}))return;
+ let st;
+ try{
+  st=await dailyRpc('daily_classification_status');
+ }catch(error){
+  if(error?.code!=='DAILY_SESSION_REQUIRED')throw error;
+  // Una restauración tardía puede recuperar la sesión; reintentar una vez.
+  if(!await dailyRequireActiveSession({promptLogin:true}))return;
+  st=await dailyRpc('daily_classification_status');
+ }
  if(st.match_id&&!st.my_claim){dailyEl('dailyMatchModal').hidden=false;dailyMatchId=Number(st.match_id);await dailyShowRoom();return}
  if(Number(st.remaining)<=0){alert('YA JUGASTE TUS 15 PARTIDOS DE CLASIFICACION DIARIA. LOS PARTIDOS EN REVISION SE ACTUALIZARÁN ANTES QUE TERMINE LA COMPETENCIA.');return}
  dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyMatchActions').replaceChildren();
  if(st.match_id){dailyMatchId=st.match_id;await dailyShowRoom();return}
  dailyMatchId=null;dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchSearching').hidden=false;dailySearching=true;dailyEdgeSearchAttempted=false;dailyEdgeSearchFallback=false;await dailySearchLoop()
- }catch(e){alert('ERROR AL INICIAR CLASIFICATORIA: '+e.message)}
+ }catch(e){
+  if(e?.code==='DAILY_SESSION_REQUIRED'){
+    await dailyRequireActiveSession({promptLogin:true});
+    if(currentUser)showToast('No se pudo validar tu sesión. Reintenta.');
+  }else alert('ERROR AL INICIAR CLASIFICATORIA: '+e.message);
+ }
  finally{dailyStartBusy=false}
 };
 document.addEventListener('click',e=>{
