@@ -1,11 +1,9 @@
--- Ranking8BP: event-only, minimal-data change notifications.
--- Prerequisites (store privately, never in GitHub):
---   Vault secret named ranking8bp_relay_webhook_secret (random 32-byte value).
---   Edge Function ranking8bp-event-relay with RANKING_WEBHOOK_SECRET
---   equal to the Vault value; EVENT_SECRET equal to the Cloudflare value;
---   WORKER_URL = https://ranking8bp-server.ikarsolismonedas.workers.dev
--- Until the Vault secret exists, this function returns without sending events.
--- Changes to matches, points, ELO and player accounts remain with Supabase.
+-- Ranking8BP / Cloudflare: stage 1 - low-volume public feed invalidation.
+-- SQL intentionally leaves room/chat triggers DISABLED until browser room sockets go live.
+-- Vault secret: ranking8bp_relay_webhook_secret, equal to RANKING_WEBHOOK_SECRET
+-- in Supabase Edge Functions. EVENT_SECRET is shared with Cloudflare.
+-- This is an AFTER-row trigger: never modifies player scores or match outcomes.
+-- pg_net is async. To stop notifications immediately, disable four triggers below.
 create extension if not exists pg_net with schema extensions;
 create schema if not exists private;
 revoke all on schema private from public;
@@ -22,14 +20,11 @@ declare
   field_name text;
   changed_fields boolean := false;
   webhook_secret text;
-  match_id bigint;
 begin
-  if TG_TABLE_SCHEMA <> 'public' then return coalesce(NEW, OLD); end if;
-  if TG_OP <> 'DELETE' then fresh := to_jsonb(NEW); end if;
-  if TG_OP <> 'INSERT' then prior := to_jsonb(OLD); end if;
+  if TG_OP <> 'DELETE' then fresh := pg_catalog.to_jsonb(NEW); end if;
+  if TG_OP <> 'INSERT' then prior := pg_catalog.to_jsonb(OLD); end if;
 
   if TG_OP = 'UPDATE' then
-    -- Only invalidate on fields that actually affect standings or room state.
     if TG_TABLE_NAME = 'profiles' then
       foreach field_name in array array[
         'elo_points','rank_name','wins','losses','avatar_path',
@@ -58,58 +53,28 @@ begin
     changed_fields := true;
   end if;
 
-  if TG_TABLE_NAME = 'profiles' and changed_fields then
-    events := events || pg_catalog.jsonb_build_array(
+  -- Skip all unchanged state/heartbeat updates BEFORE touching Vault or pg_net.
+  if not changed_fields then return null; end if;
+
+  if TG_TABLE_NAME = 'profiles' then
+    events := pg_catalog.jsonb_build_array(
       pg_catalog.jsonb_build_object('feed','ranking'),
       pg_catalog.jsonb_build_object('feed','daily')
     );
   elsif TG_TABLE_NAME = 'ranked_matches' then
-    if changed_fields then
-      events := events || pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('feed','ranking'));
-    end if;
-    match_id := coalesce((fresh->>'id')::bigint, (prior->>'id')::bigint);
-    if match_id between 1 and 2147483647 then
-      events := events || pg_catalog.jsonb_build_array(
-        pg_catalog.jsonb_build_object('mode','ranked','room',match_id,'type','room.changed')
-      );
-    end if;
-  elsif TG_TABLE_NAME = 'daily_classification_matches' then
-    if changed_fields then
-      events := events || pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('feed','daily'));
-    end if;
-    match_id := coalesce((fresh->>'id')::bigint, (prior->>'id')::bigint);
-    if match_id between 1 and 2147483647 then
-      events := events || pg_catalog.jsonb_build_array(
-        pg_catalog.jsonb_build_object('mode','daily','room',match_id,'type','room.changed')
-      );
-    end if;
-  elsif TG_TABLE_NAME = 'ranked_match_messages' and TG_OP = 'INSERT' then
-    match_id := (fresh->>'match_id')::bigint;
-    if match_id between 1 and 2147483647 then
-      events := events || pg_catalog.jsonb_build_array(
-        pg_catalog.jsonb_build_object('mode','ranked','room',match_id,'type','chat.changed')
-      );
-    end if;
-  elsif TG_TABLE_NAME = 'daily_classification_chat' and TG_OP = 'INSERT' then
-    match_id := (fresh->>'match_id')::bigint;
-    if match_id between 1 and 2147483647 then
-      events := events || pg_catalog.jsonb_build_array(
-        pg_catalog.jsonb_build_object('mode','daily','room',match_id,'type','chat.changed')
-      );
-    end if;
-  elsif TG_TABLE_NAME = 'daily_classification_winners' then
-    events := events || pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('feed','daily'));
+    events := pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('feed','ranking'));
+  elsif TG_TABLE_NAME = 'daily_classification_matches'
+      or TG_TABLE_NAME = 'daily_classification_winners' then
+    events := pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('feed','daily'));
   end if;
+  if pg_catalog.jsonb_array_length(events) = 0 then return null; end if;
 
-  if pg_catalog.jsonb_array_length(events) = 0 then return coalesce(NEW, OLD); end if;
-
-  -- Only webhook authentication (not the Worker event secret) touches pg_net.
   select ds.decrypted_secret into webhook_secret
-  from vault.decrypted_secrets ds
-  where ds.name = 'ranking8bp_relay_webhook_secret'
-  limit 1;
-  if webhook_secret is null or length(webhook_secret) < 32 then
-    return coalesce(NEW, OLD);
+    from vault.decrypted_secrets ds
+   where ds.name = 'ranking8bp_relay_webhook_secret'
+   limit 1;
+  if webhook_secret is null or pg_catalog.length(webhook_secret) < 32 then
+    return null;
   end if;
 
   perform net.http_post(
@@ -121,11 +86,11 @@ begin
     ),
     timeout_milliseconds := 6500
   );
-  return coalesce(NEW, OLD);
+  return null; -- AFTER trigger return values are ignored.
 exception when others then
-  -- Notifications must never prevent a game result, registration or chat write.
-  raise log 'ranking8bp change notification skipped: %', SQLSTATE;
-  return coalesce(NEW, OLD);
+  -- NEVER fail registration, chat, a match or ELO because a notification fails.
+  raise log 'ranking8bp feed notification skipped (SQLSTATE %)', SQLSTATE;
+  return null;
 end;
 $fn$;
 revoke all on function private.ranking8bp_event_after_change() from public;
@@ -142,14 +107,12 @@ create trigger trg_ranking8bp_cloudflare_daily_matches
 after insert or update or delete on public.daily_classification_matches
 for each row execute function private.ranking8bp_event_after_change();
 
-create trigger trg_ranking8bp_cloudflare_ranked_chat
-after insert on public.ranked_match_messages
-for each row execute function private.ranking8bp_event_after_change();
-
-create trigger trg_ranking8bp_cloudflare_daily_chat
-after insert on public.daily_classification_chat
-for each row execute function private.ranking8bp_event_after_change();
-
 create trigger trg_ranking8bp_cloudflare_daily_winners
 after insert or update or delete on public.daily_classification_winners
 for each row execute function private.ranking8bp_event_after_change();
+
+-- Emergency pause (not executed by this migration):
+-- alter table public.profiles disable trigger trg_ranking8bp_cloudflare_profiles;
+-- alter table public.ranked_matches disable trigger trg_ranking8bp_cloudflare_ranked_matches;
+-- alter table public.daily_classification_matches disable trigger trg_ranking8bp_cloudflare_daily_matches;
+-- alter table public.daily_classification_winners disable trigger trg_ranking8bp_cloudflare_daily_winners;
