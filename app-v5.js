@@ -4092,11 +4092,12 @@ async function dailySearchLoop(){
  }
  if(dailySearching)dailyPoll=setTimeout(dailySearchLoop,3000);
 }
+let dailyStartBusy=false;
 window.startDailyClassification=async function(){
- // Evita lanzar un segundo emparejador al pulsar JUGAR varias veces.
- if(dailySearching&&!dailyMatchId)return;
+ // El bloqueo también cubre la primera validación asincrónica.
+ if(dailyStartBusy||(dailySearching&&!dailyMatchId))return;
  if(!currentUser||!supabaseClient){alert('INICIA SESIÓN PARA JUGAR CLASIFICATORIA DIARIA.');return}
-
+ dailyStartBusy=true;
  try{
  const st=await dailyRpc('daily_classification_status');
  if(st.match_id&&!st.my_claim){dailyEl('dailyMatchModal').hidden=false;dailyMatchId=Number(st.match_id);await dailyShowRoom();return}
@@ -4105,6 +4106,7 @@ window.startDailyClassification=async function(){
  if(st.match_id){dailyMatchId=st.match_id;await dailyShowRoom();return}
  dailyMatchId=null;dailyEl('dailyMatchContent').textContent='BUSCANDO RIVAL PARA JUGAR EN MIAMI...';dailyEl('dailyMatchSearching').hidden=false;dailySearching=true;dailyEdgeSearchAttempted=false;dailyEdgeSearchFallback=false;await dailySearchLoop()
  }catch(e){alert('ERROR AL INICIAR CLASIFICATORIA: '+e.message)}
+ finally{dailyStartBusy=false}
 };
 document.addEventListener('click',e=>{
  if(e.target.closest('#dailyRankingTableBtn'))dailyLoadLeaderboard(false);
