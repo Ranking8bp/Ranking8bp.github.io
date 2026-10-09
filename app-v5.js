@@ -1612,7 +1612,16 @@ async function loadAdminDailyVs(){
  const q=String(adminVsSearchInput?.value||'').trim().toLowerCase();
  const rows=(data||[]).filter(m=>!q||[m.player1_name,m.player2_name,m.player1_game_id,m.player2_game_id,m.match_id].some(v=>String(v||'').toLowerCase().includes(q)));
  if(!rows.length)return;
- const heading=document.createElement('h3');heading.textContent='🎱 CLASIFICATORIA DIARIA · MIAMI ('+rows.length+')';heading.style.cssText='color:#f0bd48;text-align:center;margin:20px 0 12px';adminMatchList.prepend(heading);
+ // A finished game with evidence is often still status="matched" in the DB
+ // pending admin judgment; it is NOT an active game still being played.
+ const dailyAdminMatchLabel=m=>m.status==='disputed'||m.player1_claim!=null||m.player2_claim!=null
+   ?'EN REVISIÓN'
+   : 'JUGANDO';
+ const playingCount=rows.filter(m=>dailyAdminMatchLabel(m)==='JUGANDO').length;
+ const reviewCount=rows.length-playingCount;
+ const heading=document.createElement('h3');
+ heading.textContent='🎱 CLASIFICATORIA DIARIA · MIAMI ('+playingCount+' JUGANDO · '+reviewCount+' EN REVISIÓN)';
+ heading.style.cssText='color:#f0bd48;text-align:center;margin:20px 0 12px';adminMatchList.prepend(heading);
  for(const m of rows){
  const card=document.createElement('article');card.className='admin-match matched';card.style.cssText='border:2px solid #dbb64c;border-radius:14px;padding:14px;margin:12px 0';
  const title=document.createElement('strong');title.textContent='CLASIFICATORIA DIARIA · MIAMI · VS #'+m.match_id;title.style.color='#f0bd48';card.appendChild(title);
@@ -1622,7 +1631,7 @@ async function loadAdminDailyVs(){
  const p=document.createElement('div');p.className='admin-vs-player';const avatar=document.createElement('div');avatar.className='admin-vs-avatar';const path=m[side+'_avatar_path'];if(path){const src=/^https?:\/\//.test(path)?path:supabaseClient.storage.from('profile-photos').getPublicUrl(String(path).replace(/^profile-photos\//,'')).data.publicUrl;avatar.style.backgroundImage='url("'+src+'")'}else avatar.textContent=String(m[side+'_name']||'?').slice(0,1).toUpperCase();
  const info=document.createElement('div');info.className='admin-vs-info';const name=document.createElement('strong');name.textContent=m[side+'_name'];const id=document.createElement('span');id.textContent='ID '+(m[side+'_game_id']||'--');const claim=document.createElement('b');claim.textContent='TOCÓ: '+(m[side+'_claim']==='won'?'GANÉ':m[side+'_claim']==='lost'?'PERDÍ':'NADA');info.append(name,id,claim);p.append(avatar,info);players.appendChild(p)}
  card.appendChild(players);
- const status=document.createElement('p');status.textContent='ESTADO: '+(m.status==='disputed'?'EN REVISIÓN':'JUGANDO')+' · '+new Date(m.created_at).toLocaleString('es-MX');card.appendChild(status);
+ const status=document.createElement('p');status.textContent='ESTADO: '+dailyAdminMatchLabel(m)+' · '+new Date(m.created_at).toLocaleString('es-MX');card.appendChild(status);
  const actions=document.createElement('div');actions.className='admin-match-actions';
  const chat=document.createElement('button');chat.className='admin-chat-btn';chat.textContent='VER CHAT';chat.onclick=async()=>{
  const modal=document.getElementById('adminVsChatModal'),box=document.getElementById('adminVsChatMessages');if(!modal||!box)return;
