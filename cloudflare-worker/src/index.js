@@ -78,7 +78,7 @@ async function verifyTicket(ticket, secret) {
 // Search tickets are short-lived, scoped to one authenticated player's queue socket.
 async function issueSearchTicket(userId, secret) {
   const payload = asBase64url(encoder.encode(JSON.stringify({
-    kind: "ranked-search", userId, exp: Date.now() + 45_000,
+    kind: "ranked-search", userId, nonce: crypto.randomUUID(), exp: Date.now() + 45_000,
   })));
   return payload + "." + await ticketSignature(payload, secret);
 }
@@ -90,6 +90,7 @@ async function verifySearchTicket(ticket, secret) {
   try {
     const data = JSON.parse(new TextDecoder().decode(fromBase64url(message)));
     if (data.kind !== "ranked-search" ||
+        !/^[0-9a-f-]{36}$/i.test(data.nonce) ||
         !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(data.userId) ||
         !Number.isFinite(data.exp) || data.exp < Date.now() ||
         data.exp > Date.now() + 60_000) return null;
@@ -180,7 +181,7 @@ export default {
       return internalHub(env, "public", "/ws", { headers: { Upgrade: "websocket" } });
     }
 
-    if ((path === "/api/ranked/search" || path === "/api/ranked/ready") && request.method === "POST") {
+    if (["/api/ranked/search", "/api/ranked/ready", "/api/ranked/cancel"].includes(path) && request.method === "POST") {
       const bearer = request.headers.get("authorization") || "";
       const jwt = bearer.startsWith("Bearer ") ? bearer.slice(7) : "";
       if (!jwt || !env.TICKET_SECRET) return addCors(json({ error: "Authorization required" }, 401), request, env);
@@ -195,9 +196,10 @@ export default {
         const ticket = await verifySearchTicket(parsed.ticket, env.TICKET_SECRET);
         if (!ticket || ticket.userId !== user.id)
           return addCors(json({ error: "Invalid search ticket" }, 403), request, env);
-        const response = await internalHub(env, "ranked:queue", "/ranked/search", {
+        const cancel = path === "/api/ranked/cancel";
+        const response = await internalHub(env, "ranked:queue", cancel ? "/ranked/cancel" : "/ranked/search", {
           method: "POST", headers: { "content-type": "application/json" },
-          body: JSON.stringify({ userId: user.id, jwt }),
+          body: JSON.stringify({ userId: user.id, jwt, nonce: ticket.nonce }),
         });
         if (!response.ok) return addCors(response, request, env);
         return addCors(json(await response.json()), request, env);
@@ -211,7 +213,7 @@ export default {
       const info = await verifySearchTicket(url.searchParams.get("ticket"), env.TICKET_SECRET);
       if (!info) return json({ error: "Invalid search ticket" }, 401);
       return internalHub(env, "ranked:queue", "/ranked/ws", {
-        headers: { Upgrade: "websocket", "x-ranked-player": info.userId },
+        headers: { Upgrade: "websocket", "x-ranked-player": info.userId, "x-ranked-nonce": info.nonce },
       });
     }
 
@@ -300,16 +302,46 @@ export class EventHub {
     }
     return { state: "matched", out_match_id: matchId };
   }
-  async rankedQueueSearch(playerId, jwt) {
+  async rankedQueueCancel(playerId, jwt, nonce) {
+    // Mark this ticket first; an out-of-order /ready cannot resurrect its queue entry.
+    // Keep short-lived cancellation markers in ONE bounded DO value; avoid an
+    // unbounded storage key per user action at high traffic.
+    const now = Date.now();
+    const markerKey = "ranked:cancelled-tickets";
+    const markers = (await this.state.storage.get(markerKey)) || {};
+    for (const [id, at] of Object.entries(markers)) {
+      if (now - Number(at) > 90_000) delete markers[id];
+    }
+    markers[nonce] = now;
+    await this.state.storage.put(markerKey, markers);
+    const raw = await supabaseRequest(this.env, "/rest/v1/rpc/edge_ranked_queue_cancel", jwt, {});
+    const result = Array.isArray(raw) ? raw[0] : raw;
+    if (!result || !["cancelled", "matched"].includes(result.state))
+      throw Error("Invalid cancellation response");
+    const queue = (await this.state.storage.get("ranked:waiters")) || [];
+    await this.state.storage.put("ranked:waiters", queue.filter(x => x.userId !== playerId));
+    return { state: result.state, out_match_id: result.out_match_id || null };
+  }
+  async rankedQueueSearch(playerId, jwt, nonce) {
     // ONE entry RPC per new seeker, then NO Supabase polling from Cloudflare.
     // The SQL RPC registers presence and a DB safety marker, but does not select opponents.
+    const cancelledTickets = (await this.state.storage.get("ranked:cancelled-tickets")) || {};
+    if (Date.now() - Number(cancelledTickets[nonce] || 0) < 90_000)
+      return { state: "cancelled" };
+    if (!this.state.getWebSockets("ranked-ticket:" + nonce).length)
+      return { state: "cancelled" };
     const raw = await supabaseRequest(this.env, "/rest/v1/rpc/edge_ranked_queue_enter", jwt, {});
     const entry = Array.isArray(raw) ? raw[0] : raw;
     if (!entry || !["searching", "matched"].includes(entry.state))
       throw Error("Invalid ranked queue entry");
     const now = Date.now();
-    // A disconnected player must not be chosen as a Cloudflare candidate.
-    if (this.state.getWebSockets("ranked:" + playerId).length === 0) throw Error("Queue socket is not open");
+    // Handle a disconnect during the first Supabase call.
+    const cancelledNow = (await this.state.storage.get("ranked:cancelled-tickets")) || {};
+    if ((Date.now() - Number(cancelledNow[nonce] || 0) < 90_000) ||
+        !this.state.getWebSockets("ranked-ticket:" + nonce).length) {
+      await supabaseRequest(this.env, "/rest/v1/rpc/edge_ranked_queue_cancel", jwt, {});
+      return { state: "cancelled" };
+    }
     let queue = (await this.state.storage.get("ranked:waiters")) || [];
     const previous = queue.find(item => item.userId === playerId);
     queue = queue.filter(item => item.userId !== playerId &&
@@ -341,22 +373,36 @@ export class EventHub {
     if (path === "/ranked/search" && request.method === "POST") {
       let data;
       try { data = await request.json(); } catch (_) { return json({ error: "Bad request" }, 400); }
-      if (!data?.userId || typeof data.jwt !== "string") return json({ error: "Bad request" }, 400);
+      if (!data?.userId || typeof data.jwt !== "string" ||
+          !/^[0-9a-f-]{36}$/i.test(data.nonce)) return json({ error: "Bad request" }, 400);
       // Serialize every entrant so the Cloudflare queue has a deterministic order,
       // including while Supabase RPCs are in flight.
       const previous = this.rankedQueueLock || Promise.resolve();
-      const action = previous.catch(() => {}).then(() => this.rankedQueueSearch(data.userId, data.jwt));
+      const action = previous.catch(() => {}).then(() => this.rankedQueueSearch(data.userId, data.jwt, data.nonce));
       this.rankedQueueLock = action.catch(() => {});
       try { return json(await action); } catch (_) { return json({ error: "Matchmaking unavailable" }, 503); }
+    }
+    if (path === "/ranked/cancel" && request.method === "POST") {
+      let data;
+      try { data = await request.json(); } catch (_) { return json({ error: "Bad request" }, 400); }
+      if (!data?.userId || typeof data.jwt !== "string" ||
+          !/^[0-9a-f-]{36}$/i.test(data.nonce)) return json({ error: "Bad request" }, 400);
+      const previous = this.rankedQueueLock || Promise.resolve();
+      const action = previous.catch(() => {}).then(() =>
+        this.rankedQueueCancel(data.userId, data.jwt, data.nonce));
+      this.rankedQueueLock = action.catch(() => {});
+      try { return json(await action); } catch (_) { return json({ error: "Cancellation unavailable" }, 503); }
     }
     if (path === "/ranked/ws") {
       if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket")
         return json({ error: "WebSocket expected" }, 426);
       const userId = request.headers.get("x-ranked-player") || "";
-      if (!/^[0-9a-f-]{36}$/i.test(userId)) return json({ error: "Invalid player" }, 403);
+      const nonce = request.headers.get("x-ranked-nonce") || "";
+      if (!/^[0-9a-f-]{36}$/i.test(userId) || !/^[0-9a-f-]{36}$/i.test(nonce))
+        return json({ error: "Invalid search ticket" }, 403);
       const pair = new WebSocketPair();
-      this.state.acceptWebSocket(pair[1], ["ranked:" + userId]);
-      pair[1].serializeAttachment({ kind: "ranked-search", userId });
+      this.state.acceptWebSocket(pair[1], ["ranked:" + userId, "ranked-ticket:" + nonce]);
+      pair[1].serializeAttachment({ kind: "ranked-search", userId, nonce });
       const messages = (await this.state.storage.get("ranked:assignments")) || {};
       const match = messages[userId];
       if (match && Date.now() - match.createdAt < 120_000) {
@@ -410,10 +456,15 @@ export class EventHub {
     if (attachment?.kind === "ranked-search" && attachment.userId) {
       const id = attachment.userId;
       if (this.state.getWebSockets("ranked:" + id).length === 0) {
-        this.state.storage.get("ranked:waiters").then(items => {
+        // Close cleanup shares the same lock as join and cancellation.
+        const previous = this.rankedQueueLock || Promise.resolve();
+        const action = previous.catch(() => {}).then(async () => {
+          if (this.state.getWebSockets("ranked:" + id).length) return;
+          const items = await this.state.storage.get("ranked:waiters");
           if (Array.isArray(items))
-            return this.state.storage.put("ranked:waiters", items.filter(x => x.userId !== id));
-        }).catch(() => {});
+            await this.state.storage.put("ranked:waiters", items.filter(x => x.userId !== id));
+        });
+        this.rankedQueueLock = action.catch(() => {});
       }
     }
   }

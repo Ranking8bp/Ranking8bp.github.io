@@ -263,7 +263,7 @@ const RANKING8BP_EDGE_URL='https://ranking8bp-server.ikarsolismonedas.workers.de
 let ranking8bpEdgeClientPromise=null;
 function ranking8bpGetEdgeClient(){
   if(!ranking8bpEdgeClientPromise){
-    ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-ranked-queue-canary1')
+    ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-ranked-cancel-race1')
       .then(({Ranking8bpEdgeClient})=>new Ranking8bpEdgeClient({baseUrl:RANKING8BP_EDGE_URL,supabase:supabaseClient}));
   }
   return ranking8bpEdgeClientPromise;
@@ -1206,10 +1206,15 @@ async function stopHiddenRankedSearch(){
  if(search)search.hidden=true;
  if(modal)modal.hidden=true;
  try{
-  await Promise.allSettled([
-   supabaseClient.rpc('set_ranked_search_presence',{p_searching:false}),
-   supabaseClient.rpc('matchmaking_v2_cancel')
-  ]);
+  if(RANKED_EDGE_QUEUE_CANARY){
+   // Never cancel a VS already created while the search was closing.
+   await supabaseClient.rpc('edge_ranked_queue_cancel');
+  }else{
+   await Promise.allSettled([
+    supabaseClient.rpc('set_ranked_search_presence',{p_searching:false}),
+    supabaseClient.rpc('matchmaking_v2_cancel')
+   ]);
+  }
  }catch(error){console.warn('Detener búsqueda en segundo plano:',error)}
  finally{rankedBackgroundCancelRunning=false}
 }
@@ -1249,7 +1254,8 @@ async function startRankedMatchmaking(){
    if(st?.state==='cancelled'){rankedSearchActive=false;search.hidden=true;modal.hidden=true;return}
    if(st?.state==='matched'&&st?.out_match_id){
     if(!rankedSearchActive||token!==rankedSearchLoopToken){
-     await Promise.allSettled([supabaseClient.rpc('set_ranked_search_presence',{p_searching:false}),supabaseClient.rpc('matchmaking_v2_cancel')]);
+     if(RANKED_EDGE_QUEUE_CANARY)await supabaseClient.rpc('edge_ranked_queue_cancel');
+     else await Promise.allSettled([supabaseClient.rpc('set_ranked_search_presence',{p_searching:false}),supabaseClient.rpc('matchmaking_v2_cancel')]);
      return;
     }
     const {data:room,error:roomError}=await supabaseClient.rpc('get_fresh_ranked_room',{p_match_id:Number(st.out_match_id)});if(roomError)throw roomError;
@@ -1300,7 +1306,10 @@ async function closeRankedMatchmaking(){
  if(currentRankedMatchId&&supabaseClient){try{const {data}=await supabaseClient.rpc('get_my_active_ranked_match');const m=Array.isArray(data)?data[0]:data;if(m?.admin_confirmed){showToast('Este VS está confirmado. Debes esperar el resultado.');return}}catch(e){console.error(e)}}
  clearInterval(matchmakingTimer);matchmakingTimer=null;clearInterval(matchmakingHeartbeatTimer);matchmakingHeartbeatTimer=null;clearInterval(pendingMatchesTimer);pendingMatchesTimer=null;await stopMatchmakingRealtime();
  if(matchmakingModal)matchmakingModal.hidden=true;
- if(!currentRankedMatchId&&currentUser&&supabaseClient)await supabaseClient.rpc('matchmaking_v2_cancel');
+ if(!currentRankedMatchId&&currentUser&&supabaseClient){
+  if(RANKED_EDGE_QUEUE_CANARY)await supabaseClient.rpc('edge_ranked_queue_cancel');
+  else await supabaseClient.rpc('matchmaking_v2_cancel');
+ }
 }
 
 
