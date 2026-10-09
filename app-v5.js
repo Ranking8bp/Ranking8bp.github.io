@@ -1092,8 +1092,13 @@ async function stopMatchmakingRealtime(){
  }
  matchmakingRealtimeChannel=null;
 }
-/* MATCHMAKING REMOVED COMPLETELY — rebuilding from zero. */
-function stopRankedSearchLoop(){rankedSearchLoopToken++}
+// Canary: ?edgequeue=1 uses Cloudflare event notifications for ranked searches.
+const RANKED_EDGE_QUEUE_CANARY = new URLSearchParams(window.location.search).get('edgequeue')==='1';
+let rankedEdgeQueueAbort=null;
+function stopRankedSearchLoop(){
+ rankedSearchLoopToken++;
+ if(rankedEdgeQueueAbort){rankedEdgeQueueAbort.abort();rankedEdgeQueueAbort=null}
+}
 
 function closeEloDailyLimit(){if(eloDailyCountdownTimer){clearInterval(eloDailyCountdownTimer);eloDailyCountdownTimer=null}if(eloDailyLimitModal)eloDailyLimitModal.hidden=true}
 function formatEloCountdown(){
@@ -1216,13 +1221,32 @@ async function startRankedMatchmaking(){
  matchmakingStartLoading=true;
  const modal=document.getElementById('freshMatchmakingModal'),search=document.getElementById('freshSearching'),vs=document.getElementById('freshVersus');
  if(!modal||!search||!vs){matchmakingStartLoading=false;return}
- modal.hidden=false;search.hidden=false;vs.hidden=true;rankedSearchActive=true;syncRankedSearchPresence(true);
+ modal.hidden=false;search.hidden=false;vs.hidden=true;rankedSearchActive=true;
+ // Worker registers presence on first entry. The existing 60-second heartbeat
+ // keeps the authoritative DB row valid while the Cloudflare socket waits.
+ if(!RANKED_EDGE_QUEUE_CANARY)syncRankedSearchPresence(true);
  const token=++rankedSearchLoopToken;
+ let edgeAttempted=false;
  matchmakingStartLoading=false;
  while(rankedSearchActive&&token===rankedSearchLoopToken){
   try{
-   const {data,error}=await supabaseClient.rpc('find_ranked_opponent');if(error)throw error;
-   const st=Array.isArray(data)?data[0]:data;
+   let st;
+   if(RANKED_EDGE_QUEUE_CANARY&&!edgeAttempted){
+    edgeAttempted=true;
+    const abort=new AbortController();rankedEdgeQueueAbort=abort;
+    try{
+     st=await (await ranking8bpGetEdgeClient()).waitForRankedMatch(abort.signal);
+    }catch(edgeError){
+     if(abort.signal.aborted||!rankedSearchActive||token!==rankedSearchLoopToken)return;
+     console.warn('Cola Cloudflare no disponible; regresando a búsqueda de Supabase:',edgeError);
+     // Check the existing DB queue right away. No player is enqueued twice.
+     continue;
+    }finally{if(rankedEdgeQueueAbort===abort)rankedEdgeQueueAbort=null}
+   }else{
+    const {data,error}=await supabaseClient.rpc('find_ranked_opponent');if(error)throw error;
+    st=Array.isArray(data)?data[0]:data;
+   }
+   if(st?.state==='cancelled'){rankedSearchActive=false;search.hidden=true;modal.hidden=true;return}
    if(st?.state==='matched'&&st?.out_match_id){
     if(!rankedSearchActive||token!==rankedSearchLoopToken){
      await Promise.allSettled([supabaseClient.rpc('set_ranked_search_presence',{p_searching:false}),supabaseClient.rpc('matchmaking_v2_cancel')]);
