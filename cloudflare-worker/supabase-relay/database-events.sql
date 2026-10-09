@@ -1,7 +1,7 @@
 -- Ranking8BP: event-only, minimal-data change notifications.
 -- Prerequisites (store privately, never in GitHub):
 --   Vault secret named ranking8bp_relay_webhook_secret (random 32-byte value).
---   Edge Function ranking8bp-event-relay with SUPABASE_WEBHOOK_SECRET
+--   Edge Function ranking8bp-event-relay with RANKING_WEBHOOK_SECRET
 --   equal to the Vault value; EVENT_SECRET equal to the Cloudflare value;
 --   WORKER_URL = https://ranking8bp-server.ikarsolismonedas.workers.dev
 -- Until the Vault secret exists, this function returns without sending events.
