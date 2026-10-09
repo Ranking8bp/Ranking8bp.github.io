@@ -1092,8 +1092,9 @@ async function stopMatchmakingRealtime(){
  }
  matchmakingRealtimeChannel=null;
 }
-// Canary: ?edgequeue=1 uses Cloudflare event notifications for ranked searches.
-const RANKED_EDGE_QUEUE_CANARY = new URLSearchParams(window.location.search).get('edgequeue')==='1';
+// Cloudflare es la cola predeterminada. Solo ?edgequeue=0 activa el sistema anterior de emergencia.
+// El Worker valida cada entrada y Supabase conserva la decisión atómica del VS.
+const RANKED_EDGE_QUEUE_CANARY = new URLSearchParams(window.location.search).get('edgequeue')!=='0';
 let rankedEdgeQueueAbort=null;
 function stopRankedSearchLoop(){
  rankedSearchLoopToken++;
