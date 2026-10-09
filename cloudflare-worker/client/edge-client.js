@@ -58,13 +58,15 @@ export class Ranking8bpEdgeClient {
   }
   // One authenticated RPC on entry, then an idle Cloudflare WebSocket while waiting.
   // If anything fails, the caller falls back to the existing Supabase polling loop.
-  async waitForRankedMatch(signal) {
+  async waitForRankedMatch(signal) { return this.waitForQueueMatch("ranked", signal); }
+  async waitForDailyMatch(signal) { return this.waitForQueueMatch("daily", signal); }
+  async waitForQueueMatch(mode, signal) {
     // A rival leaving cannot end another player's search. Reconnect a dropped
     // private WebSocket before falling back to the original Supabase matcher.
     for (let attempt = 0; ; attempt++) {
       if (signal?.aborted) throw Error("Search cancelled");
       try {
-        return await this.waitForRankedMatchOnce(signal);
+        return await this.waitForQueueMatchOnce(mode, signal);
       } catch (error) {
         if (signal?.aborted || attempt >= 3) throw error;
         const ms = Math.min(1200 * 2 ** attempt, 5000);
@@ -84,23 +86,24 @@ export class Ranking8bpEdgeClient {
       }
     }
   }
-  async waitForRankedMatchOnce(signal) {
+  async waitForQueueMatchOnce(mode, signal) {
+    if (mode !== "ranked" && mode !== "daily") throw Error("Invalid queue mode");
     if (signal?.aborted) throw Error("Search cancelled");
     const { data } = await this.supabase.auth.getSession();
     const token = data?.session?.access_token;
     if (!token) throw Error("Session required");
-    const response = await fetch(this.baseUrl + "/api/ranked/search", {
+    const response = await fetch(this.baseUrl + "/api/" + mode + "/search", {
       method: "POST",
       headers: { authorization: "Bearer " + token, "content-type": "application/json" },
       body: "{}",
       signal: AbortSignal.any([signal || new AbortController().signal, AbortSignal.timeout(15000)]),
     });
-    if (!response.ok) throw Error("Cloudflare ranked queue unavailable");
+    if (!response.ok) throw Error("Cloudflare queue unavailable");
     const result = await response.json();
-    if (result.state !== "connect" || !result.ticket) throw Error("Cloudflare ranked queue not ready");
+    if (result.state !== "connect" || !result.ticket) throw Error("Cloudflare queue not ready");
     return new Promise((resolve, reject) => {
       let socket, pingTimer;
-      const timeout = setTimeout(() => done(Error("Ranked queue connection timed out")), 12000);
+      const timeout = setTimeout(() => done(Error("Queue connection timed out")), 12000);
       const cleanup = () => {
         clearTimeout(timeout);
         clearInterval(pingTimer);
@@ -117,7 +120,7 @@ export class Ranking8bpEdgeClient {
       const abort = () => {
         // Cancel in the serialized Durable Object; keepalive helps on pagehide.
         // Supabase cancellation will never remove an already-created ranked VS.
-        fetch(this.baseUrl + "/api/ranked/cancel", {
+        fetch(this.baseUrl + "/api/" + mode + "/cancel", {
           method: "POST",
           headers: { authorization: "Bearer " + token, "content-type": "application/json" },
           body: JSON.stringify({ ticket: result.ticket }),
@@ -129,13 +132,13 @@ export class Ranking8bpEdgeClient {
       if (signal?.aborted) { abort(); return; }
       try {
         socket = new WebSocket(this.baseUrl.replace(/^http/, "ws") +
-          "/ws/ranked-search?ticket=" + encodeURIComponent(result.ticket));
+          "/ws/" + mode + "-search?ticket=" + encodeURIComponent(result.ticket));
         socket.onopen = async () => {
           clearTimeout(timeout);
           // Register in Supabase only AFTER the WebSocket is established.
           // Closing the tab during the first HTTP step cannot create a ghost match.
           try {
-            const reply = await fetch(this.baseUrl + "/api/ranked/ready", {
+            const reply = await fetch(this.baseUrl + "/api/" + mode + "/ready", {
               method: "POST",
               headers: { authorization: "Bearer " + token, "content-type": "application/json" },
               body: JSON.stringify({ ticket: result.ticket }),
@@ -148,7 +151,7 @@ export class Ranking8bpEdgeClient {
               done(null, { state: "matched", out_match_id: Number(status.out_match_id) });
               return;
             }
-            if (status.state !== "searching") throw Error("Ranked queue entry rejected");
+            if (status.state !== "searching") throw Error("Queue entry rejected");
             // Keepalive is Cloudflare-only, not a Supabase query.
             pingTimer = setInterval(() => { if (socket.readyState === WebSocket.OPEN) socket.send("ping"); }, 25000);
           } catch (error) { done(error); }
@@ -161,8 +164,8 @@ export class Ranking8bpEdgeClient {
               done(null, { state: "matched", out_match_id: Number(m.matchId) });
           } catch (_) {}
         };
-        socket.onerror = () => done(Error("Cloudflare ranked WebSocket error"));
-        socket.onclose = () => done(Error("Cloudflare ranked WebSocket disconnected"));
+        socket.onerror = () => done(Error("Cloudflare queue WebSocket error"));
+        socket.onclose = () => done(Error("Cloudflare queue WebSocket disconnected"));
       } catch (error) { done(error); }
     });
   }
