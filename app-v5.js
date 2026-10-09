@@ -257,6 +257,23 @@ const rankingSearchInput=document.getElementById('rankingSearchInput');
 const rankingSearchWrap=document.getElementById('rankingSearchWrap');
 let rankingPlayersCache=[];
 let guestRankingLoading=false,rankingLoading=false,latestResultLoading=false,rankingStreaksLoading=false;
+// Prueba voluntaria de caché Cloudflare: solo se activa con ?edgefeeds=1.
+// Sin el parámetro, cada jugador sigue usando Supabase como antes.
+const RANKING8BP_EDGE_URL='https://ranking8bp-server.ikarsolismonedas.workers.dev';
+let ranking8bpEdgeClientPromise=null;
+async function rankingPublicFeed(kind){
+  if(new URLSearchParams(window.location.search).get('edgefeeds')==='1'){
+    try{
+      if(!ranking8bpEdgeClientPromise){
+        ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-canary1')
+          .then(({Ranking8bpEdgeClient})=>new Ranking8bpEdgeClient({baseUrl:RANKING8BP_EDGE_URL,supabase:supabaseClient}));
+      }
+      const response=await (await ranking8bpEdgeClientPromise).getFeed(kind);
+      return {data:response.data,error:null};
+    }catch(error){console.warn('Cloudflare canary: usando Supabase',error)}
+  }
+  return supabaseClient.rpc(kind==='ranking'?'get_cached_public_home':'daily_classification_leaderboard');
+}
 const PUBLIC_CACHE_TTL=6*60*60*1000;
 function readPublicCacheEntry(key){
  try{const x=JSON.parse(localStorage.getItem(key)||'null');return x&&Date.now()-Number(x.savedAt||0)<PUBLIC_CACHE_TTL?x:null}catch(_){return null}
@@ -1521,7 +1538,7 @@ async function loadGuestRanking(){
  guestRankingLoading=true;
  try{
   if(cached?.length)await burstJitter();
-  const {data,error}=await supabaseClient.rpc('get_cached_public_home');
+  const {data,error}=await rankingPublicFeed('ranking');
   if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
   if(Array.isArray(snapshot.streaks))rankingStreaks=new Map(snapshot.streaks.map(x=>[String(x.player_id),Number(x.streak)||0]));
@@ -2390,7 +2407,7 @@ async function loadRanking(forceFresh=false){
  rankingLoading=true;
  try{
   if(cached?.length)await burstJitter();
-  const {data,error}=await supabaseClient.rpc('get_cached_public_home');if(error)throw error;
+  const {data,error}=await rankingPublicFeed('ranking');if(error)throw error;
   const snapshot=data&&typeof data==='object'?data:{};
   if(Array.isArray(snapshot.streaks))rankingStreaks=new Map(snapshot.streaks.map(x=>[String(x.player_id),Number(x.streak)||0]));
   const snapshotTotal=Number(snapshot.total_players);if(Number.isFinite(snapshotTotal)){totalRegisteredPlayers=snapshotTotal;try{localStorage.setItem('ranking8bp_real_registered_count',String(snapshotTotal))}catch(_){}}
@@ -3528,7 +3545,7 @@ async function dailyLoadLeaderboard(previousDay=false){
  if(previousDay){await dailyLoadWinner();return;}
  ++dailyWinnerLoadToken;
  try{
- const rows=await dailyRpc('daily_classification_leaderboard');
+ const {data:rows,error:dailyFeedError}=await rankingPublicFeed('daily');if(dailyFeedError)throw dailyFeedError;
  if(!rows?.length){el.replaceChildren();el.textContent='TODAVÍA NO HAY JUGADORES CLASIFICADOS HOY.';return}
  // Consulta en bloque: usa el ELO real de todos los jugadores de esta clasificación,
  // incluso los que están fuera de los 100 primeros del ranking general.
