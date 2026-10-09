@@ -30,6 +30,7 @@ function addCors(response, request, env) {
   headers.set("access-control-allow-origin", env.PUBLIC_ORIGIN || "https://ranking8bp.github.io");
   headers.set("access-control-allow-methods", "GET, POST, OPTIONS");
   headers.set("access-control-allow-headers", "Authorization, Content-Type, If-None-Match");
+  headers.set("access-control-expose-headers", "ETag, X-Ranking8BP-Cache");
   headers.set("vary", "Origin");
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
