@@ -3588,7 +3588,7 @@ let dailySearching=false,dailyMatchId=null,dailyPoll=null,dailyBusy=false;
 const DAILY_EDGE_QUEUE_ENABLED=new URLSearchParams(location.search).get('dailyedge')!=='0';
 let dailyEdgeSearchAbort=null,dailyEdgeSearchAttempted=false,dailyEdgeSearchFallback=false;
 setInterval(()=>{
- if(!DAILY_EDGE_QUEUE_ENABLED||!dailySearching||dailyEdgeSearchFallback||document.hidden||!currentUser)return;
+ if(!DAILY_EDGE_QUEUE_ENABLED||!dailySearching||dailyEdgeSearchFallback||!currentUser)return;
  supabaseClient?.rpc('edge_daily_queue_heartbeat').catch(e=>console.warn('Cola diaria heartbeat:',e));
 },60000);
 window.addEventListener('pagehide',()=>{
