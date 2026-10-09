@@ -304,8 +304,16 @@ export class EventHub {
   }
   async rankedQueueCancel(playerId, jwt, nonce) {
     // Mark this ticket first; an out-of-order /ready cannot resurrect its queue entry.
-    const marker = "ranked:cancel:" + playerId + ":" + nonce;
-    await this.state.storage.put(marker, Date.now());
+    // Keep short-lived cancellation markers in ONE bounded DO value; avoid an
+    // unbounded storage key per user action at high traffic.
+    const now = Date.now();
+    const markerKey = "ranked:cancelled-tickets";
+    const markers = (await this.state.storage.get(markerKey)) || {};
+    for (const [id, at] of Object.entries(markers)) {
+      if (now - Number(at) > 90_000) delete markers[id];
+    }
+    markers[nonce] = now;
+    await this.state.storage.put(markerKey, markers);
     const raw = await supabaseRequest(this.env, "/rest/v1/rpc/edge_ranked_queue_cancel", jwt, {});
     const result = Array.isArray(raw) ? raw[0] : raw;
     if (!result || !["cancelled", "matched"].includes(result.state))
@@ -317,8 +325,8 @@ export class EventHub {
   async rankedQueueSearch(playerId, jwt, nonce) {
     // ONE entry RPC per new seeker, then NO Supabase polling from Cloudflare.
     // The SQL RPC registers presence and a DB safety marker, but does not select opponents.
-    const marker = "ranked:cancel:" + playerId + ":" + nonce;
-    if (await this.state.storage.get(marker))
+    const cancelledTickets = (await this.state.storage.get("ranked:cancelled-tickets")) || {};
+    if (Date.now() - Number(cancelledTickets[nonce] || 0) < 90_000)
       return { state: "cancelled" };
     if (!this.state.getWebSockets("ranked-ticket:" + nonce).length)
       return { state: "cancelled" };
@@ -328,7 +336,8 @@ export class EventHub {
       throw Error("Invalid ranked queue entry");
     const now = Date.now();
     // Handle a disconnect during the first Supabase call.
-    if ((await this.state.storage.get(marker)) ||
+    const cancelledNow = (await this.state.storage.get("ranked:cancelled-tickets")) || {};
+    if ((Date.now() - Number(cancelledNow[nonce] || 0) < 90_000) ||
         !this.state.getWebSockets("ranked-ticket:" + nonce).length) {
       await supabaseRequest(this.env, "/rest/v1/rpc/edge_ranked_queue_cancel", jwt, {});
       return { state: "cancelled" };
