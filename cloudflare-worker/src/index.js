@@ -138,6 +138,7 @@ export default {
       status: "ok", service: "ranking8bp-server",
       supabaseConfigured: !!(env.SUPABASE_URL && env.SUPABASE_ANON_KEY),
       eventsConfigured: !!env.EVENT_SECRET, ticketsConfigured: !!env.TICKET_SECRET,
+      rankedQueueCanary: true,
     });
     if (path === "/internal/event" && request.method === "POST") {
       if (!safeEquals(request.headers.get("x-event-secret"), env.EVENT_SECRET)) return json({ error: "Forbidden" }, 403);
