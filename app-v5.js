@@ -1668,6 +1668,7 @@ function renderGuestRanking(){
 
 function setGuestUI(){
   currentUser=null;currentProfile=null;if(rankingSearchWrap)rankingSearchWrap.hidden=true;if(guestRankingSearchWrap)guestRankingSearchWrap.hidden=true;if(activityBtn)activityBtn.hidden=true;if(activityPanel)activityPanel.hidden=true;guestTopbar.hidden=false;guestEmpty.hidden=false;playerDashboard.hidden=true;settingsMenu.hidden=true;clearAvatar();
+  window.ranking8bpViewReady=true; // Public page has loaded.
   renderGuestRankShowcase().catch(()=>{});
   loadGuestRanking().catch(()=>{});
 }
@@ -1688,6 +1689,7 @@ async function setPlayerUI(profile,user){
   playerUiLoadingFor=uiUserId;
   currentUser=user||currentUser;currentProfile=profile||currentProfile;
   guestTopbar.hidden=true;guestEmpty.hidden=true;playerDashboard.hidden=false;
+  window.ranking8bpViewReady=true; // Player page has loaded.
 
   const playerName=profile?.username||user?.user_metadata?.username||profile?.account_name||'Jugador';
   setupGlobalDesignEditor(profile);
@@ -2644,11 +2646,14 @@ async function restoreSession(){
     const {data,error}=await supabaseClient.auth.getSession();
     if(error||!data.session)return;
     const profile=await getProfile(data.session.user.id);
+    if(!profile)throw new Error('PROFILE_TEMPORARILY_UNAVAILABLE');
     await setPlayerUI(profile,data.session.user);
   }catch(error){
     console.error('Error restaurando sesión:',error);
   }
 }
+// The retry button restores the saved session without signing out.
+window.ranking8bpRetryAuth=()=>restoreSession();
 
 // Do not force guest mode on every refresh. Supabase persists the session in
 // localStorage and restores it automatically. Guest UI is shown only when
@@ -2657,9 +2662,17 @@ async function restoreSession(){
   if(!cloudReady){document.documentElement.classList.remove('auth-checking');setGuestUI();return}
   let session=null;
   try{
-    const result=await supabaseClient.auth.getSession();
+    const result=await Promise.race([
+      supabaseClient.auth.getSession(),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('AUTH_INITIAL_TIMEOUT')),9000)),
+    ]);
     session=result?.data?.session||null;
-  }catch(e){console.error('Restaurar sesión inicial:',e);return}
+  }catch(e){
+    console.error('Restaurar sesión inicial:',e);
+    // The existing login must not be discarded because auth was slow.
+    setTimeout(()=>restoreSession(),1500);
+    return;
+  }
   if(!session){document.documentElement.classList.remove('auth-checking');setGuestUI();return}
   currentUser=session.user;
   // Una sesión válida nunca debe verse como cerrada solo porque el perfil tarde
