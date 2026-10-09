@@ -50,9 +50,11 @@ test("two authorized entrants pair once and waiting player receives Cloudflare n
     calls.push({ path, userId });
     let result;
     if (path === "/auth/v1/user") result = { id: userId };
-    else if (path.endsWith("/rpc/set_ranked_search_presence")) result = null;
-    else if (path.endsWith("/rpc/find_ranked_opponent")) {
-      result = [{ state: userId === A ? "searching" : "matched", out_match_id: userId === B ? 456 : null }];
+    else if (path.endsWith("/rpc/edge_ranked_queue_enter")) {
+      result = [{ state: "searching", out_match_id: null }];
+    } else if (path.endsWith("/rpc/edge_ranked_queue_pair")) {
+      assert.equal(JSON.parse(opts.body).p_opponent_id, A);
+      result = [{ state: "matched", out_match_id: 456 }];
     } else if (path === "/rest/v1/ranked_matches") result = [{ player1_id: A, player2_id: B }];
     else throw Error("Unexpected backend path " + path);
     return new Response(JSON.stringify(result), {
@@ -93,7 +95,7 @@ test("two authorized entrants pair once and waiting player receives Cloudflare n
     assert.deepEqual(memory.get("ranked:waiters"), []);
     assert.deepEqual(notifications, [{ type: "match.found", matchId: 456 }]);
     assert.equal(memory.get("ranked:assignments")[A].matchId, 456);
-    assert.equal(calls.filter(c => c.path.endsWith("/rpc/find_ranked_opponent")).length, 2);
-    assert.equal(calls.filter(c => c.path.endsWith("/rpc/set_ranked_search_presence")).length, 2);
+    assert.equal(calls.filter(c => c.path.endsWith("/rpc/edge_ranked_queue_enter")).length, 2);
+    assert.equal(calls.filter(c => c.path.endsWith("/rpc/edge_ranked_queue_pair")).length, 1);
   } finally { globalThis.fetch = originalFetch; }
 });
