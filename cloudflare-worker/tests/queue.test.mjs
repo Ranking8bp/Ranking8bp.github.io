@@ -175,3 +175,66 @@ test("post-match cancellation cannot remove a ranked VS", async () => {
     assert.deepEqual(await response.json(), { state: "matched", out_match_id: 456 });
   } finally { globalThis.fetch = originalFetch; }
 });
+
+test("when A cancels, B stays waiting and matches later C automatically", async () => {
+  const C = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+  const memory = new Map();
+  const notifications = [];
+  const state = {
+    storage: { get: async k => memory.get(k), put: async (k,v) => memory.set(k,v), delete: async k => memory.delete(k) },
+    getWebSockets: tag => tag.startsWith("ranked-ticket:") ? [{}]
+      : tag === "ranked:" + B ? [{ send: msg => notifications.push(JSON.parse(msg)) }]
+      : tag === "ranked:" + A || tag === "ranked:" + C ? [{ send() {} }] : [],
+  };
+  const hub = new EventHub(state, {
+    SUPABASE_URL: "https://supabase.test", SUPABASE_ANON_KEY: "sb_publishable_test",
+  });
+  const calls = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, opts = {}) => {
+    const path = new URL(url).pathname;
+    const token = opts.headers?.authorization || "";
+    const uid = token === "Bearer jwt-A" ? A : token === "Bearer jwt-B" ? B : C;
+    let value;
+    if (path === "/auth/v1/user") value = { id: uid };
+    else if (path.endsWith("/rpc/edge_ranked_queue_enter")) value = [{ state: "searching", out_match_id: null }];
+    else if (path.endsWith("/rpc/edge_ranked_queue_cancel")) value = [{ state: "cancelled", out_match_id: null }];
+    else if (path.endsWith("/rpc/edge_ranked_queue_pair")) {
+      const opponent = JSON.parse(opts.body).p_opponent_id;
+      calls.push(uid + ":" + opponent);
+      if (uid === B && opponent === A) value = [{ state: "ineligible" }];
+      else if (uid === C && opponent === B) value = [{ state: "matched", out_match_id: 789 }];
+      else throw Error("Unexpected pairing " + uid + ":" + opponent);
+    } else if (path === "/rest/v1/ranked_matches") value = [{ player1_id: B, player2_id: C }];
+    else throw Error("Unexpected request " + path);
+    return new Response(JSON.stringify(value), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  const env = {
+    SUPABASE_URL: "https://supabase.test", SUPABASE_ANON_KEY: "sb_publishable_test",
+    TICKET_SECRET: "search-secret", PUBLIC_ORIGIN: "https://ranking8bp.github.io",
+    HUB: { getByName: () => ({ fetch: req => hub.fetch(req) }) },
+  };
+  const invoke = (path, jwt, ticket) => worker.fetch(new Request("https://worker.test" + path, {
+    method: "POST",
+    headers: { Origin: "https://ranking8bp.github.io", authorization: "Bearer " + jwt },
+    body: JSON.stringify(ticket ? { ticket } : {}),
+  }), env);
+  try {
+    const aTicket = (await (await invoke("/api/ranked/search", "jwt-A")).json()).ticket;
+    assert.equal((await (await invoke("/api/ranked/ready", "jwt-A", aTicket)).json()).state, "searching");
+    const bTicket = (await (await invoke("/api/ranked/search", "jwt-B")).json()).ticket;
+    assert.equal((await (await invoke("/api/ranked/ready", "jwt-B", bTicket)).json()).state, "searching");
+    assert.deepEqual(memory.get("ranked:waiters").map(x => x.userId), [A,B]);
+
+    assert.equal((await (await invoke("/api/ranked/cancel", "jwt-A", aTicket)).json()).state, "cancelled");
+    assert.deepEqual(memory.get("ranked:waiters").map(x => x.userId), [B], "B must remain queued after A cancels");
+
+    const cTicket = (await (await invoke("/api/ranked/search", "jwt-C")).json()).ticket;
+    const paired = await (await invoke("/api/ranked/ready", "jwt-C", cTicket)).json();
+    assert.equal(paired.state, "matched");
+    assert.equal(paired.out_match_id, 789);
+    assert.deepEqual(memory.get("ranked:waiters"), []);
+    assert.deepEqual(notifications, [{ type: "match.found", matchId: 789 }]);
+    assert.deepEqual(calls, [B+":"+A, C+":"+B]);
+  } finally { globalThis.fetch = originalFetch; }
+});
