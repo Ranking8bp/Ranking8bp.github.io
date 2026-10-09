@@ -705,15 +705,109 @@ function getVideoExtension(file){
   if(['mp4','mov','m4v','webm','3gp','3g2','mkv','avi'].includes(ext))return ext;
   return t.includes('webm')?'webm':t.includes('quicktime')?'mov':t.includes('x-m4v')?'m4v':t.includes('3gpp')?'3gp':'mp4';
 }
+// iOS Photos/Files and Android file managers sometimes supply empty or
+// generic MIME types. Supabase buckets accept the normalized types below.
+function videoUploadContentType(file){
+ const ext=String(file?.name||'').toLowerCase().split('.').pop();
+ const byExt={mp4:'video/mp4',mov:'video/quicktime',m4v:'video/x-m4v',webm:'video/webm', '3gp':'video/3gpp'};
+ if(Object.prototype.hasOwnProperty.call(byExt,ext))return byExt[ext];
+ const mime=String(file?.type||'').toLowerCase().split(';')[0].trim();
+ return ['video/mp4','video/quicktime','video/x-m4v','video/webm','video/3gpp'].includes(mime)?mime:null;
+}
+// Read only ISO BMFF box headers, never load the entire MOV/MP4 into memory.
+// This also handles videos with a 'moov' atom after a very large 'mdat' atom,
+// a common reason WebKit's metadata callback never fires for local recordings.
+async function getIsoBmffVideoDuration(file){
+ const size=Number(file?.size);
+ if(!Number.isSafeInteger(size)||size<24)return null;
+ const read=async(at,len)=>new Uint8Array(await file.slice(at,Math.min(size,at+len)).arrayBuffer());
+ const box=async(start,limit)=>{
+  if(start+8>limit)return null;
+  const v=await read(start,16);
+  if(v.length<8)return null;
+  const view=new DataView(v.buffer,v.byteOffset,v.byteLength);
+  let length=view.getUint32(0,false),header=8;
+  const type=String.fromCharCode(v[4],v[5],v[6],v[7]);
+  if(length===1){
+   if(v.length<16)return null;
+   length=Number(view.getBigUint64(8,false));header=16;
+  }else if(length===0)length=limit-start;
+  if(!Number.isSafeInteger(length)||length<header||start+length>limit)return null;
+  return {type,start,length,header};
+ };
+ let pos=0;
+ for(let top=0;top<120&&pos+8<=size;top++){
+  const atom=await box(pos,size);
+  if(!atom)break;
+  if(atom.type==='moov'){
+   let inner=atom.start+atom.header,limit=atom.start+atom.length;
+   for(let child=0;child<600&&inner+8<=limit;child++){
+    const node=await box(inner,limit);
+    if(!node)break;
+    if(node.type==='mvhd'){
+     const bytes=await read(node.start+node.header,36);
+     const v=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+     const version=v.getUint8(0);
+     if(version!==0&&version!==1)return null;
+     const timescale=v.getUint32(version===0?12:20,false);
+     const ticks=version===0?v.getUint32(16,false):Number(v.getBigUint64(24,false));
+     const seconds=ticks/timescale;
+     return Number.isFinite(seconds)&&seconds>0?seconds:null;
+    }
+    inner+=node.length;
+   }
+   return null;
+  }
+  pos+=atom.length;
+ }
+ return null;
+}
+async function getBrowserVideoDuration(file){
+ return await new Promise((resolve,reject)=>{
+  const url=URL.createObjectURL(file),video=document.createElement('video');
+  let finished=false;
+  const clear=()=>{
+   clearTimeout(timer);
+   video.onloadedmetadata=video.ondurationchange=video.onseeked=video.onerror=null;
+   try{video.removeAttribute('src');video.load()}catch(_){}
+   URL.revokeObjectURL(url);
+  };
+  const done=(value,error)=>{
+   if(finished)return;finished=true;clear();
+   if(error)reject(error);else resolve(value);
+  };
+  const check=()=>{
+   const duration=Number(video.duration);
+   if(Number.isFinite(duration)&&duration>0)done(duration);
+   else if(video.readyState>=1&&duration===Infinity){
+    // Some MOV / fragmented MP4 videos expose the true duration after seeking.
+    try{video.currentTime=1e10}catch(_){}
+   }
+  };
+  const timer=setTimeout(()=>done(null,new Error('NO SE PUDO COMPROBAR LA DURACIÓN DEL VIDEO')),14000);
+  video.preload='metadata';video.playsInline=true;video.muted=true;
+  video.onloadedmetadata=check;video.ondurationchange=check;video.onseeked=check;
+  video.onerror=()=>done(null,new Error('EL NAVEGADOR NO PUDO ABRIR EL FORMATO DEL VIDEO'));
+  video.src=url;
+  try{video.load()}catch(_){}
+ });
+}
 async function getVideoDuration(file){
-  return await new Promise((resolve,reject)=>{
-    const url=URL.createObjectURL(file);
-    const video=document.createElement('video');
-    video.preload='metadata';
-    video.onloadedmetadata=()=>{const d=Number(video.duration);URL.revokeObjectURL(url);resolve(d)};
-    video.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('No se pudo leer la duración del video.'))};
-    video.src=url;
-  });
+ const mime=videoUploadContentType(file);
+ if(!mime)throw new Error('FORMATO NO COMPATIBLE. USA MP4, MOV O WEBM.');
+ if(!Number.isFinite(Number(file?.size))||file.size<=0)
+  throw new Error('EL GESTOR DE ARCHIVOS NO ENTREGÓ EL VIDEO. PRUEBA GALERÍA O ARCHIVOS.');
+ const readers=[getBrowserVideoDuration(file)];
+ if(['video/mp4','video/quicktime','video/x-m4v'].includes(mime)){
+  readers.push(getIsoBmffVideoDuration(file).then(d=>{
+   if(!Number.isFinite(d)||d<=0)throw new Error('No hay duración en los metadatos del archivo.');
+   return d;
+  }));
+ }
+ return await Promise.race([
+  Promise.any(readers),
+  new Promise((_,reject)=>setTimeout(()=>reject(new Error('NO SE PUDO COMPROBAR LA DURACIÓN DEL VIDEO. PRUEBA GUARDARLO COMO MP4 EN TU GALERÍA.')),25000)),
+ ]);
 }
 async function uploadLargeRankedEvidence(file,path,onProgress){
  const {data:{session}}=await supabaseClient.auth.getSession();
