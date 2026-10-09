@@ -56,6 +56,80 @@ export class Ranking8bpEdgeClient {
     connect();
     return () => { closed = true; clearTimeout(retry); socket?.close(); };
   }
+  // One authenticated RPC on entry, then an idle Cloudflare WebSocket while waiting.
+  // If anything fails, the caller falls back to the existing Supabase polling loop.
+  async waitForRankedMatch(signal) {
+    if (signal?.aborted) throw Error("Search cancelled");
+    const { data } = await this.supabase.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) throw Error("Session required");
+    const response = await fetch(this.baseUrl + "/api/ranked/search", {
+      method: "POST",
+      headers: { authorization: "Bearer " + token, "content-type": "application/json" },
+      body: "{}",
+      signal: AbortSignal.any([signal || new AbortController().signal, AbortSignal.timeout(15000)]),
+    });
+    if (!response.ok) throw Error("Cloudflare ranked queue unavailable");
+    const result = await response.json();
+    if (result.state !== "connect" || !result.ticket) throw Error("Cloudflare ranked queue not ready");
+    return new Promise((resolve, reject) => {
+      let socket, pingTimer;
+      const timeout = setTimeout(() => done(Error("Ranked queue connection timed out")), 12000);
+      const cleanup = () => {
+        clearTimeout(timeout);
+        clearInterval(pingTimer);
+        signal?.removeEventListener("abort", abort);
+        if (socket) { socket.onopen = socket.onmessage = socket.onclose = socket.onerror = null; socket.close(); }
+      };
+      let finished = false;
+      const done = (error, value) => {
+        if (finished) return;
+        finished = true;
+        cleanup();
+        if (error) reject(error); else resolve(value);
+      };
+      const abort = () => done(Error("Search cancelled"));
+      signal?.addEventListener("abort", abort, { once: true });
+      if (signal?.aborted) { abort(); return; }
+      try {
+        socket = new WebSocket(this.baseUrl.replace(/^http/, "ws") +
+          "/ws/ranked-search?ticket=" + encodeURIComponent(result.ticket));
+        socket.onopen = async () => {
+          clearTimeout(timeout);
+          // Register in Supabase only AFTER the WebSocket is established.
+          // Closing the tab during the first HTTP step cannot create a ghost match.
+          try {
+            const reply = await fetch(this.baseUrl + "/api/ranked/ready", {
+              method: "POST",
+              headers: { authorization: "Bearer " + token, "content-type": "application/json" },
+              body: JSON.stringify({ ticket: result.ticket }),
+              signal: AbortSignal.any([signal || new AbortController().signal, AbortSignal.timeout(15000)]),
+            });
+            if (!reply.ok) throw Error("Could not confirm ranked queue entry");
+            const status = await reply.json();
+            if (finished) return;
+            if (status.state === "matched" && Number(status.out_match_id) > 0) {
+              done(null, { state: "matched", out_match_id: Number(status.out_match_id) });
+              return;
+            }
+            if (status.state !== "searching") throw Error("Ranked queue entry rejected");
+            // Keepalive is Cloudflare-only, not a Supabase query.
+            pingTimer = setInterval(() => { if (socket.readyState === WebSocket.OPEN) socket.send("ping"); }, 25000);
+          } catch (error) { done(error); }
+        };
+        socket.onmessage = event => {
+          try {
+            const m = JSON.parse(event.data);
+            if (m.type === "match.found" && Number.isSafeInteger(Number(m.matchId)) &&
+                Number(m.matchId) > 0)
+              done(null, { state: "matched", out_match_id: Number(m.matchId) });
+          } catch (_) {}
+        };
+        socket.onerror = () => done(Error("Cloudflare ranked WebSocket error"));
+        socket.onclose = () => done(Error("Cloudflare ranked WebSocket disconnected"));
+      } catch (error) { done(error); }
+    });
+  }
   // Room WebSockets only signal changes. Messages/results are loaded and written
   // through authenticated Supabase RPCs, preserving all authoritative validations.
   watchRoom(mode, room, onChanged, onResync, onConnectionChange) {
