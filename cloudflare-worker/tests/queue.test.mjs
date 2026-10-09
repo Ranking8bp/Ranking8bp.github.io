@@ -17,7 +17,7 @@ function makeHub() {
       put: async (key, value) => memory.set(key, value),
       delete: async key => memory.delete(key),
     },
-    getWebSockets: tag => tag === "ranked:" + A ? [{ send(msg) { notifications.push(JSON.parse(msg)); } }] : [],
+    getWebSockets: tag => tag === "ranked:" + A ? [{ send(msg) { notifications.push(JSON.parse(msg)); } }] : tag === "ranked:" + B ? [{ send() {} }] : [],
   };
   return { memory, notifications, hub: new EventHub(state, {
     SUPABASE_URL: "https://supabase.test",
@@ -79,8 +79,15 @@ test("two authorized entrants pair once and waiting player receives Cloudflare n
     }), env);
     assert.equal(first.status, 200);
     const waiting = await first.json();
-    assert.equal(waiting.state, "searching");
+    assert.equal(waiting.state, "connect");
     assert.equal(typeof waiting.ticket, "string");
+    assert.equal(memory.get("ranked:waiters"), undefined, "no DB queue entry before WS is open");
+    const firstReady = await worker.fetch(new Request("https://worker.test/api/ranked/ready", {
+      method: "POST", headers: { Origin: "https://ranking8bp.github.io", authorization: "Bearer jwt-A" },
+      body: JSON.stringify({ ticket: waiting.ticket }),
+    }), env);
+    assert.equal(firstReady.status, 200);
+    assert.equal((await firstReady.json()).state, "searching");
     assert.deepEqual(memory.get("ranked:waiters").map(x => x.userId), [A]);
 
     const second = await worker.fetch(new Request("https://worker.test/api/ranked/search", {
@@ -89,7 +96,14 @@ test("two authorized entrants pair once and waiting player receives Cloudflare n
       body: "{}",
     }), env);
     assert.equal(second.status, 200);
-    const paired = await second.json();
+    const secondTicket = await second.json();
+    assert.equal(secondTicket.state, "connect");
+    const pairingResponse = await worker.fetch(new Request("https://worker.test/api/ranked/ready", {
+      method: "POST", headers: { Origin: "https://ranking8bp.github.io", authorization: "Bearer jwt-B" },
+      body: JSON.stringify({ ticket: secondTicket.ticket }),
+    }), env);
+    assert.equal(pairingResponse.status, 200);
+    const paired = await pairingResponse.json();
     assert.equal(paired.state, "matched");
     assert.equal(paired.out_match_id, 456);
     assert.deepEqual(memory.get("ranked:waiters"), []);
