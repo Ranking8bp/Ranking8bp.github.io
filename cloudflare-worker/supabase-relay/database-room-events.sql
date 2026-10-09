@@ -81,7 +81,7 @@ begin
       events := events || pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('feed','daily'));
     end if;
     if room_changed then
-      room_id := pg_catalog.coalesce((fresh->>'id')::bigint,(prior->>'id')::bigint);
+      room_id := coalesce((fresh->>'id')::bigint,(prior->>'id')::bigint);
       if room_id between 1 and 2147483647 then
         events := events || pg_catalog.jsonb_build_array(
           pg_catalog.jsonb_build_object('mode','daily','room',room_id,'type','room.changed')
