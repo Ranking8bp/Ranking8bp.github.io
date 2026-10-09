@@ -261,14 +261,17 @@ let guestRankingLoading=false,rankingLoading=false,latestResultLoading=false,ran
 // Sin el parámetro, cada jugador sigue usando Supabase como antes.
 const RANKING8BP_EDGE_URL='https://ranking8bp-server.ikarsolismonedas.workers.dev';
 let ranking8bpEdgeClientPromise=null;
+function ranking8bpGetEdgeClient(){
+  if(!ranking8bpEdgeClientPromise){
+    ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-canary1')
+      .then(({Ranking8bpEdgeClient})=>new Ranking8bpEdgeClient({baseUrl:RANKING8BP_EDGE_URL,supabase:supabaseClient}));
+  }
+  return ranking8bpEdgeClientPromise;
+}
 async function rankingPublicFeed(kind){
   if(new URLSearchParams(window.location.search).get('edgefeeds')==='1'){
     try{
-      if(!ranking8bpEdgeClientPromise){
-        ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-canary1')
-          .then(({Ranking8bpEdgeClient})=>new Ranking8bpEdgeClient({baseUrl:RANKING8BP_EDGE_URL,supabase:supabaseClient}));
-      }
-      const response=await (await ranking8bpEdgeClientPromise).getFeed(kind);
+      const response=await (await ranking8bpGetEdgeClient()).getFeed(kind);
       return {data:response.data,error:null};
     }catch(error){console.warn('Cloudflare canary: usando Supabase',error)}
   }
@@ -2388,6 +2391,37 @@ function startLatestResultRealtime(){
   }).subscribe();
 }
 startLatestResultRealtime();
+// Private canary only: public event notifications for the two cached standings.
+// The regular site, chat delivery, matchmaking and player result writes are unchanged.
+if(new URLSearchParams(window.location.search).get('edgefeeds')==='1'){
+  const pending=new Set();
+  let refreshTimer=null;
+  const queueRefresh=(event)=>{
+    if(document.hidden)return;
+    if(event.type==='resync'){pending.add('ranking');pending.add('daily')}
+    else if(event.type==='feed.changed'&&(event.feed==='ranking'||event.feed==='daily'))pending.add(event.feed);
+    if(refreshTimer)return;
+    refreshTimer=setTimeout(()=>{
+      refreshTimer=null;
+      const ranking=pending.has('ranking'),daily=pending.has('daily');
+      pending.clear();
+      if(ranking){
+        if(currentUser&&playerDashboard&&!playerDashboard.hidden)loadRanking(true).catch(()=>{});
+        else if(guestRankingList)loadGuestRanking().catch(()=>{});
+      }
+      if(daily&&dailyEl('dailyRankingInfoModal')?.hidden===false&&
+         dailyEl('dailyPreviousResultsBtn')?.dataset.previousDay!=='1'){
+        dailyLoadLeaderboard(false).catch(()=>{});
+      }
+    },450);
+  };
+  ranking8bpGetEdgeClient()
+    .then(client=>client.watchPublic(queueRefresh))
+    .catch(error=>console.warn('Cloudflare public event channel unavailable; cached feeds still work',error));
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden)queueRefresh({type:'resync'});
+  });
+}
 
 async function loadLatestRankingResult(){
  const cached=readPublicCache('ranking8bp_latest_result');
