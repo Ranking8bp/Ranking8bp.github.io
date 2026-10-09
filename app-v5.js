@@ -2226,13 +2226,17 @@ async function loadPlayerDetailCompetitive(player){
   try{
     const {data,error}=await supabaseClient.rpc('get_player_competitive_profile',{p_profile_id:id});
     if(error)throw error;
-    const matches=(Array.isArray(data?.history)?data.history:[]).map(v=>({...v,match_type:'ranking'}));
+    let matches=(Array.isArray(data?.history)?data.history:[]).map(v=>({...v,match_type:'ranking'}));
+    let adminHistoryError=false;
     if(canViewDaily){
       try{
-        const {data:daily,error:dailyError}=await supabaseClient.rpc('admin_get_daily_classification_player_history',{p_profile_id:id});
-        if(dailyError)throw dailyError;
-        if(Array.isArray(daily))matches.push(...daily.map(v=>({...v,match_type:'daily'})));
-      }catch(dailyError){console.error('No se pudo cargar el historial de clasificatoria del administrador:',dailyError)}
+        const {data:fullHistory,error:fullHistoryError}=await supabaseClient.rpc('admin_get_full_player_match_history',{p_profile_id:id});
+        if(fullHistoryError)throw fullHistoryError;
+        matches=Array.isArray(fullHistory)?fullHistory:[];
+      }catch(fullHistoryError){
+        adminHistoryError=true;
+        console.error('No se pudo cargar el historial completo del administrador:',fullHistoryError);
+      }
     }
     if(!playerDetailModal?.classList.contains('open') ||
        String(currentDetailPlayer?.player_id||currentDetailPlayer?.id||'')!==String(id))return;
@@ -2240,7 +2244,7 @@ async function loadPlayerDetailCompetitive(player){
     box.replaceChildren();
     matches.sort((a,b)=>new Date(b.finished_at||0).getTime()-new Date(a.finished_at||0).getTime());
     if(!matches.length){box.textContent='Aún no tiene partidas terminadas.';return}
-    matches.slice(0,canViewDaily?50:6).forEach(v=>{
+    matches.slice(0,canViewDaily?matches.length:6).forEach(v=>{
       const row=document.createElement('div');
       row.className='player-history-row '+(v.result==='WON'?'won':'lost');
       const result=document.createElement('b');
@@ -2269,6 +2273,12 @@ async function loadPlayerDetailCompetitive(player){
       row.append(result,rival,meta);
       box.appendChild(row);
     });
+    if(adminHistoryError){
+      const warning=document.createElement('small');
+      warning.textContent='No se pudo consultar todo el historial de clasificatoria y ranking.';
+      warning.style.color='#ffb66a';
+      box.prepend(warning);
+    }
   }catch(e){
     console.error('Historial del jugador:',e);
     box.textContent='No se pudo cargar el historial.';
