@@ -2206,7 +2206,74 @@ function openAdminPlayerEditor(player){
     finally{save.disabled=false}
   };
 }
-async function loadPlayerDetailCompetitive(player){const streak=document.getElementById('playerDetailStreak'),label=document.getElementById('playerDetailStreakLabel'),box=document.getElementById('playerDetailMatchHistory');if(!streak||!box||!supabaseClient)return;streak.textContent='0';if(label)label.textContent='victorias seguidas';box.innerHTML='<div class="profile-comments-empty">Cargando historial...</div>';const id=player?.player_id||player?.id;if(!id){box.textContent='No hay historial disponible.';return}try{const {data,error}=await supabaseClient.rpc('get_player_competitive_profile',{p_profile_id:id});if(error)throw error;streak.textContent=String(data?.current_streak||0);box.replaceChildren();const h=Array.isArray(data?.history)?data.history:[];if(!h.length){box.textContent='Aún no tiene partidas terminadas.';return}h.slice(0,6).forEach(v=>{const row=document.createElement('div');row.className='player-history-row '+(v.result==='WON'?'won':'lost');const result=document.createElement('b');result.textContent=v.result==='WON'?'GANÓ':'PERDIÓ';const rival=document.createElement('span');rival.textContent='vs '+String(v.rival||'Jugador');const meta=document.createElement('div');meta.className='player-history-meta';const elo=document.createElement('strong');elo.textContent=(Number(v.elo_change)>0?'+':'')+String(v.elo_change)+' ELO';const date=document.createElement('small');if(v.finished_at){date.textContent=new Intl.DateTimeFormat('es-MX',{timeZone:'America/Mexico_City',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true}).format(new Date(v.finished_at))}else{date.textContent='Fecha no disponible'}meta.append(elo,date);row.append(result,rival,meta);box.appendChild(row)})}catch(e){console.error('Historial del jugador:',e);box.textContent='No se pudo cargar el historial.'}}
+async function loadPlayerDetailCompetitive(player){
+  const streak=document.getElementById('playerDetailStreak');
+  const label=document.getElementById('playerDetailStreakLabel');
+  const box=document.getElementById('playerDetailMatchHistory');
+  if(!streak||!box||!supabaseClient)return;
+  const canViewDaily=String(currentProfile?.username||'').toLowerCase()==='ikar8bp' && currentProfile?.is_admin===true;
+  const heading=box.closest('.player-match-history')?.querySelector(':scope > strong');
+  if(heading)heading.textContent=canViewDaily
+    ?'HISTORIAL DE PARTIDAS - RANKING Y CLASIFICATORIA'
+    :'HISTORIAL DE PARTIDAS - RANKING';
+  streak.textContent='0';
+  if(label)label.textContent='victorias seguidas';
+  box.innerHTML='<div class="profile-comments-empty">Cargando historial...</div>';
+  box.style.maxHeight=canViewDaily?'380px':'';
+  box.style.overflowY=canViewDaily?'auto':'';
+  const id=player?.player_id||player?.id;
+  if(!id){box.textContent='No hay historial disponible.';return}
+  try{
+    const {data,error}=await supabaseClient.rpc('get_player_competitive_profile',{p_profile_id:id});
+    if(error)throw error;
+    const matches=(Array.isArray(data?.history)?data.history:[]).map(v=>({...v,match_type:'ranking'}));
+    if(canViewDaily){
+      try{
+        const {data:daily,error:dailyError}=await supabaseClient.rpc('admin_get_daily_classification_player_history',{p_profile_id:id});
+        if(dailyError)throw dailyError;
+        if(Array.isArray(daily))matches.push(...daily.map(v=>({...v,match_type:'daily'})));
+      }catch(dailyError){console.error('No se pudo cargar el historial de clasificatoria del administrador:',dailyError)}
+    }
+    if(!playerDetailModal?.classList.contains('open') ||
+       String(currentDetailPlayer?.player_id||currentDetailPlayer?.id||'')!==String(id))return;
+    streak.textContent=String(data?.current_streak||0);
+    box.replaceChildren();
+    matches.sort((a,b)=>new Date(b.finished_at||0).getTime()-new Date(a.finished_at||0).getTime());
+    if(!matches.length){box.textContent='Aún no tiene partidas terminadas.';return}
+    matches.slice(0,canViewDaily?50:6).forEach(v=>{
+      const row=document.createElement('div');
+      row.className='player-history-row '+(v.result==='WON'?'won':'lost');
+      const result=document.createElement('b');
+      result.textContent=v.result==='WON'?'GANÓ':'PERDIÓ';
+      const rival=document.createElement('span');
+      rival.textContent='vs '+String(v.rival||'Jugador');
+      const meta=document.createElement('div');
+      meta.className='player-history-meta';
+      const type=document.createElement('strong');
+      if(v.match_type==='daily'){
+        type.textContent='CLASIFICATORIA';
+        type.style.color='#edc15a';
+      }else{
+        type.textContent=(Number(v.elo_change)>0?'+':'')+String(v.elo_change)+' ELO';
+      }
+      const date=document.createElement('small');
+      if(v.finished_at){
+        date.textContent=new Intl.DateTimeFormat('es-MX',{
+          timeZone:'America/Mexico_City',day:'2-digit',month:'2-digit',
+          year:'numeric',hour:'2-digit',minute:'2-digit',hour12:true
+        }).format(new Date(v.finished_at));
+      }else{
+        date.textContent='Fecha no disponible';
+      }
+      meta.append(type,date);
+      row.append(result,rival,meta);
+      box.appendChild(row);
+    });
+  }catch(e){
+    console.error('Historial del jugador:',e);
+    box.textContent='No se pudo cargar el historial.';
+  }
+}
 
 async function openRankingPlayer(player){
   if(!playerDetailModal)return;
