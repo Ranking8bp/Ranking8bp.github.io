@@ -27,7 +27,7 @@ function validEvent(event) {
 }
 Deno.serve(async request => {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
-  const webhookSecret = Deno.env.get("SUPABASE_WEBHOOK_SECRET");
+  const webhookSecret = Deno.env.get("RANKING_WEBHOOK_SECRET");
   const workerSecret = Deno.env.get("EVENT_SECRET");
   const workerUrl = Deno.env.get("WORKER_URL");
   if (!webhookSecret || webhookSecret.length < 32 || !workerSecret ||
