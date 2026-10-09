@@ -263,7 +263,7 @@ const RANKING8BP_EDGE_URL='https://ranking8bp-server.ikarsolismonedas.workers.de
 let ranking8bpEdgeClientPromise=null;
 function ranking8bpGetEdgeClient(){
   if(!ranking8bpEdgeClientPromise){
-    ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-ranked-cancel-race1')
+    ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-ranked-persistent-search1')
       .then(({Ranking8bpEdgeClient})=>new Ranking8bpEdgeClient({baseUrl:RANKING8BP_EDGE_URL,supabase:supabaseClient}));
   }
   return ranking8bpEdgeClientPromise;
@@ -1231,7 +1231,7 @@ async function startRankedMatchmaking(){
  // keeps the authoritative DB row valid while the Cloudflare socket waits.
  if(!RANKED_EDGE_QUEUE_CANARY)syncRankedSearchPresence(true);
  const token=++rankedSearchLoopToken;
- let edgeAttempted=false;
+ let edgeAttempted=false,rankedEdgeRecoveryFailures=0;
  matchmakingStartLoading=false;
  while(rankedSearchActive&&token===rankedSearchLoopToken){
   try{
@@ -1243,15 +1243,30 @@ async function startRankedMatchmaking(){
      st=await (await ranking8bpGetEdgeClient()).waitForRankedMatch(abort.signal);
     }catch(edgeError){
      if(abort.signal.aborted||!rankedSearchActive||token!==rankedSearchLoopToken)return;
-     console.warn('Cola Cloudflare no disponible; regresando a búsqueda de Supabase:',edgeError);
-     // Check the existing DB queue right away. No player is enqueued twice.
+     console.warn('Cola Cloudflare no disponible; recuperando la búsqueda en Supabase:',edgeError);
+     // A transient WS loss can leave a stale presence row. Reinstate THIS
+     // player's intent before entering the legacy emergency search loop.
+     const restore=await supabaseClient.rpc('set_ranked_search_presence',{p_searching:true});
+     if(restore.error)console.warn('Presencia de búsqueda pendiente:',restore.error);
+     if(!rankedSearchActive||token!==rankedSearchLoopToken)return;
      continue;
     }finally{if(rankedEdgeQueueAbort===abort)rankedEdgeQueueAbort=null}
    }else{
     const {data,error}=await supabaseClient.rpc('find_ranked_opponent');if(error)throw error;
     st=Array.isArray(data)?data[0]:data;
    }
-   if(st?.state==='cancelled'){rankedSearchActive=false;search.hidden=true;modal.hidden=true;return}
+   if(st?.state==='cancelled'){
+    if(RANKED_EDGE_QUEUE_CANARY&&rankedSearchActive&&token===rankedSearchLoopToken){
+     // A cancellation/error from a previous request is NOT a user click.
+     // Keep the searching panel open and restore our own presence.
+     const restore=await supabaseClient.rpc('set_ranked_search_presence',{p_searching:true});
+     if(restore.error)throw restore.error;
+     await new Promise(r=>setTimeout(r,1200));
+     continue;
+    }
+    rankedSearchActive=false;search.hidden=true;modal.hidden=true;return;
+   }
+   if(st?.state==='searching')rankedEdgeRecoveryFailures=0;
    if(st?.state==='matched'&&st?.out_match_id){
     if(!rankedSearchActive||token!==rankedSearchLoopToken){
      if(RANKED_EDGE_QUEUE_CANARY)await supabaseClient.rpc('edge_ranked_queue_cancel');
@@ -1278,7 +1293,21 @@ async function startRankedMatchmaking(){
     
     search.hidden=true;vs.hidden=false;startFreshRankedRoom(Number(m.match_id),Number(m.chat_seconds_left??60));return;
    }
-  }catch(e){console.error('Emparejamiento nuevo:',e);rankedSearchActive=false;search.hidden=true;modal.hidden=true;await syncRankedSearchPresence(false);if(String(e?.message||'').includes('DAILY_CLASSIFICATION_PENDING'))alert(PENDING_DAILY_VS_RANKING_NOTICE);else showToast('No se pudo entrar a la cola: '+String(e?.message||'ERROR DE CONEXIÓN'));return}
+  }catch(e){
+   console.error('Emparejamiento nuevo:',e);
+   const message=String(e?.message||'');
+   if(RANKED_EDGE_QUEUE_CANARY&&rankedSearchActive&&token===rankedSearchLoopToken
+      &&!message.includes('DAILY_CLASSIFICATION_PENDING')&&!message.includes('AUTH_REQUIRED')){
+    // Network trouble or room created in-flight: keep searching; do not
+    // dismiss the UI or cancel the other player's VS.
+    await new Promise(r=>setTimeout(r,Math.min(30000,1500*2**Math.min(rankedEdgeRecoveryFailures++,4))));
+    continue;
+   }
+   rankedSearchActive=false;search.hidden=true;modal.hidden=true;await syncRankedSearchPresence(false);
+   if(message.includes('DAILY_CLASSIFICATION_PENDING'))alert(PENDING_DAILY_VS_RANKING_NOTICE);
+   else showToast('No se pudo entrar a la cola: '+(message||'ERROR DE CONEXIÓN'));
+   return;
+  }
   // Búsqueda normal: cada 2 s visible, cada 5 s al cambiar de pestaña o aplicación.
   // Los navegadores pueden ralentizar temporizadores cuando la pestaña está suspendida.
   await new Promise(r=>setTimeout(r,document.hidden?5000:2000));
