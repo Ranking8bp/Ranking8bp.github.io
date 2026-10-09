@@ -58,7 +58,7 @@ export class Ranking8bpEdgeClient {
   }
   // Room WebSockets only signal changes. Messages/results are loaded and written
   // through authenticated Supabase RPCs, preserving all authoritative validations.
-  watchRoom(mode, room, onChanged, onResync) {
+  watchRoom(mode, room, onChanged, onResync, onConnectionChange) {
     if (!["ranked", "daily"].includes(mode) || !/^[1-9]\d*$/.test(String(room))) throw Error("Invalid room");
     let closed = false, socket, retry, attempt = 0;
     const sync = () => { if (!closed && !document.hidden) onResync?.(); };
@@ -79,7 +79,7 @@ export class Ranking8bpEdgeClient {
         const ticket = (await reply.json()).ticket;
         if (closed) return;
         socket = new WebSocket(this.baseUrl.replace(/^http/, "ws") + "/ws/room?ticket=" + encodeURIComponent(ticket));
-        socket.onopen = () => { attempt = 0; sync(); };
+        socket.onopen = () => { attempt = 0; onConnectionChange?.(true); sync(); };
         socket.onmessage = (m) => {
           try {
             const event = JSON.parse(m.data);
@@ -88,14 +88,16 @@ export class Ranking8bpEdgeClient {
           } catch (_) {}
         };
         socket.onclose = () => {
+          onConnectionChange?.(false);
           if (!closed) retry = setTimeout(connect, Math.min(30_000, 1200 * 2 ** Math.min(attempt++, 5)));
         };
         socket.onerror = () => socket.close();
       } catch (_) {
+        onConnectionChange?.(false);
         if (!closed) retry = setTimeout(connect, Math.min(30_000, 1200 * 2 ** Math.min(attempt++, 5)));
       }
     };
     connect();
-    return () => { closed = true; clearInterval(interval); clearTimeout(retry); socket?.close(); };
+    return () => { closed = true; clearInterval(interval); clearTimeout(retry); socket?.close(); onConnectionChange?.(false); };
   }
 }

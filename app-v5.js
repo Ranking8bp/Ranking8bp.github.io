@@ -263,7 +263,7 @@ const RANKING8BP_EDGE_URL='https://ranking8bp-server.ikarsolismonedas.workers.de
 let ranking8bpEdgeClientPromise=null;
 function ranking8bpGetEdgeClient(){
   if(!ranking8bpEdgeClientPromise){
-    ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-general1')
+    ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-daily-room-canary1')
       .then(({Ranking8bpEdgeClient})=>new Ranking8bpEdgeClient({baseUrl:RANKING8BP_EDGE_URL,supabase:supabaseClient}));
   }
   return ranking8bpEdgeClientPromise;
@@ -3629,6 +3629,7 @@ async function dailyLoadLeaderboard(previousDay=false){
 }
 function dailyStopPolling(){dailySearching=false;clearTimeout(dailyPoll);dailyPoll=null}
 async function dailyClose(){
+ dailyStopEdgeRoom();
  dailyStopPolling();dailyEl('dailyMatchSearching').hidden=true;if(!dailyMatchId){try{await dailyRpc('daily_classification_cancel_search')}catch(e){console.warn(e)}}
  dailyEl('dailyMatchModal').hidden=true;await dailyRefreshStatus();
 }
@@ -3669,13 +3670,88 @@ function dailyAction(label,fn){const b=document.createElement('button');b.type='
 let dailyEvidenceMatchId=null;
 let dailyRoomRenderBusy=false;
 let dailyRoomRefreshTimer=null;
-function dailyEnsureRoomRefresh(){if(dailyRoomRefreshTimer)return;dailyRoomRefreshTimer=setInterval(()=>{if(!document.hidden&&dailyMatchId&&!dailyEl('dailyMatchModal')?.hidden)dailyShowRoom()},5000)}
+
+// Prueba privada: ?edgerooms=1. Las acciones, resultados y puntos nunca pasan por Cloudflare.
+// Ante un fallo de autenticación/WebSocket, vuelven automáticamente los sondeos habituales.
+const DAILY_EDGE_ROOM_CANARY = new URLSearchParams(window.location.search).get('edgerooms')==='1';
+let dailyEdgeRoomId=null,dailyEdgeRoomUnwatch=null,dailyEdgeConnected=false,dailyEdgeWatchEpoch=0;
+let dailyEdgeLastRoomPoll=0,dailyEdgeLastChatPoll=0;
+function dailyStopEdgeRoom(){
+ ++dailyEdgeWatchEpoch;
+ const stop=dailyEdgeRoomUnwatch;
+ dailyEdgeRoomUnwatch=null;dailyEdgeRoomId=null;dailyEdgeConnected=false;
+ if(stop)try{stop()}catch(e){console.warn('Detener aviso de sala diaria',e)}
+}
+function dailyEdgePollDue(which){
+ if(!DAILY_EDGE_ROOM_CANARY||!dailyEdgeConnected)return true;
+ const now=Date.now();
+ const last=which==='chat'?dailyEdgeLastChatPoll:dailyEdgeLastRoomPoll;
+ if(now-last<30000)return false;
+ if(which==='chat')dailyEdgeLastChatPoll=now;
+ else dailyEdgeLastRoomPoll=now;
+ return true;
+}
+async function dailyEnsureEdgeRoom(){
+ if(!DAILY_EDGE_ROOM_CANARY||!currentUser||!dailyMatchId||dailyEl('dailyMatchModal')?.hidden){
+  if(dailyEdgeRoomId!==null)dailyStopEdgeRoom();
+  return;
+ }
+ const id=Number(dailyMatchId);
+ if(dailyEdgeRoomId===id)return;
+ dailyStopEdgeRoom();
+ dailyEdgeRoomId=id;
+ const epoch=dailyEdgeWatchEpoch;
+ try{
+  const client=await ranking8bpGetEdgeClient();
+  if(epoch!==dailyEdgeWatchEpoch||dailyEdgeRoomId!==id||dailyEl('dailyMatchModal')?.hidden)return;
+  const updateIfActive=()=>{
+   if(epoch!==dailyEdgeWatchEpoch||Number(dailyMatchId)!==id||dailyEl('dailyMatchModal')?.hidden||document.hidden)return false;
+   return true;
+  };
+  dailyEdgeRoomUnwatch=client.watchRoom('daily',id,event=>{
+   if(!updateIfActive())return;
+   if(event.type==='chat.changed'){
+    dailyEdgeLastChatPoll=Date.now();
+    dailyLoadChat().catch(()=>{});
+    // Los botones GANÉ/PERDÍ dependen de los mensajes de AMBOS jugadores.
+    dailyEdgeLastRoomPoll=Date.now();
+    dailyShowRoom().catch(()=>{});
+   }else if(event.type==='room.changed'||event.type==='match.found'){
+    dailyEdgeLastRoomPoll=Date.now();
+    dailyShowRoom().catch(()=>{});
+   }
+  },()=>{
+   if(!updateIfActive())return;
+   dailyEdgeLastRoomPoll=Date.now();
+   dailyEdgeLastChatPoll=Date.now();
+   dailyShowRoom().catch(()=>{});
+   dailyLoadChat().catch(()=>{});
+  },connected=>{
+   if(epoch!==dailyEdgeWatchEpoch)return;
+   dailyEdgeConnected=!!connected;
+   if(connected){dailyEdgeLastRoomPoll=Date.now();dailyEdgeLastChatPoll=Date.now()}
+  });
+ }catch(error){
+  if(epoch===dailyEdgeWatchEpoch){dailyEdgeConnected=false;console.warn('Avisos de sala diarios no disponibles, sigue el sondeo',error)}
+ }
+}
+function dailyEnsureRoomRefresh(){
+ if(dailyRoomRefreshTimer)return;
+ dailyRoomRefreshTimer=setInterval(()=>{
+  if(!dailyMatchId||dailyEl('dailyMatchModal')?.hidden){
+   if(dailyEdgeRoomId!==null)dailyStopEdgeRoom();
+   return;
+  }
+  if(!document.hidden&&dailyEdgePollDue('room'))dailyShowRoom();
+ },5000);
+}
 
 let dailyRoomRenderedMatchId=null;
 async function dailyShowRoom(){
  if(!dailyMatchId||dailyEl('dailyMatchModal').hidden||dailyRoomRenderBusy)return;
  dailyRoomRenderBusy=true;
  dailyEnsureRoomRefresh();
+ dailyEnsureEdgeRoom().catch(()=>{});
  try{
  const renderingMatchId=Number(dailyMatchId);
  const m=await dailyRpc('daily_classification_room',{p_match_id:renderingMatchId});
@@ -3743,7 +3819,7 @@ async function dailyShowRoom(){
 }
  // Room updates are handled by a dedicated timer, including private invitations.
  }catch(e){console.error(e);dailyEl('dailyMatchContent').textContent='ERROR AL CARGAR EL PARTIDO: '+e.message}
- finally{dailyRoomRenderBusy=false}
+ finally{dailyRoomRenderBusy=false;if(!dailyMatchId||dailyEl('dailyMatchModal')?.hidden)dailyStopEdgeRoom()}
 }
 async function dailyAbandonBeforeChat(){
  if(!dailyMatchId||dailyBusy)return;
@@ -3960,7 +4036,7 @@ async function dailyLoadChat(){
  }catch(e){console.warn('Chat diario',e)}
  finally{dailyChatLoading=false}
 }
-setInterval(()=>{if(!document.hidden&&dailyMatchId&&!dailyEl('dailyMatchModal')?.hidden)dailyLoadChat()},4000);
+setInterval(()=>{if(!document.hidden&&dailyMatchId&&!dailyEl('dailyMatchModal')?.hidden&&dailyEdgePollDue('chat'))dailyLoadChat()},4000);
 
 document.addEventListener('click',async e=>{
  if(e.target.closest('#dailyCopyMyId')){navigator.clipboard?.writeText(dailyEl('dailyMyGameId').textContent);return}
