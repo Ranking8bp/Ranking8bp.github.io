@@ -59,6 +59,32 @@ export class Ranking8bpEdgeClient {
   // One authenticated RPC on entry, then an idle Cloudflare WebSocket while waiting.
   // If anything fails, the caller falls back to the existing Supabase polling loop.
   async waitForRankedMatch(signal) {
+    // A rival leaving cannot end another player's search. Reconnect a dropped
+    // private WebSocket before falling back to the original Supabase matcher.
+    for (let attempt = 0; ; attempt++) {
+      if (signal?.aborted) throw Error("Search cancelled");
+      try {
+        return await this.waitForRankedMatchOnce(signal);
+      } catch (error) {
+        if (signal?.aborted || attempt >= 3) throw error;
+        const ms = Math.min(1200 * 2 ** attempt, 5000);
+        await new Promise((resolve, reject) => {
+          const abort = () => {
+            clearTimeout(timer);
+            signal?.removeEventListener("abort", abort);
+            reject(Error("Search cancelled"));
+          };
+          const timer = setTimeout(() => {
+            signal?.removeEventListener("abort", abort);
+            resolve();
+          }, ms);
+          signal?.addEventListener("abort", abort, { once: true });
+          if (signal?.aborted) abort();
+        });
+      }
+    }
+  }
+  async waitForRankedMatchOnce(signal) {
     if (signal?.aborted) throw Error("Search cancelled");
     const { data } = await this.supabase.auth.getSession();
     const token = data?.session?.access_token;
