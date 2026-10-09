@@ -55,7 +55,7 @@ test("auth delay shows public ranking without clearing a saved session", () => {
   assert.equal(app.guest.hidden, false, "public content becomes visible");
   assert.equal(app.topbar.hidden, true, "do not pretend the saved session was signed out");
   assert.equal(app.fallback.style.display, "flex");
-  assert.deepEqual(app.removed, ["auth-checking", "auth-checking"]);
+  assert.deepEqual(app.removed, ["auth-checking"]);
   assert.equal(app.session, "saved-user-session");
   app.context.window.ranking8bpViewReady = true;
   app.advance(16000);
