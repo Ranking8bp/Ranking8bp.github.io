@@ -88,7 +88,17 @@ export class Ranking8bpEdgeClient {
         cleanup();
         if (error) reject(error); else resolve(value);
       };
-      const abort = () => done(Error("Search cancelled"));
+      const abort = () => {
+        // Cancel in the serialized Durable Object; keepalive helps on pagehide.
+        // Supabase cancellation will never remove an already-created ranked VS.
+        fetch(this.baseUrl + "/api/ranked/cancel", {
+          method: "POST",
+          headers: { authorization: "Bearer " + token, "content-type": "application/json" },
+          body: JSON.stringify({ ticket: result.ticket }),
+          keepalive: true,
+        }).catch(() => {});
+        done(Error("Search cancelled"));
+      };
       signal?.addEventListener("abort", abort, { once: true });
       if (signal?.aborted) { abort(); return; }
       try {
