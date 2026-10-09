@@ -257,23 +257,23 @@ const rankingSearchInput=document.getElementById('rankingSearchInput');
 const rankingSearchWrap=document.getElementById('rankingSearchWrap');
 let rankingPlayersCache=[];
 let guestRankingLoading=false,rankingLoading=false,latestResultLoading=false,rankingStreaksLoading=false;
-// Prueba voluntaria de caché Cloudflare: solo se activa con ?edgefeeds=1.
-// Sin el parámetro, cada jugador sigue usando Supabase como antes.
+// Cloudflare sirve las clasificaciones públicas por defecto.
+// Modo de emergencia ?edgefeeds=0: vuelve a Supabase para esta pestaña.
 const RANKING8BP_EDGE_URL='https://ranking8bp-server.ikarsolismonedas.workers.dev';
 let ranking8bpEdgeClientPromise=null;
 function ranking8bpGetEdgeClient(){
   if(!ranking8bpEdgeClientPromise){
-    ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-canary1')
+    ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-general1')
       .then(({Ranking8bpEdgeClient})=>new Ranking8bpEdgeClient({baseUrl:RANKING8BP_EDGE_URL,supabase:supabaseClient}));
   }
   return ranking8bpEdgeClientPromise;
 }
 async function rankingPublicFeed(kind){
-  if(new URLSearchParams(window.location.search).get('edgefeeds')==='1'){
+  if(new URLSearchParams(window.location.search).get('edgefeeds')!=='0'){
     try{
       const response=await (await ranking8bpGetEdgeClient()).getFeed(kind);
       return {data:response.data,error:null};
-    }catch(error){console.warn('Cloudflare canary: usando Supabase',error)}
+    }catch(error){console.warn('Cloudflare no disponible: usando Supabase',error)}
   }
   return supabaseClient.rpc(kind==='ranking'?'get_cached_public_home':'daily_classification_leaderboard');
 }
@@ -2391,9 +2391,9 @@ function startLatestResultRealtime(){
   }).subscribe();
 }
 startLatestResultRealtime();
-// Private canary only: public event notifications for the two cached standings.
-// The regular site, chat delivery, matchmaking and player result writes are unchanged.
-if(new URLSearchParams(window.location.search).get('edgefeeds')==='1'){
+// Producción: avisos públicos de las clasificaciones general y diaria.
+// Chat, emparejamiento y escritura de resultados siguen en Supabase.
+if(new URLSearchParams(window.location.search).get('edgefeeds')!=='0'){
   const pending=new Set();
   let refreshTimer=null;
   const queueRefresh=(event)=>{
