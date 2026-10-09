@@ -71,8 +71,7 @@ export class Ranking8bpEdgeClient {
     });
     if (!response.ok) throw Error("Cloudflare ranked queue unavailable");
     const result = await response.json();
-    if (result.state === "matched" && Number(result.out_match_id) > 0) return result;
-    if (result.state !== "searching" || !result.ticket) throw Error("Cloudflare ranked queue not ready");
+    if (result.state !== "connect" || !result.ticket) throw Error("Cloudflare ranked queue not ready");
     return new Promise((resolve, reject) => {
       let socket, pingTimer;
       const timeout = setTimeout(() => done(Error("Ranked queue connection timed out")), 12000);
@@ -95,10 +94,28 @@ export class Ranking8bpEdgeClient {
       try {
         socket = new WebSocket(this.baseUrl.replace(/^http/, "ws") +
           "/ws/ranked-search?ticket=" + encodeURIComponent(result.ticket));
-        socket.onopen = () => {
+        socket.onopen = async () => {
           clearTimeout(timeout);
-          // Keep alive is Cloudflare-only; it does not query Supabase.
-          pingTimer = setInterval(() => { if (socket.readyState === WebSocket.OPEN) socket.send("ping"); }, 25000);
+          // Register in Supabase only AFTER the WebSocket is established.
+          // Closing the tab during the first HTTP step cannot create a ghost match.
+          try {
+            const reply = await fetch(this.baseUrl + "/api/ranked/ready", {
+              method: "POST",
+              headers: { authorization: "Bearer " + token, "content-type": "application/json" },
+              body: JSON.stringify({ ticket: result.ticket }),
+              signal: AbortSignal.any([signal || new AbortController().signal, AbortSignal.timeout(15000)]),
+            });
+            if (!reply.ok) throw Error("Could not confirm ranked queue entry");
+            const status = await reply.json();
+            if (finished) return;
+            if (status.state === "matched" && Number(status.out_match_id) > 0) {
+              done(null, { state: "matched", out_match_id: Number(status.out_match_id) });
+              return;
+            }
+            if (status.state !== "searching") throw Error("Ranked queue entry rejected");
+            // Keepalive is Cloudflare-only, not a Supabase query.
+            pingTimer = setInterval(() => { if (socket.readyState === WebSocket.OPEN) socket.send("ping"); }, 25000);
+          } catch (error) { done(error); }
         };
         socket.onmessage = event => {
           try {
