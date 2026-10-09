@@ -75,6 +75,27 @@ async function verifyTicket(ticket, secret) {
     return value;
   } catch (_) { return null; }
 }
+// Search tickets are short-lived, scoped to one authenticated player's queue socket.
+async function issueSearchTicket(userId, secret) {
+  const payload = asBase64url(encoder.encode(JSON.stringify({
+    kind: "ranked-search", userId, exp: Date.now() + 45_000,
+  })));
+  return payload + "." + await ticketSignature(payload, secret);
+}
+async function verifySearchTicket(ticket, secret) {
+  if (!secret || !ticket || ticket.length > 1500) return null;
+  const [message, signature, excess] = ticket.split(".");
+  if (excess !== undefined || !message || !signature ||
+      !safeEquals(await ticketSignature(message, secret), signature)) return null;
+  try {
+    const data = JSON.parse(new TextDecoder().decode(fromBase64url(message)));
+    if (data.kind !== "ranked-search" ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(data.userId) ||
+        !Number.isFinite(data.exp) || data.exp < Date.now() ||
+        data.exp > Date.now() + 60_000) return null;
+    return data;
+  } catch (_) { return null; }
+}
 async function supabaseRequest(env, path, authToken, body = undefined) {
   if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) throw new Error("Supabase environment is not configured");
   const headers = { apikey: env.SUPABASE_ANON_KEY, accept: "application/json" };
@@ -158,6 +179,37 @@ export default {
       return internalHub(env, "public", "/ws", { headers: { Upgrade: "websocket" } });
     }
 
+    if (path === "/api/ranked/search" && request.method === "POST") {
+      const bearer = request.headers.get("authorization") || "";
+      const jwt = bearer.startsWith("Bearer ") ? bearer.slice(7) : "";
+      if (!jwt || !env.TICKET_SECRET) return addCors(json({ error: "Authorization required" }, 401), request, env);
+      try {
+        const user = await supabaseRequest(env, "/auth/v1/user", jwt);
+        if (!user?.id) return addCors(json({ error: "Invalid session" }, 401), request, env);
+        const response = await internalHub(env, "ranked:queue", "/ranked/search", {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ userId: user.id, jwt }),
+        });
+        if (!response.ok) return addCors(response, request, env);
+        const result = await response.json();
+        if (result.state === "searching") {
+          result.ticket = await issueSearchTicket(user.id, env.TICKET_SECRET);
+        }
+        return addCors(json(result), request, env);
+      } catch (_) {
+        return addCors(json({ error: "Search gateway temporarily unavailable" }, 503), request, env);
+      }
+    }
+    if (path === "/ws/ranked-search" && request.method === "GET") {
+      if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket")
+        return json({ error: "WebSocket expected" }, 426);
+      const info = await verifySearchTicket(url.searchParams.get("ticket"), env.TICKET_SECRET);
+      if (!info) return json({ error: "Invalid search ticket" }, 401);
+      return internalHub(env, "ranked:queue", "/ranked/ws", {
+        headers: { Upgrade: "websocket", "x-ranked-player": info.userId },
+      });
+    }
+
     if (path === "/api/room-ticket" && request.method === "POST") {
       const bearer = request.headers.get("authorization") || "";
       const jwt = bearer.startsWith("Bearer ") ? bearer.slice(7) : "";
@@ -219,8 +271,79 @@ export class EventHub {
     }
     return this.loading.get(kind);
   }
+  // The shared Durable Object stores a FIFO view of connected seekers; no JWTs
+  // are ever persisted. Supabase still atomically validates and creates each VS.
+  async rankedQueueSearch(playerId, jwt) {
+    const status = await supabaseRequest(this.env, "/rest/v1/rpc/set_ranked_search_presence", jwt, {
+      p_searching: true,
+    });
+    void status;
+    const found = await supabaseRequest(this.env, "/rest/v1/rpc/find_ranked_opponent", jwt, {});
+    const record = Array.isArray(found) ? found[0] : found;
+    if (!record || !["matched", "searching", "cancelled"].includes(record.state))
+      throw new Error("Invalid matchmaking response");
+    const now = Date.now();
+    let queue = (await this.state.storage.get("ranked:waiters")) || [];
+    queue = queue.filter(item => item.userId !== playerId && now - item.joinedAt < 3_600_000);
+    if (record.state === "matched" && Number.isSafeInteger(Number(record.out_match_id)) &&
+        Number(record.out_match_id) > 0) {
+      const matchId = Number(record.out_match_id);
+      // RLS-verified row prevents a caller from broadcasting forged assignments.
+      const rows = await supabaseRequest(this.env,
+        "/rest/v1/ranked_matches?select=player1_id,player2_id&id=eq." + matchId + "&limit=1", jwt);
+      const row = Array.isArray(rows) && rows.length ? rows[0] : null;
+      if (!row || ![row.player1_id, row.player2_id].includes(playerId))
+        throw new Error("Match membership not verified");
+      const opponent = row.player1_id === playerId ? row.player2_id : row.player1_id;
+      queue = queue.filter(item => item.userId !== opponent);
+      await this.state.storage.put("ranked:waiters", queue);
+      let messages = (await this.state.storage.get("ranked:assignments")) || {};
+      for (const uid of [playerId, opponent]) messages[uid] = { matchId, createdAt: now };
+      messages = Object.fromEntries(Object.entries(messages).filter(([,m])=>now-m.createdAt<120_000));
+      await this.state.storage.put("ranked:assignments", messages);
+      for (const uid of [playerId, opponent]) {
+        for (const socket of this.state.getWebSockets("ranked:" + uid)) {
+          try { socket.send(JSON.stringify({ type: "match.found", matchId })); } catch (_) {}
+        }
+      }
+      return { state: "matched", out_match_id: matchId };
+    }
+    if (record.state === "searching") {
+      queue.push({ userId: playerId, joinedAt: now });
+      await this.state.storage.put("ranked:waiters", queue);
+    } else {
+      await this.state.storage.put("ranked:waiters", queue);
+    }
+    return { state: record.state };
+  }
   async fetch(request) {
     const path = new URL(request.url).pathname;
+    if (path === "/ranked/search" && request.method === "POST") {
+      let data;
+      try { data = await request.json(); } catch (_) { return json({ error: "Bad request" }, 400); }
+      if (!data?.userId || typeof data.jwt !== "string") return json({ error: "Bad request" }, 400);
+      // Serialize every entrant so the Cloudflare queue has a deterministic order,
+      // including while Supabase RPCs are in flight.
+      const previous = this.rankedQueueLock || Promise.resolve();
+      const action = previous.catch(() => {}).then(() => this.rankedQueueSearch(data.userId, data.jwt));
+      this.rankedQueueLock = action.catch(() => {});
+      try { return json(await action); } catch (_) { return json({ error: "Matchmaking unavailable" }, 503); }
+    }
+    if (path === "/ranked/ws") {
+      if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket")
+        return json({ error: "WebSocket expected" }, 426);
+      const userId = request.headers.get("x-ranked-player") || "";
+      if (!/^[0-9a-f-]{36}$/i.test(userId)) return json({ error: "Invalid player" }, 403);
+      const pair = new WebSocketPair();
+      this.state.acceptWebSocket(pair[1], ["ranked:" + userId]);
+      pair[1].serializeAttachment({ kind: "ranked-search", userId });
+      const messages = (await this.state.storage.get("ranked:assignments")) || {};
+      const match = messages[userId];
+      if (match && Date.now() - match.createdAt < 120_000) {
+        try { pair[1].send(JSON.stringify({ type: "match.found", matchId: match.matchId })); } catch (_) {}
+      }
+      return new Response(null, { status: 101, webSocket: pair[0] });
+    }
     if (path === "/ws") {
       if (request.headers.get("Upgrade")?.toLowerCase() !== "websocket") return json({ error: "WebSocket expected" }, 426);
       const pair = new WebSocketPair();
@@ -259,6 +382,20 @@ export class EventHub {
     // authenticated Supabase RPCs, never accepted via an anonymous event channel.
     if (message === "ping") { try { socket.send("pong"); } catch (_) {} }
   }
-  webSocketClose(socket, code, reason) { try { socket.close(code, reason); } catch (_) {} }
+  webSocketClose(socket, code, reason) {
+    try { socket.close(code, reason); } catch (_) {}
+    // Only the Durable Object's connection list is cleaned up here. A browser's
+    // explicit cancel/pagehide still uses its authenticated Supabase cancel RPC.
+    const attachment = socket.deserializeAttachment?.();
+    if (attachment?.kind === "ranked-search" && attachment.userId) {
+      const id = attachment.userId;
+      if (this.state.getWebSockets("ranked:" + id).length === 0) {
+        this.state.storage.get("ranked:waiters").then(items => {
+          if (Array.isArray(items))
+            return this.state.storage.put("ranked:waiters", items.filter(x => x.userId !== id));
+        }).catch(() => {});
+      }
+    }
+  }
   webSocketError(socket) { try { socket.close(1011, "Transport error"); } catch (_) {} }
 }
