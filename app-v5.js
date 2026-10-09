@@ -4093,6 +4093,8 @@ async function dailySearchLoop(){
  if(dailySearching)dailyPoll=setTimeout(dailySearchLoop,3000);
 }
 window.startDailyClassification=async function(){
+ // Evita lanzar un segundo emparejador al pulsar JUGAR varias veces.
+ if(dailySearching&&!dailyMatchId)return;
  if(!currentUser||!supabaseClient){alert('INICIA SESIÓN PARA JUGAR CLASIFICATORIA DIARIA.');return}
 
  try{
