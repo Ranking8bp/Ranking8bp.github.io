@@ -273,48 +273,60 @@ export class EventHub {
   }
   // The shared Durable Object stores a FIFO view of connected seekers; no JWTs
   // are ever persisted. Supabase still atomically validates and creates each VS.
+  async rankedQueueFinish(playerId, jwt, matchId, queue, now) {
+    if (!Number.isSafeInteger(matchId) || matchId < 1) throw Error("Invalid match ID");
+    // Authenticated Supabase RLS verifies the real opponent before any alert.
+    const rows = await supabaseRequest(this.env,
+      "/rest/v1/ranked_matches?select=player1_id,player2_id&id=eq." + matchId + "&limit=1", jwt);
+    const match = Array.isArray(rows) && rows.length ? rows[0] : null;
+    if (!match || ![match.player1_id, match.player2_id].includes(playerId))
+      throw Error("Match membership not verified");
+    const opponent = match.player1_id === playerId ? match.player2_id : match.player1_id;
+    queue = queue.filter(x => x.userId !== playerId && x.userId !== opponent);
+    await this.state.storage.put("ranked:waiters", queue);
+    let messages = (await this.state.storage.get("ranked:assignments")) || {};
+    for (const id of [playerId, opponent]) messages[id] = { matchId, createdAt: now };
+    messages = Object.fromEntries(Object.entries(messages).filter(([,v]) => now - v.createdAt < 120_000));
+    await this.state.storage.put("ranked:assignments", messages);
+    for (const id of [playerId, opponent]) {
+      for (const socket of this.state.getWebSockets("ranked:" + id)) {
+        try { socket.send(JSON.stringify({ type: "match.found", matchId })); } catch (_) {}
+      }
+    }
+    return { state: "matched", out_match_id: matchId };
+  }
   async rankedQueueSearch(playerId, jwt) {
-    const status = await supabaseRequest(this.env, "/rest/v1/rpc/set_ranked_search_presence", jwt, {
-      p_searching: true,
-    });
-    void status;
-    const found = await supabaseRequest(this.env, "/rest/v1/rpc/find_ranked_opponent", jwt, {});
-    const record = Array.isArray(found) ? found[0] : found;
-    if (!record || !["matched", "searching", "cancelled"].includes(record.state))
-      throw new Error("Invalid matchmaking response");
+    // ONE entry RPC per new seeker, then NO Supabase polling from Cloudflare.
+    // The SQL RPC registers presence and a DB safety marker, but does not select opponents.
+    const raw = await supabaseRequest(this.env, "/rest/v1/rpc/edge_ranked_queue_enter", jwt, {});
+    const entry = Array.isArray(raw) ? raw[0] : raw;
+    if (!entry || !["searching", "matched"].includes(entry.state))
+      throw Error("Invalid ranked queue entry");
     const now = Date.now();
     let queue = (await this.state.storage.get("ranked:waiters")) || [];
+    const previous = queue.find(item => item.userId === playerId);
     queue = queue.filter(item => item.userId !== playerId && now - item.joinedAt < 3_600_000);
-    if (record.state === "matched" && Number.isSafeInteger(Number(record.out_match_id)) &&
-        Number(record.out_match_id) > 0) {
-      const matchId = Number(record.out_match_id);
-      // RLS-verified row prevents a caller from broadcasting forged assignments.
-      const rows = await supabaseRequest(this.env,
-        "/rest/v1/ranked_matches?select=player1_id,player2_id&id=eq." + matchId + "&limit=1", jwt);
-      const row = Array.isArray(rows) && rows.length ? rows[0] : null;
-      if (!row || ![row.player1_id, row.player2_id].includes(playerId))
-        throw new Error("Match membership not verified");
-      const opponent = row.player1_id === playerId ? row.player2_id : row.player1_id;
-      queue = queue.filter(item => item.userId !== opponent);
-      await this.state.storage.put("ranked:waiters", queue);
-      let messages = (await this.state.storage.get("ranked:assignments")) || {};
-      for (const uid of [playerId, opponent]) messages[uid] = { matchId, createdAt: now };
-      messages = Object.fromEntries(Object.entries(messages).filter(([,m])=>now-m.createdAt<120_000));
-      await this.state.storage.put("ranked:assignments", messages);
-      for (const uid of [playerId, opponent]) {
-        for (const socket of this.state.getWebSockets("ranked:" + uid)) {
-          try { socket.send(JSON.stringify({ type: "match.found", matchId })); } catch (_) {}
-        }
-      }
-      return { state: "matched", out_match_id: matchId };
+    if (entry.state === "matched")
+      return this.rankedQueueFinish(playerId, jwt, Number(entry.out_match_id), queue, now);
+
+    // True Cloudflare FIFO selection. SQL ONLY accepts/rejects the proposed pair
+    // and creates the match atomically under the legacy matcher advisory lock.
+    for (const candidate of queue) {
+      const pairing = await supabaseRequest(this.env, "/rest/v1/rpc/edge_ranked_queue_pair", jwt, {
+        p_opponent_id: candidate.userId,
+      });
+      const result = Array.isArray(pairing) ? pairing[0] : pairing;
+      if (result?.state === "matched" && Number(result.out_match_id) > 0)
+        return this.rankedQueueFinish(playerId, jwt, Number(result.out_match_id), queue, now);
+      if (result?.state !== "ineligible") throw Error("Invalid ranked pair outcome");
+      // Preserve the earlier candidate: B may be blocked from A, but C may not.
     }
-    if (record.state === "searching") {
-      queue.push({ userId: playerId, joinedAt: now });
-      await this.state.storage.put("ranked:waiters", queue);
-    } else {
-      await this.state.storage.put("ranked:waiters", queue);
-    }
-    return { state: record.state };
+
+    // Preserve the user's place after a temporary WebSocket reconnect.
+    queue.push({ userId: playerId, joinedAt: previous?.joinedAt || now });
+    queue.sort((a, b) => a.joinedAt - b.joinedAt);
+    await this.state.storage.put("ranked:waiters", queue);
+    return { state: "searching" };
   }
   async fetch(request) {
     const path = new URL(request.url).pathname;
