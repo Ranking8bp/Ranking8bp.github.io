@@ -1,0 +1,21 @@
+name: Cloudflare gateway tests
+on:
+  push:
+    paths:
+      - "cloudflare-worker/**"
+      - ".github/workflows/cloudflare-gateway-tests.yml"
+  pull_request:
+    paths:
+      - "cloudflare-worker/**"
+      - ".github/workflows/cloudflare-gateway-tests.yml"
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run gateway and relay tests
+        working-directory: cloudflare-worker
+        run: npm test
