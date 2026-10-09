@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ranking8bp-server",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-08",
+  "durable_objects": {
+    "bindings": [{ "name": "HUB", "class_name": "EventHub" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EventHub"] }],
+  "vars": {
+    "PUBLIC_ORIGIN": "https://ranking8bp.github.io",
+    "SUPABASE_URL": "https://xcrzxnshhamribnimsxc.supabase.co"
+  },
+  "observability": { "enabled": true }
+}
