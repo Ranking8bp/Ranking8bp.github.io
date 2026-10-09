@@ -76,7 +76,9 @@ async function verifyTicket(ticket, secret) {
 }
 async function supabaseRequest(env, path, authToken, body = undefined) {
   if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) throw new Error("Supabase environment is not configured");
-  const headers = { apikey: env.SUPABASE_ANON_KEY, authorization: "Bearer " + (authToken || env.SUPABASE_ANON_KEY), accept: "application/json" };
+  const headers = { apikey: env.SUPABASE_ANON_KEY, accept: "application/json" };
+  if (authToken) headers.authorization = "Bearer " + authToken;
+  else if (env.SUPABASE_ANON_KEY.startsWith("eyJ")) headers.authorization = "Bearer " + env.SUPABASE_ANON_KEY; // legacy anon JWT only
   if (body !== undefined) headers["content-type"] = "application/json";
   const response = await fetch(env.SUPABASE_URL.replace(/\/+$/, "") + path, {
     method: body === undefined ? "GET" : "POST",
