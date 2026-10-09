@@ -263,7 +263,7 @@ const RANKING8BP_EDGE_URL='https://ranking8bp-server.ikarsolismonedas.workers.de
 let ranking8bpEdgeClientPromise=null;
 function ranking8bpGetEdgeClient(){
   if(!ranking8bpEdgeClientPromise){
-    ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-general1')
+    ranking8bpEdgeClientPromise=import('./cloudflare-worker/client/edge-client.js?v=20261009-daily-room-canary1')
       .then(({Ranking8bpEdgeClient})=>new Ranking8bpEdgeClient({baseUrl:RANKING8BP_EDGE_URL,supabase:supabaseClient}));
   }
   return ranking8bpEdgeClientPromise;
