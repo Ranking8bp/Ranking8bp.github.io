@@ -2750,3 +2750,18 @@ html,body,.viewport-shell{
 @media(max-width:700px){
  .site-canvas{width:100%!important;max-width:100%!important}
 }
+
+/* Vista vertical centrada también en escritorio */
+@media (min-width:701px){
+  .viewport-shell{justify-content:center!important;align-items:flex-start!important}
+  .site-canvas{
+    width:min(100%,650px)!important;
+    max-width:650px!important;
+    flex:0 1 650px!important;
+    margin:0 auto!important;
+    background-size:100% auto!important;
+  }
+  #playerDashboard.player-profile{padding-left:16px!important;padding-right:16px!important}
+  #playerDashboard .competitive-hub{max-width:100%!important;width:min(100%,600px)!important}
+  #playerDashboard .rank-hero-card{min-width:0!important}
+}
