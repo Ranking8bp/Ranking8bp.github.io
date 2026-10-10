@@ -468,7 +468,7 @@ const RANKS=[
 
 /* Carrusel de los 60 rangos: misma lista oficial RANKS y ELO mínimo. */
 (function setupRankingRankCarousel(){
- let current=0,startX=null;
+ let current=0,currentRankIndex=0,startX=null;
  const css=document.createElement('style');
  css.textContent=`
  #rankingRankCarousel[hidden]{display:none!important}
@@ -482,6 +482,8 @@ const RANKS=[
  #rankingRankCarousel .rrc-arrow:disabled{opacity:.23;cursor:default}
  #rankingRankCarousel .rrc-name{font:bold 25px Georgia,serif;color:#ffda77;display:block;margin:0 0 5px}
  #rankingRankCarousel .rrc-elo{font:bold 17px Arial,sans-serif;color:#fff;display:block}
+ #rankingRankCarousel .rrc-current{display:block;margin:9px auto 6px;padding:7px 15px;border:1px solid #eac36c;border-radius:25px;width:max-content;background:rgba(20,100,60,.8);color:#fff4ad;font:bold 15px Arial,sans-serif}
+ #rankingRankCarousel .rrc-current[hidden]{display:none!important}
  #rankingRankCarousel .rrc-count{font:13px Arial,sans-serif;color:#aebccc;margin:11px 0 4px}
  #rankingRankCarousel .rrc-hint{font:12px Arial,sans-serif;color:#aebccc;margin:0}
  `;
@@ -489,13 +491,14 @@ const RANKS=[
   if(document.getElementById('rankingRankCarousel'))return;
   document.head.appendChild(css);
   const modal=document.createElement('div');modal.id='rankingRankCarousel';modal.hidden=true;
-  modal.innerHTML='<section class="rrc-panel" role="dialog" aria-modal="true" aria-label="Carrusel de rangos"><button type="button" class="rrc-close" aria-label="Cerrar carrusel">×</button><div class="rrc-heading">INSIGNIAS DE RANGOS</div><div class="rrc-stage"><button type="button" class="rrc-arrow rrc-prev" aria-label="Rango anterior">‹</button><img class="rrc-badge" alt="Insignia de rango" draggable="false"><button type="button" class="rrc-arrow rrc-next" aria-label="Siguiente rango">›</button></div><strong class="rrc-name"></strong><span class="rrc-elo"></span><div class="rrc-count"></div><p class="rrc-hint">Desliza a los lados para cambiar de rango</p></section>';
+  modal.innerHTML='<section class="rrc-panel" role="dialog" aria-modal="true" aria-label="Carrusel de rangos"><button type="button" class="rrc-close" aria-label="Cerrar carrusel">×</button><div class="rrc-heading">INSIGNIAS DE RANGOS</div><div class="rrc-stage"><button type="button" class="rrc-arrow rrc-prev" aria-label="Rango anterior">‹</button><img class="rrc-badge" alt="Insignia de rango" draggable="false"><button type="button" class="rrc-arrow rrc-next" aria-label="Siguiente rango">›</button></div><strong class="rrc-name"></strong><span class="rrc-current" hidden>★ RANGO ACTUAL ★</span><span class="rrc-elo"></span><div class="rrc-count"></div><p class="rrc-hint">Desliza a los lados para cambiar de rango</p></section>';
   document.body.appendChild(modal);
   const panel=modal.querySelector('.rrc-panel'),img=modal.querySelector('.rrc-badge');
   const render=()=>{
    const rank=RANKS[current];img.src=rank.image;img.alt='Insignia '+rank.name;
    modal.querySelector('.rrc-name').textContent=rank.name.toUpperCase();
    modal.querySelector('.rrc-elo').textContent='ELO REQUERIDO: '+rank.min;
+   modal.querySelector('.rrc-current').hidden=current!==currentRankIndex;
    modal.querySelector('.rrc-count').textContent=(current+1)+' / '+RANKS.length;
    modal.querySelector('.rrc-prev').disabled=current===0;
    modal.querySelector('.rrc-next').disabled=current===RANKS.length-1;
@@ -511,7 +514,12 @@ const RANKS=[
   document.addEventListener('keydown',e=>{if(modal.hidden)return;if(e.key==='Escape')close();if(e.key==='ArrowRight')move(1);if(e.key==='ArrowLeft')move(-1)});
   document.addEventListener('click',e=>{
    if(!e.target.closest('[data-menu="rangos"]'))return;
-   e.preventDefault();current=0;render();modal.hidden=false;document.body.style.overflow='hidden';
+   e.preventDefault();
+   const elo=Number(currentProfile?.elo_points);
+   const fallback=Number(document.getElementById('dashboardElo')?.textContent?.replace(/[^0-9.-]/g,''));
+   const actualElo=Number.isFinite(elo)?elo:(Number.isFinite(fallback)?fallback:0);
+   currentRankIndex=getRankByElo(actualElo).index;
+   current=currentRankIndex;render();modal.hidden=false;document.body.style.overflow='hidden';
   });
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
