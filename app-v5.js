@@ -3219,14 +3219,28 @@ loginForm.addEventListener('submit',async event=>{
   if(!usernameValue||!passwordValue){loginError.textContent='Escribe tu usuario y contraseña.';return}
 
   setLoginBusy(true);
+  // No iniciar una segunda autenticación mientras la primera sigue pendiente.
+  // Los errores 504 son temporales y no significan contraseña incorrecta.
+  const slowLoginNotice=setTimeout(()=>{
+    if(loginSubmit.disabled){
+      loginSubmit.textContent='Servidor ocupado...';
+      loginError.textContent='Supabase está tardando en responder. Espera un momento; tu cuenta no se ha borrado.';
+    }
+  },12000);
   try{
     const {data,error}=await supabaseClient.auth.signInWithPassword({email:usernameToInternalEmail(usernameValue),password:passwordValue});
-    if(error||!data.session)throw new Error('Usuario o contraseña incorrectos.');
+    if(error){
+      const code=Number(error.status||error.code||0);
+      if(code>=500||/timeout|gateway|fetch failed|network/i.test(String(error.message||'')))
+        throw new Error('Supabase está saturado temporalmente. Espera un momento y vuelve a intentar.');
+      throw new Error('Usuario o contraseña incorrectos.');
+    }
+    if(!data?.session)throw new Error('No se recibió una sesión válida. Intenta nuevamente.');
     const profile=await getProfile(data.user.id);
     try{let deviceId=localStorage.getItem('ranking8bp_device_id');if(!deviceId){deviceId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2));localStorage.setItem('ranking8bp_device_id',deviceId)}const bytes=new TextEncoder().encode(deviceId);const digest=await crypto.subtle.digest('SHA-256',bytes);const deviceHash=Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');await supabaseClient.rpc('claim_my_registration_device',{p_device_hash:deviceHash})}catch(e){console.warn('No se pudo vincular el dispositivo',e)}
     loginForm.reset();closeModal(loginModal);setLoginBusy(false);showToast('Sesión iniciada correctamente.');setPlayerUI(profile,data.user).catch(e=>console.error('Carga posterior al login:',e))
   }catch(error){console.error(error);loginError.textContent=error?.message||'No se pudo iniciar sesión.'}
-  finally{setLoginBusy(false)}
+  finally{clearTimeout(slowLoginNotice);setLoginBusy(false)}
 });
 
 logoutBtn.addEventListener('click',async()=>{explicitLogoutRequested=true;settingsMenu.hidden=true;clearInterval(onlinePresenceTimer);onlinePresenceTimer=null;if(supabaseClient)await supabaseClient.auth.signOut();setGuestUI();explicitLogoutRequested=false;showToast('Sesión cerrada.')});
