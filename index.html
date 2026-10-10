@@ -1925,9 +1925,9 @@ body.ranking-badge-editing #playerDashboard .rank-hero-card>#rankBadgeImage{
   document.getElementById('badgeEditReset').addEventListener('click',()=>{values={...defaults};refresh();notice.textContent='Ajustes reiniciados'});
   document.getElementById('badgeEditClose').addEventListener('click',()=>{panel.hidden=true;document.body.classList.remove('ranking-badge-editing');root.style.removeProperty('--badge-preview-size');root.style.removeProperty('--badge-preview-x');root.style.removeProperty('--badge-preview-y')});
   document.getElementById('badgeEditCopy').addEventListener('click',async()=>{
-    const value='RANKING8BP - INSIGNIA DENTRO DEL PERFIL\\nTamaño: '+values.size+'px\\nPosición X: '+values.x+'px\\nPosición Y: '+values.y+'px';
+    const value='RANKING8BP - INSIGNIA DENTRO DEL PERFIL\nTamaño: '+values.size+'px\nPosición X: '+values.x+'px\nPosición Y: '+values.y+'px';
     try{await navigator.clipboard.writeText(value);notice.textContent='✅ Coordenadas copiadas. Pégalas en ChatGPT.'}
-    catch(_){const a=document.createElement('textarea');a.value=value;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();notice.textContent='Coordenadas copiadas: '+value.replace(/\\n/g,' · ')}
+    catch(_){const a=document.createElement('textarea');a.value=value;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();notice.textContent='Coordenadas copiadas: '+value.replace(/\n/g,' · ')}
   });
   refresh();
 })();
