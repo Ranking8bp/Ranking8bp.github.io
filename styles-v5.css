@@ -2695,3 +2695,34 @@ html,body,.viewport-shell,.site-canvas{
 }
 .ranking-table td,.ranking-list td,.ranking-row{border-color:rgba(161,182,202,.16)!important}
 .ranking-table,.ranking-list,.ranking-header{backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+
+/* Corrección: fondo visible también en centro y tarjetas (2026-10-10) */
+#playerDashboard.player-profile,
+.player-profile,
+#playerDashboard .profile-page-bg{background:transparent!important}
+#playerDashboard .profile-page-bg{opacity:0!important;pointer-events:none!important}
+#playerDashboard .competitive-hub,
+#playerDashboard .competitive-hub .season-strip,
+#playerDashboard .competitive-hub .top3-showcase,
+#playerDashboard .competitive-hub .competitive-grid>div,
+#playerDashboard .competitive-hub .match-history-box,
+#playerDashboard .competitive-hub .achievements-box{
+ background-color:rgba(4,13,26,.68)!important;
+ background-image:none!important;
+ backdrop-filter:blur(5px);
+ -webkit-backdrop-filter:blur(5px);
+}
+#playerDashboard .competitive-hub{
+ background-color:rgba(2,10,22,.38)!important;
+ border-radius:18px;
+}
+#playerDashboard .competitive-hub .season-strip,
+#playerDashboard .competitive-hub .top3-showcase,
+#playerDashboard .competitive-hub .competitive-grid>div,
+#playerDashboard .competitive-hub .match-history-box{
+ background-color:rgba(6,17,32,.56)!important;
+}
+#playerDashboard .competitive-hub .competitive-grid>div,
+#playerDashboard .competitive-hub .season-strip{
+ border-color:rgba(202,157,66,.35)!important;
+}
