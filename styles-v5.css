@@ -2652,3 +2652,46 @@ button:focus-visible,a:focus-visible,[role="button"]:focus-visible{
 #playerDashboard .ranking-play-strip .dashboard-share-btn svg,#playerDashboard .daily-play-strip .dashboard-share-btn svg{width:15px!important;height:15px!important;flex:0 0 15px!important}
 #playerDashboard .ranking-play-strip .dashboard-share-btn span,#playerDashboard .daily-play-strip .dashboard-share-btn span{font:inherit!important;color:#fff!important}
 @media(max-width:520px){#playerDashboard .dashboard-play-area.ranking-play-strip,#playerDashboard .daily-play-area.daily-play-strip{height:66px!important;min-height:66px!important;padding:0 7px!important}#playerDashboard .ranking-play-strip #dashboardPlayBtn,#playerDashboard .daily-play-strip #dailyClassificationPlayBtn{font-size:19px!important;padding:0 112px 0 80px!important}#playerDashboard .daily-play-strip .daily-match-count-label{left:9px!important;gap:4px!important;font-size:23px!important}#playerDashboard .ranking-play-strip #dashboardShareBtn,#playerDashboard .daily-play-strip #dailyClassificationShareBtn{right:7px!important;width:109px!important;max-width:34%!important;min-height:39px!important;padding:3px!important;font-size:8px!important;gap:3px!important;border-radius:9px!important}#playerDashboard .ranking-play-strip .dashboard-share-btn svg,#playerDashboard .daily-play-strip .dashboard-share-btn svg{width:12px!important;height:12px!important;flex-basis:12px!important}}
+
+
+/* Fondo premium oscuro azul/dorado + superficies translúcidas (2026-10-10) */
+html,body,.viewport-shell,.site-canvas{
+ background-color:#030911!important;
+ background-image:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.39)),url('assets/fondo-ranking-premium.svg')!important;
+ background-size:cover!important;
+ background-position:center top!important;
+ background-attachment:fixed!important;
+}
+.site-canvas{background-color:transparent!important}
+#playerDashboard .rank-hero-card,
+#playerDashboard .season-card,
+#playerDashboard .season-summary,
+#playerDashboard .season-stats,
+#playerDashboard .dashboard-stats,
+#playerDashboard .dashboard-profile-card,
+#playerDashboard .profile-hero,
+#playerDashboard .ranking-season-card,
+#playerDashboard .ranking-stats-card,
+.rank-hero-card,
+.rank-zoom-card,
+.ranking-header,
+.ranking-table thead,
+.ranking-list thead{
+ background:rgba(6,15,29,.57)!important;
+ backdrop-filter:blur(3px);
+ -webkit-backdrop-filter:blur(3px);
+}
+.ranking-table,.ranking-table tbody,.ranking-list,.ranking-list tbody,
+.ranking-table tbody tr,.ranking-list tbody tr,.ranking-row,
+.ranking-table tbody tr:nth-child(even),.ranking-table tbody tr:nth-child(odd),
+.ranking-list tbody tr:nth-child(even),.ranking-list tbody tr:nth-child(odd){
+ background:rgba(3,12,24,.48)!important;
+}
+.ranking-table tbody tr:nth-child(even),.ranking-list tbody tr:nth-child(even),.ranking-row:nth-child(even){
+ background:rgba(10,26,44,.53)!important;
+}
+.ranking-table tbody tr:first-child,.ranking-list tbody tr:first-child,.ranking-row:first-child{
+ background:linear-gradient(90deg,rgba(93,58,9,.56),rgba(8,20,34,.53))!important;
+}
+.ranking-table td,.ranking-list td,.ranking-row{border-color:rgba(161,182,202,.16)!important}
+.ranking-table,.ranking-list,.ranking-header{backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
