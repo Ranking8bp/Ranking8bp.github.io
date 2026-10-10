@@ -1932,5 +1932,80 @@ body.ranking-badge-editing #playerDashboard .rank-hero-card>#rankBadgeImage{
 })();
 </script>
 
+
+<style>
+body.ranking-banner-editing .ranking-card>.ranking-title.ranking-image-title>.ranking-title-banner{
+ width:var(--rbe-width,100%)!important;
+ max-width:none!important;
+ height:auto!important;
+ aspect-ratio:auto!important;
+ object-fit:contain!important;
+ transform:translate(var(--rbe-x,0px),var(--rbe-y,0px))!important;
+ transform-origin:center center!important;
+ flex-shrink:0!important;
+}
+body.ranking-banner-editing .ranking-card>.ranking-title.ranking-image-title{
+ overflow:visible!important;
+}
+#rankingBannerEditor[hidden]{display:none!important}
+#rankingBannerEditor{position:fixed;right:12px;bottom:12px;width:min(340px,calc(100vw - 24px));max-height:75dvh;overflow:auto;z-index:2147483646;border:1px solid #c9a35c;border-radius:15px;background:rgba(4,13,28,.95);color:#fff;padding:15px;box-shadow:0 10px 35px #000b;font:14px/1.4 Arial,sans-serif}
+#rankingBannerEditor label{display:block;margin:11px 0 0;color:#f3d491;font-weight:700}
+#rankingBannerEditor input[type=range]{display:block;width:100%;accent-color:#d5ab55}
+#rankingBannerEditor .rbe-row{display:flex;gap:7px;margin-top:13px}
+#rankingBannerEditor button{border:1px solid #ba9856;border-radius:8px;background:#16283c;color:#fff;padding:9px 10px;font:700 12px Arial,sans-serif;cursor:pointer}
+#rankingBannerEditor button:first-child{background:#a97a23;color:#fff}
+#rankingBannerEditor .rbe-note{font-size:12px;color:#b9c8d8;margin-top:9px}
+</style>
+<div id="rankingBannerEditor" hidden>
+ <strong style="font-size:17px;color:#f2cf75">EDITOR BANNER RANKING</strong>
+ <div class="rbe-note">Vista previa de ranking-header.png</div>
+ <label>Tamaño: <output id="rbeSizeValue">100%</output><input id="rbeSize" type="range" min="40" max="180" step="1" value="100"></label>
+ <label>Posición X: <output id="rbeXValue">0px</output><input id="rbeX" type="range" min="-240" max="240" step="1" value="0"></label>
+ <label>Posición Y: <output id="rbeYValue">0px</output><input id="rbeY" type="range" min="-240" max="240" step="1" value="0"></label>
+ <div class="rbe-row"><button id="rbeCopy" type="button">COPIAR COORDENADAS</button><button id="rbeReset" type="button">REINICIAR</button><button id="rbeClose" type="button">CERRAR</button></div>
+ <div class="rbe-note" id="rbeNotice">Los demás jugadores no verán tus ajustes.</div>
+</div>
+<script>
+(function(){
+ if(new URLSearchParams(location.search).get('bannereditor')!=='1')return;
+ const panel=document.getElementById('rankingBannerEditor');
+ const size=document.getElementById('rbeSize'),x=document.getElementById('rbeX'),y=document.getElementById('rbeY');
+ const note=document.getElementById('rbeNotice');
+ if(!panel||!size||!x||!y)return;
+ let initial={size:100,x:0,y:0};
+ try{initial=Object.assign(initial,JSON.parse(localStorage.getItem('ranking8bp-banner-editor')||'{}'))}catch(_){}
+ const clamp=(v,min,max)=>Math.max(min,Math.min(max,Number(v)||0));
+ size.value=clamp(initial.size,40,180);x.value=clamp(initial.x,-240,240);y.value=clamp(initial.y,-240,240);
+ const update=()=>{
+  const values={size:Number(size.value),x:Number(x.value),y:Number(y.value)};
+  document.body.classList.add('ranking-banner-editing');
+  const banner=document.querySelector('#rankingCard .ranking-title-banner');
+  const container=document.querySelector('#rankingCard .ranking-image-title');
+  if(banner&&container){
+    container.style.setProperty('--rbe-width',values.size+'%');
+    container.style.setProperty('--rbe-x',values.x+'px');
+    container.style.setProperty('--rbe-y',values.y+'px');
+    banner.loading='eager';
+  }
+  document.getElementById('rbeSizeValue').textContent=values.size+'%';
+  document.getElementById('rbeXValue').textContent=values.x+'px';
+  document.getElementById('rbeYValue').textContent=values.y+'px';
+  try{localStorage.setItem('ranking8bp-banner-editor',JSON.stringify(values))}catch(_){}
+ };
+ [size,x,y].forEach(el=>el.addEventListener('input',update));
+ document.getElementById('rbeCopy').addEventListener('click',async()=>{
+   const value='RANKING8BP - ranking-header.png\nTamaño: '+size.value+'%\nPosición X: '+x.value+'px\nPosición Y: '+y.value+'px';
+   try{await navigator.clipboard.writeText(value);note.textContent='¡Coordenadas copiadas!'}catch(_){
+     const t=document.createElement('textarea');t.value=value;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();note.textContent='Coordenadas copiadas: '+value.replace(/\n/g,' · ');
+   }
+ });
+ document.getElementById('rbeReset').addEventListener('click',()=>{size.value=100;x.value=0;y.value=0;update()});
+ document.getElementById('rbeClose').addEventListener('click',()=>{panel.hidden=true;document.body.classList.remove('ranking-banner-editing');document.querySelector('#rankingCard .ranking-image-title')?.style.removeProperty('--rbe-width')});
+ panel.hidden=false;update();
+ // Ubica la tabla para permitir ajustar el banner sin buscarlo manualmente.
+ setTimeout(()=>document.querySelector('#rankingCard .ranking-image-title')?.scrollIntoView({behavior:'smooth',block:'center'}),550);
+})();
+</script>
+
 </body>
 </html>
