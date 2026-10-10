@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Editor Banner Ranking8BP</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#050c18;color:white;font:14px Arial,sans-serif}#site{display:block;width:100%;height:100dvh;border:0;background:#050c18}
+#controls{position:fixed;z-index:999;bottom:env(safe-area-inset-bottom,0px);right:8px;width:min(350px,calc(100vw - 16px));padding:13px 14px 16px;border:1px solid #deb963;border-radius:14px 14px 0 0;background:rgba(5,14,30,.97);box-shadow:0 -4px 30px #000c;max-height:70dvh;overflow:auto}
+header{font-weight:900;color:#f8d582;font-size:16px;margin-bottom:7px}label{display:block;margin-top:9px;color:#f1de9e;font-weight:bold}input[type=range]{display:block;width:100%;accent-color:#e5b959}output{color:white}button{border:1px solid #b99b58;background:#152b42;color:#fff;border-radius:7px;padding:9px 12px;font-weight:bold;font-size:12px;cursor:pointer}button.primary{background:#8e681f}#row{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px}#status{font-size:12px;color:#ccd6e0;margin-top:9px}#minimize{position:absolute;right:12px;top:11px}#reopen{position:fixed;z-index:1001;right:10px;bottom:12px;background:#88611e;border:1px solid #f4d282;border-radius:40px;font-size:13px;padding:12px;display:none}
+</style></head>
+<body><iframe id="site" src="./index.html" title="Ranking8BP"></iframe>
+<div id="controls"><header>EDITOR · ranking-header.png</header>
+<button type="button" id="minimize">−</button>
+<label>Tamaño: <output id="valSize">100%</output><input type="range" id="size" min="40" max="180" value="100"></label>
+<label>Posición X: <output id="valX">0px</output><input type="range" id="x" min="-240" max="240" value="0"></label>
+<label>Posición Y: <output id="valY">0px</output><input type="range" id="y" min="-240" max="240" value="0"></label>
+<div id="row"><button class="primary" id="copy">COPIAR COORDENADAS</button><button id="reset">REINICIAR</button><button id="go">VER IMAGEN</button></div>
+<div id="status">Esta vista solo sirve para ajustar; no cambia el sitio público.</div></div>
+<button id="reopen" type="button">✎ ABRIR EDITOR</button>
+<script>
+(()=>{
+const frame=document.getElementById('site'),size=document.getElementById('size'),x=document.getElementById('x'),y=document.getElementById('y'),status=document.getElementById('status');
+let doc=null;
+try{const v=JSON.parse(localStorage.getItem('ranking8bp-banner-coordinates')||'{}');size.value=v.size??100;x.value=v.x??0;y.value=v.y??0}catch(e){}
+const css=()=>{
+ if(!doc)return;
+ let style=doc.getElementById('rankingIndependentEditorCSS');
+ if(!style){style=doc.createElement('style');style.id='rankingIndependentEditorCSS';doc.head.appendChild(style)}
+ style.textContent=".ranking-card>.ranking-title.ranking-image-title{overflow:visible!important}.ranking-card>.ranking-title.ranking-image-title>.ranking-title-banner{width:"+size.value+"%!important;height:auto!important;max-width:none!important;aspect-ratio:auto!important;object-fit:contain!important;transform:translate("+x.value+"px,"+y.value+"px)!important;transform-origin:center!important}";
+};
+function update(){document.getElementById('valSize').textContent=size.value+'%';document.getElementById('valX').textContent=x.value+'px';document.getElementById('valY').textContent=y.value+'px';try{localStorage.setItem('ranking8bp-banner-coordinates',JSON.stringify({size:+size.value,x:+x.value,y:+y.value}))}catch(_){}css()}
+[size,x,y].forEach(input=>input.addEventListener('input',update));
+frame.addEventListener('load',()=>{
+ try{doc=frame.contentDocument;css();const img=doc.querySelector('#rankingCard .ranking-title-banner');if(img){img.loading='eager';status.textContent='Imagen encontrada. Ajusta los tres controles y copia las coordenadas.'}else{status.textContent='Cargando la tabla de clasificación...';setTimeout(()=>{css();const a=doc.querySelector('#rankingCard .ranking-title-banner');if(a)status.textContent='Imagen encontrada. Puedes ajustarla.'},1200)}}catch(e){status.textContent='No se pudo acceder a la vista; abre Ranking8BP desde el mismo dominio.'}
+});
+document.getElementById('copy').addEventListener('click',async()=>{
+ const text='RANKING8BP - ranking-header.png\nTamaño: '+size.value+'%\nPosición X: '+x.value+'px\nPosición Y: '+y.value+'px';
+ try{await navigator.clipboard.writeText(text);status.textContent='¡Coordenadas copiadas! Pégalas en ChatGPT.'}catch(e){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();status.textContent='Coordenadas copiadas.'}
+});
+document.getElementById('reset').addEventListener('click',()=>{size.value=100;x.value=0;y.value=0;update()});
+document.getElementById('go').addEventListener('click',()=>{try{doc.querySelector('#rankingCard .ranking-title-banner')?.scrollIntoView({block:'center',behavior:'smooth'})}catch(_){}});
+document.getElementById('minimize').addEventListener('click',()=>{document.getElementById('controls').style.display='none';document.getElementById('reopen').style.display='block'});
+document.getElementById('reopen').addEventListener('click',()=>{document.getElementById('controls').style.display='block';document.getElementById('reopen').style.display='none'});
+update();
+})();
+</script></body></html>
