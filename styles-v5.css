@@ -2835,3 +2835,18 @@ html,body,.viewport-shell{
  white-space:normal!important;
  overflow-wrap:anywhere!important;
 }
+
+
+/* Posición definitiva del banner RANKING ajustada con editor visual */
+.ranking-card>.ranking-title.ranking-image-title>.ranking-title-banner{
+ width:115%!important;
+ max-width:none!important;
+ height:auto!important;
+ aspect-ratio:auto!important;
+ object-fit:contain!important;
+ transform:translate(-29px,2px)!important;
+ transform-origin:center center!important;
+}
+.ranking-card>.ranking-title.ranking-image-title{
+ overflow:hidden!important;
+}
