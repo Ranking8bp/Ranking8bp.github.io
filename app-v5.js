@@ -477,13 +477,16 @@ const RANKS=[
  #rankingRankCarousel .rrc-close{position:absolute;right:12px;top:8px;background:#90222a;border:1px solid #e4b65c;border-radius:50%;width:35px;height:35px;font-size:22px;color:white;cursor:pointer}
  #rankingRankCarousel .rrc-heading{font:bold 17px Arial,sans-serif;margin:8px 40px 3px}
  #rankingRankCarousel .rrc-stage{display:flex;align-items:center;justify-content:space-between;gap:4px;touch-action:pan-y}
- #rankingRankCarousel .rrc-badge{width:min(70vw,305px);height:min(75vw,360px);object-fit:contain;min-width:0;display:block}
+ #rankingRankCarousel .rrc-badge{width:min(70vw,305px);height:min(75vw,360px);object-fit:contain;min-width:0;display:block;transition:filter .2s ease,opacity .2s ease}
+ #rankingRankCarousel .rrc-badge.is-locked{filter:grayscale(1) brightness(.35) contrast(.9);opacity:.85}
  #rankingRankCarousel .rrc-arrow{border:1px solid #c59c4a;border-radius:50%;background:#152b3a;color:#ffd878;font-size:25px;width:38px;height:42px;flex:none;cursor:pointer}
  #rankingRankCarousel .rrc-arrow:disabled{opacity:.23;cursor:default}
  #rankingRankCarousel .rrc-name{font:bold 25px Georgia,serif;color:#ffda77;display:block;margin:0 0 5px}
  #rankingRankCarousel .rrc-elo{font:bold 17px Arial,sans-serif;color:#fff;display:block}
  #rankingRankCarousel .rrc-current{display:block;margin:9px auto 6px;padding:7px 15px;border:1px solid #eac36c;border-radius:25px;width:max-content;background:rgba(20,100,60,.8);color:#fff4ad;font:bold 15px Arial,sans-serif}
  #rankingRankCarousel .rrc-current[hidden]{display:none!important}
+ #rankingRankCarousel .rrc-locked-note{display:block;width:max-content;max-width:95%;margin:8px auto;padding:7px 13px;border:1px solid #777;border-radius:22px;background:rgba(0,0,0,.55);color:#ddd;font:bold 13px Arial,sans-serif}
+ #rankingRankCarousel .rrc-locked-note[hidden]{display:none!important}
  #rankingRankCarousel .rrc-count{font:13px Arial,sans-serif;color:#aebccc;margin:11px 0 4px}
  #rankingRankCarousel .rrc-hint{font:12px Arial,sans-serif;color:#aebccc;margin:0}
  `;
@@ -491,11 +494,14 @@ const RANKS=[
   if(document.getElementById('rankingRankCarousel'))return;
   document.head.appendChild(css);
   const modal=document.createElement('div');modal.id='rankingRankCarousel';modal.hidden=true;
-  modal.innerHTML='<section class="rrc-panel" role="dialog" aria-modal="true" aria-label="Carrusel de rangos"><button type="button" class="rrc-close" aria-label="Cerrar carrusel">×</button><div class="rrc-heading">INSIGNIAS DE RANGOS</div><div class="rrc-stage"><button type="button" class="rrc-arrow rrc-prev" aria-label="Rango anterior">‹</button><img class="rrc-badge" alt="Insignia de rango" draggable="false"><button type="button" class="rrc-arrow rrc-next" aria-label="Siguiente rango">›</button></div><strong class="rrc-name"></strong><span class="rrc-current" hidden>★ RANGO ACTUAL ★</span><span class="rrc-elo"></span><div class="rrc-count"></div><p class="rrc-hint">Desliza a los lados para cambiar de rango</p></section>';
+  modal.innerHTML='<section class="rrc-panel" role="dialog" aria-modal="true" aria-label="Carrusel de rangos"><button type="button" class="rrc-close" aria-label="Cerrar carrusel">×</button><div class="rrc-heading">INSIGNIAS DE RANGOS</div><div class="rrc-stage"><button type="button" class="rrc-arrow rrc-prev" aria-label="Rango anterior">‹</button><img class="rrc-badge" alt="Insignia de rango" draggable="false"><button type="button" class="rrc-arrow rrc-next" aria-label="Siguiente rango">›</button></div><strong class="rrc-name"></strong><span class="rrc-current" hidden>★ RANGO ACTUAL ★</span><span class="rrc-locked-note" hidden>🔒 AÚN NO TIENES ESTE RANGO</span><span class="rrc-elo"></span><div class="rrc-count"></div><p class="rrc-hint">Desliza a los lados para cambiar de rango</p></section>';
   document.body.appendChild(modal);
   const panel=modal.querySelector('.rrc-panel'),img=modal.querySelector('.rrc-badge');
   const render=()=>{
    const rank=RANKS[current];img.src=rank.image;img.alt='Insignia '+rank.name;
+   const locked=current>currentRankIndex;
+   img.classList.toggle('is-locked',locked);
+   modal.querySelector('.rrc-locked-note').hidden=!locked;
    modal.querySelector('.rrc-name').textContent=rank.name.toUpperCase();
    modal.querySelector('.rrc-elo').textContent='ELO REQUERIDO: '+rank.min;
    modal.querySelector('.rrc-current').hidden=current!==currentRankIndex;
