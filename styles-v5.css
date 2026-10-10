@@ -2726,3 +2726,27 @@ html,body,.viewport-shell,.site-canvas{
 #playerDashboard .competitive-hub .season-strip{
  border-color:rgba(202,157,66,.35)!important;
 }
+
+/* Fondo vertical ajustado al ancho real del sitio, sin paisaje estirado */
+html,body,.viewport-shell{
+ background-image:none!important;
+ background-color:#020710!important;
+}
+.site-canvas{
+ width:min(100%,1080px)!important;
+ max-width:1080px!important;
+ margin-inline:auto!important;
+ background-color:#040a14!important;
+ background-image:linear-gradient(rgba(0,0,0,.36),rgba(0,0,0,.43)),url('assets/fondo-ranking-premium.svg')!important;
+ background-size:100% auto!important;
+ background-position:center top!important;
+ background-repeat:repeat-y!important;
+ background-attachment:scroll!important;
+}
+#playerDashboard.player-profile{
+ width:100%!important;
+ max-width:100%!important;
+}
+@media(max-width:700px){
+ .site-canvas{width:100%!important;max-width:100%!important}
+}
