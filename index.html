@@ -1859,5 +1859,79 @@ document.addEventListener('keydown',function(e){
 #dailyMatchModal #dailyChatMessages .mine .fresh-chat-message-content{background:#073b0d!important}
 #dailyMatchModal #dailyChatMessages .fresh-chat-message-content p{margin:5px 0 0!important}
 @media(max-width:520px){#dailyMatchModal #dailyMatchVs>.versus-grid>.versus-player:last-child{grid-template-columns:72px minmax(0,1fr) 75px!important;padding:12px 8px!important;gap:5px!important}}
-</style><style id="daily-three-results-style">#dailyMatchModal #dailyMatchActions{flex-wrap:wrap!important}#dailyMatchModal #dailyMatchActions button:nth-child(3){flex:0 0 100%!important;background:linear-gradient(#bd7b00,#795000)!important;color:white!important}</style><style id="daily-abandon-button-style">#dailyMatchModal #dailyMatchActions:has(button:only-child) button{background:linear-gradient(#b5202a,#751018)!important;flex:1!important}</style><style>#adminDailyProofsArea{padding:14px;max-height:65vh;overflow-y:auto}#adminDailyProofsList{display:grid;gap:12px;margin-top:12px}.daily-admin-proof{padding:12px;border:1px solid #555;border-radius:12px;background:#171923}.daily-admin-proof video{display:block;width:100%;max-height:280px;margin:10px 0}.daily-admin-proof button{margin:4px;padding:9px;border-radius:8px}</style><style>.daily-evidence-box{margin:16px auto;padding:14px;border:2px solid #a26c17;border-radius:14px;background:#211408;text-align:center;color:#fff;box-shadow:0 0 15px #9e671b44}.daily-evidence-box h3{margin:0 0 8px;color:#ffdc73;font-size:17px}.daily-evidence-box p{font-size:12px;margin:8px 0 14px}.daily-evidence-box button{display:block;width:100%;padding:14px;margin:8px 0;border:0;border-radius:8px;font-weight:900;color:#fff;background:#995407}.daily-evidence-box #dailyEvidenceForgot{background:#6d2025}.daily-evidence-box #dailyEvidenceStatus{font-size:13px;color:#ffdc73}</style><style>.daily-opponent-exit-notice{margin:14px auto;padding:15px;border:2px solid #bd8530;border-radius:12px;background:#291b0c;color:#ffdc80;text-align:center;font-size:15px;font-weight:900;line-height:1.5}#dailyRankedChat[hidden]{display:none!important}</style><style>#freshAbandonPending[hidden],#freshResponseWarning[hidden],#dailyMatchActions button[hidden]{display:none!important}</style><style>#dailyMatchActions[hidden],#dailyEvidenceBox[hidden]{display:none!important}</style><style>.daily-video-picker-label{display:block;cursor:pointer;text-align:center;padding:13px;border-radius:10px;background:#c89a35;color:#161006;font-weight:900}</style><style>#dailyMatchVs #dailyMatchContent:empty{display:none!important}#dailyMatchVs .daily-waiting-replies{display:none!important}</style></body>
+</style><style id="daily-three-results-style">#dailyMatchModal #dailyMatchActions{flex-wrap:wrap!important}#dailyMatchModal #dailyMatchActions button:nth-child(3){flex:0 0 100%!important;background:linear-gradient(#bd7b00,#795000)!important;color:white!important}</style><style id="daily-abandon-button-style">#dailyMatchModal #dailyMatchActions:has(button:only-child) button{background:linear-gradient(#b5202a,#751018)!important;flex:1!important}</style><style>#adminDailyProofsArea{padding:14px;max-height:65vh;overflow-y:auto}#adminDailyProofsList{display:grid;gap:12px;margin-top:12px}.daily-admin-proof{padding:12px;border:1px solid #555;border-radius:12px;background:#171923}.daily-admin-proof video{display:block;width:100%;max-height:280px;margin:10px 0}.daily-admin-proof button{margin:4px;padding:9px;border-radius:8px}</style><style>.daily-evidence-box{margin:16px auto;padding:14px;border:2px solid #a26c17;border-radius:14px;background:#211408;text-align:center;color:#fff;box-shadow:0 0 15px #9e671b44}.daily-evidence-box h3{margin:0 0 8px;color:#ffdc73;font-size:17px}.daily-evidence-box p{font-size:12px;margin:8px 0 14px}.daily-evidence-box button{display:block;width:100%;padding:14px;margin:8px 0;border:0;border-radius:8px;font-weight:900;color:#fff;background:#995407}.daily-evidence-box #dailyEvidenceForgot{background:#6d2025}.daily-evidence-box #dailyEvidenceStatus{font-size:13px;color:#ffdc73}</style><style>.daily-opponent-exit-notice{margin:14px auto;padding:15px;border:2px solid #bd8530;border-radius:12px;background:#291b0c;color:#ffdc80;text-align:center;font-size:15px;font-weight:900;line-height:1.5}#dailyRankedChat[hidden]{display:none!important}</style><style>#freshAbandonPending[hidden],#freshResponseWarning[hidden],#dailyMatchActions button[hidden]{display:none!important}</style><style>#dailyMatchActions[hidden],#dailyEvidenceBox[hidden]{display:none!important}</style><style>.daily-video-picker-label{display:block;cursor:pointer;text-align:center;padding:13px;border-radius:10px;background:#c89a35;color:#161006;font-weight:900}</style><style>#dailyMatchVs #dailyMatchContent:empty{display:none!important}#dailyMatchVs .daily-waiting-replies{display:none!important}</style>
+<!-- Editor temporal de tamaño/posición de la insignia. Se activa SOLO con ?badgeeditor=1 -->
+<style id="ranking-badge-editor-styles">
+body.ranking-badge-editing #playerDashboard .rank-hero-card>#rankBadgeImage{
+  width:var(--badge-preview-size,230px)!important;height:var(--badge-preview-size,230px)!important;
+  min-width:0!important;min-height:0!important;
+  max-width:none!important;max-height:none!important;
+  left:var(--badge-preview-x,0px)!important;top:var(--badge-preview-y,0px)!important;
+}
+#rankingBadgeEditorPanel{position:fixed;z-index:2147483645;bottom:12px;right:12px;max-width:calc(100vw - 24px);width:300px;
+ background:rgba(6,15,28,.96);color:#fff;border:1px solid #d6a54d;border-radius:14px;padding:12px;
+ box-shadow:0 12px 36px #0009;font:13px/1.35 Arial,sans-serif;box-sizing:border-box}
+#rankingBadgeEditorPanel[hidden]{display:none!important}
+#rankingBadgeEditorPanel label{display:grid;grid-template-columns:70px 1fr 48px;align-items:center;gap:7px;margin:9px 0}
+#rankingBadgeEditorPanel input[type=range]{width:100%;min-width:0;accent-color:#eac264}
+#rankingBadgeEditorPanel output{text-align:right;color:#ffdf8e;font-variant-numeric:tabular-nums}
+#rankingBadgeEditorPanel .editor-actions{display:flex;gap:6px;flex-wrap:wrap}
+#rankingBadgeEditorPanel button{border:1px solid #b58e47;border-radius:8px;background:#1b2e45;color:#fff;padding:8px 9px;font-weight:bold;cursor:pointer}
+#rankingBadgeEditorPanel button:first-child{background:#82601a}
+#rankingBadgeEditorPanel small{display:block;margin:7px 0;color:#c7d0db}
+</style>
+<div id="rankingBadgeEditorPanel" hidden>
+  <strong>🎱 EDITOR DE INSIGNIA · PERFIL</strong>
+  <small>Prueba los ajustes en tu perfil. Solo tú ves la vista previa; nada cambia para otros jugadores.</small>
+  <label>Tamaño <input id="badgeEditSize" type="range" min="90" max="370" step="1" value="230"><output id="badgeEditSizeValue">230 px</output></label>
+  <label>Posición X <input id="badgeEditX" type="range" min="-180" max="180" step="1" value="0"><output id="badgeEditXValue">0 px</output></label>
+  <label>Posición Y <input id="badgeEditY" type="range" min="-180" max="180" step="1" value="0"><output id="badgeEditYValue">0 px</output></label>
+  <div class="editor-actions">
+    <button id="badgeEditCopy" type="button">COPIAR COORDENADAS</button>
+    <button id="badgeEditReset" type="button">REINICIAR</button>
+    <button id="badgeEditClose" type="button">CERRAR</button>
+  </div>
+  <small id="badgeEditNotice" role="status"></small>
+</div>
+<script>
+(function(){
+  const params=new URLSearchParams(location.search);
+  if(params.get('badgeeditor')!=='1')return;
+  const panel=document.getElementById('rankingBadgeEditorPanel');
+  if(!panel)return;
+  const root=document.documentElement;
+  const ids={size:'badgeEditSize',x:'badgeEditX',y:'badgeEditY'};
+  const input=key=>document.getElementById(ids[key]);
+  const notice=document.getElementById('badgeEditNotice');
+  const defaults={size:230,x:0,y:0};
+  let values={...defaults};
+  try{
+    const saved=JSON.parse(localStorage.getItem('ranking8bp-badge-editor')||'{}');
+    for(const key of Object.keys(defaults)){
+      const n=Number(saved[key]);if(Number.isFinite(n)&&saved[key]!=null)
+        values[key]=Math.max(Number(input(key).min),Math.min(Number(input(key).max),Math.round(n)));
+    }
+  }catch(_){}
+  function refresh(){
+    document.body.classList.add('ranking-badge-editing');
+    root.style.setProperty('--badge-preview-size',values.size+'px');
+    root.style.setProperty('--badge-preview-x',values.x+'px');
+    root.style.setProperty('--badge-preview-y',values.y+'px');
+    Object.keys(values).forEach(key=>{input(key).value=values[key];document.getElementById(ids[key]+'Value').textContent=values[key]+' px'});
+    try{localStorage.setItem('ranking8bp-badge-editor',JSON.stringify(values))}catch(_){}
+  }
+  panel.hidden=false;
+  Object.keys(values).forEach(key=>input(key).addEventListener('input',()=>{values[key]=Number(input(key).value);notice.textContent='';refresh()}));
+  document.getElementById('badgeEditReset').addEventListener('click',()=>{values={...defaults};refresh();notice.textContent='Ajustes reiniciados'});
+  document.getElementById('badgeEditClose').addEventListener('click',()=>{panel.hidden=true;document.body.classList.remove('ranking-badge-editing');root.style.removeProperty('--badge-preview-size');root.style.removeProperty('--badge-preview-x');root.style.removeProperty('--badge-preview-y')});
+  document.getElementById('badgeEditCopy').addEventListener('click',async()=>{
+    const value='RANKING8BP - INSIGNIA DENTRO DEL PERFIL\\nTamaño: '+values.size+'px\\nPosición X: '+values.x+'px\\nPosición Y: '+values.y+'px';
+    try{await navigator.clipboard.writeText(value);notice.textContent='✅ Coordenadas copiadas. Pégalas en ChatGPT.'}
+    catch(_){const a=document.createElement('textarea');a.value=value;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();notice.textContent='Coordenadas copiadas: '+value.replace(/\\n/g,' · ')}
+  });
+  refresh();
+})();
+</script>
+
+</body>
 </html>
