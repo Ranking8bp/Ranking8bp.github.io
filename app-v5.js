@@ -3801,6 +3801,9 @@ async function dailyRequireActiveSession({promptLogin=false}={}){
 async function dailyRpc(name,args){
   const {data,error}=await supabaseClient.rpc(name,args);
   if(error){
+    if(/DAILY_MIN_ELO_100/i.test(String(error?.message||''))){
+      throw Object.assign(new Error('NECESITAS UN MÍNIMO DE 100 ELO EN RANKING PARA JUGAR CLASIFICATORIA DIARIA.'),{code:'DAILY_MIN_ELO_100'});
+    }
     if(/AUTH_REQUIRED|JWT expired|invalid JWT/i.test(String(error?.message||''))){
       // No interpretar un problema de autorización como un fallo de Cloudflare.
       throw Object.assign(new Error('TU SESIÓN HA CADUCADO. VUELVE A INICIAR SESIÓN.'),{code:'DAILY_SESSION_REQUIRED'});
@@ -3811,6 +3814,8 @@ async function dailyRpc(name,args){
 }
 let dailyPrivateWatchBusy=false;let dailyLastAutoOpenedMatchId=null;
 // Evitar que el sondeo de estado diario acumule peticiones mientras Supabase está saturado.
+const DAILY_MINIMUM_RANKING_ELO=100;
+const DAILY_MINIMUM_ELO_MESSAGE='NECESITAS UN MÍNIMO DE 100 ELO EN RANKING PARA JUGAR CLASIFICATORIA DIARIA.';
 let dailyStatusRefreshBusy=false;
 async function dailyRefreshStatus(){
  if(!currentUser||!supabaseClient||dailyStatusRefreshBusy)return;
@@ -3825,8 +3830,13 @@ async function dailyRefreshStatus(){
   if(em[0])em[0].textContent=canReturn?'REGRESAR A LA SALA':String(Math.min(15,(st.played||0)+1));
   if(em[1])em[1].textContent=canReturn?'':'15';
   btn.dataset.returnRoom=canReturn?'1':'0';
-  btn.disabled=false;btn.dataset.dailyLimitReached=(!canReturn&&Number(st.remaining)<=0)?'1':'0';btn.setAttribute('aria-disabled',btn.dataset.dailyLimitReached==='1'?'true':'false');
-  btn.style.opacity=btn.disabled?'.55':'1';
+  const belowMinimum=!canReturn&&Number(st.elo_points)<DAILY_MINIMUM_RANKING_ELO;
+  btn.dataset.dailyEloBlocked=belowMinimum?'1':'0';
+  btn.dataset.dailyLimitReached=(!canReturn&&Number(st.remaining)<=0)?'1':'0';
+  btn.disabled=false; // Mantener pulsable para explicar el requisito, sin iniciar búsqueda.
+  btn.setAttribute('aria-disabled',(belowMinimum||btn.dataset.dailyLimitReached==='1')?'true':'false');
+  btn.title=belowMinimum?DAILY_MINIMUM_ELO_MESSAGE:'Jugar clasificatoria diaria (mínimo 100 ELO)';
+  btn.style.opacity=belowMinimum?'.65':'1';
  }
  if(st.match_id&&!st.my_claim&&dailyLastAutoOpenedMatchId!==Number(st.match_id)){dailyLastAutoOpenedMatchId=Number(st.match_id);dailyMatchId=Number(st.match_id);dailyStopPolling();dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyInviteModal').hidden=true;await dailyShowRoom()}
  if(st.match_id&&dailyEl('dailyMatchModal')?.hidden===false&&!st.my_claim){dailyMatchId=Number(st.match_id)}
@@ -4291,6 +4301,7 @@ window.startDailyClassification=async function(){
   st=await dailyRpc('daily_classification_status');
  }
  if(st.match_id&&!st.my_claim){dailyEl('dailyMatchModal').hidden=false;dailyMatchId=Number(st.match_id);await dailyShowRoom();return}
+ if(Number(st.elo_points)<DAILY_MINIMUM_RANKING_ELO){alert(DAILY_MINIMUM_ELO_MESSAGE+'\n\nTU ELO ACTUAL: '+Number(st.elo_points||0));return}
  if(Number(st.remaining)<=0){alert('YA JUGASTE TUS 15 PARTIDOS DE CLASIFICACION DIARIA. LOS PARTIDOS EN REVISION SE ACTUALIZARÁN ANTES QUE TERMINE LA COMPETENCIA.');return}
  dailyEl('dailyMatchModal').hidden=false;dailyEl('dailyMatchActions').replaceChildren();
  if(st.match_id){dailyMatchId=st.match_id;await dailyShowRoom();return}
@@ -4318,6 +4329,7 @@ document.addEventListener('click',e=>{
  if(!currentUser){alert('INICIA SESIÓN PARA PARTICIPAR.');return}
 
  if(dailyEl('dailyClassificationPlayBtn')?.dataset.returnRoom==='1'){window.startDailyClassification();return}
+ if(dailyEl('dailyClassificationPlayBtn')?.dataset.dailyEloBlocked==='1'){alert(DAILY_MINIMUM_ELO_MESSAGE);return}
  if(dailyEl('dailyClassificationPlayBtn')?.dataset.dailyLimitReached==='1'){alert('YA JUGASTE TUS 15 PARTIDOS DE CLASIFICACION DIARIA. LOS PARTIDOS EN REVISION SE ACTUALIZARÁN ANTES QUE TERMINE LA COMPETENCIA.');return}
  const key='ranking8bp-daily-rules-ok-'+dailyDate();
  if(localStorage.getItem(key)!=='1'){dailyEl('dailyClassificationRulesModal').hidden=false;return}
