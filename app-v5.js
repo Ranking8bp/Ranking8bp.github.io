@@ -465,6 +465,58 @@ const RANKS=[
   {min:10000,name:'MÍTICO V',image:'https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/rangos/MiticoV.png'}
 ];
 
+
+/* Carrusel de los 60 rangos: misma lista oficial RANKS y ELO mínimo. */
+(function setupRankingRankCarousel(){
+ let current=0,startX=null;
+ const css=document.createElement('style');
+ css.textContent=`
+ #rankingRankCarousel[hidden]{display:none!important}
+ #rankingRankCarousel{position:fixed;inset:0;z-index:2147483647;display:flex;justify-content:center;align-items:center;padding:15px;background:rgba(0,0,0,.84);box-sizing:border-box}
+ #rankingRankCarousel .rrc-panel{position:relative;width:min(100%,460px);max-height:94dvh;overflow:auto;background:rgba(5,16,29,.92);border:1.5px solid #b9944b;border-radius:24px;text-align:center;box-shadow:0 15px 55px #000b;padding:15px 12px 23px;box-sizing:border-box;color:#f7de91}
+ #rankingRankCarousel .rrc-close{position:absolute;right:12px;top:8px;background:#90222a;border:1px solid #e4b65c;border-radius:50%;width:35px;height:35px;font-size:22px;color:white;cursor:pointer}
+ #rankingRankCarousel .rrc-heading{font:bold 17px Arial,sans-serif;margin:8px 40px 3px}
+ #rankingRankCarousel .rrc-stage{display:flex;align-items:center;justify-content:space-between;gap:4px;touch-action:pan-y}
+ #rankingRankCarousel .rrc-badge{width:min(70vw,305px);height:min(75vw,360px);object-fit:contain;min-width:0;display:block}
+ #rankingRankCarousel .rrc-arrow{border:1px solid #c59c4a;border-radius:50%;background:#152b3a;color:#ffd878;font-size:25px;width:38px;height:42px;flex:none;cursor:pointer}
+ #rankingRankCarousel .rrc-arrow:disabled{opacity:.23;cursor:default}
+ #rankingRankCarousel .rrc-name{font:bold 25px Georgia,serif;color:#ffda77;display:block;margin:0 0 5px}
+ #rankingRankCarousel .rrc-elo{font:bold 17px Arial,sans-serif;color:#fff;display:block}
+ #rankingRankCarousel .rrc-count{font:13px Arial,sans-serif;color:#aebccc;margin:11px 0 4px}
+ #rankingRankCarousel .rrc-hint{font:12px Arial,sans-serif;color:#aebccc;margin:0}
+ `;
+ function init(){
+  if(document.getElementById('rankingRankCarousel'))return;
+  document.head.appendChild(css);
+  const modal=document.createElement('div');modal.id='rankingRankCarousel';modal.hidden=true;
+  modal.innerHTML='<section class="rrc-panel" role="dialog" aria-modal="true" aria-label="Carrusel de rangos"><button type="button" class="rrc-close" aria-label="Cerrar carrusel">×</button><div class="rrc-heading">INSIGNIAS DE RANGOS</div><div class="rrc-stage"><button type="button" class="rrc-arrow rrc-prev" aria-label="Rango anterior">‹</button><img class="rrc-badge" alt="Insignia de rango" draggable="false"><button type="button" class="rrc-arrow rrc-next" aria-label="Siguiente rango">›</button></div><strong class="rrc-name"></strong><span class="rrc-elo"></span><div class="rrc-count"></div><p class="rrc-hint">Desliza a los lados para cambiar de rango</p></section>';
+  document.body.appendChild(modal);
+  const panel=modal.querySelector('.rrc-panel'),img=modal.querySelector('.rrc-badge');
+  const render=()=>{
+   const rank=RANKS[current];img.src=rank.image;img.alt='Insignia '+rank.name;
+   modal.querySelector('.rrc-name').textContent=rank.name.toUpperCase();
+   modal.querySelector('.rrc-elo').textContent='ELO REQUERIDO: '+rank.min;
+   modal.querySelector('.rrc-count').textContent=(current+1)+' / '+RANKS.length;
+   modal.querySelector('.rrc-prev').disabled=current===0;
+   modal.querySelector('.rrc-next').disabled=current===RANKS.length-1;
+  };
+  const move=n=>{current=Math.max(0,Math.min(RANKS.length-1,current+n));render()};
+  const close=()=>{modal.hidden=true;document.body.style.removeProperty('overflow')};
+  modal.querySelector('.rrc-prev').addEventListener('click',()=>move(-1));
+  modal.querySelector('.rrc-next').addEventListener('click',()=>move(1));
+  modal.querySelector('.rrc-close').addEventListener('click',close);
+  modal.addEventListener('click',e=>{if(e.target===modal)close()});
+  panel.addEventListener('touchstart',e=>{if(e.touches.length===1)startX=e.touches[0].clientX},{passive:true});
+  panel.addEventListener('touchend',e=>{if(startX===null)return;const delta=e.changedTouches[0].clientX-startX;startX=null;if(Math.abs(delta)>45)move(delta<0?1:-1)},{passive:true});
+  document.addEventListener('keydown',e=>{if(modal.hidden)return;if(e.key==='Escape')close();if(e.key==='ArrowRight')move(1);if(e.key==='ArrowLeft')move(-1)});
+  document.addEventListener('click',e=>{
+   if(!e.target.closest('[data-menu="rangos"]'))return;
+   e.preventDefault();current=0;render();modal.hidden=false;document.body.style.overflow='hidden';
+  });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+
 function getRankByElo(value){
   const elo=Number.isFinite(Number(value))?Number(value):200;
   let index=0;
