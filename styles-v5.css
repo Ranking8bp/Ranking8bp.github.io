@@ -2765,3 +2765,35 @@ html,body,.viewport-shell{
   #playerDashboard .competitive-hub{max-width:100%!important;width:min(100%,600px)!important}
   #playerDashboard .rank-hero-card{min-width:0!important}
 }
+
+/* Optimización de desplazamiento móvil: reducir repintados y capas de blur */
+@media (max-width:700px), (hover:none) and (pointer:coarse){
+  html,body,.viewport-shell{
+    background-image:none!important;
+    background-color:#020710!important;
+    background-attachment:scroll!important;
+  }
+  .site-canvas{
+    background-image:linear-gradient(rgba(0,0,0,.42),rgba(0,0,0,.48)),url('assets/fondo-ranking-premium.svg')!important;
+    background-size:100% auto!important;
+    background-repeat:no-repeat!important;
+    background-position:center top!important;
+    background-attachment:scroll!important;
+  }
+  #playerDashboard .rank-hero-card,
+  #playerDashboard .competitive-hub,
+  #playerDashboard .competitive-hub *,
+  #playerDashboard .season-card,
+  #playerDashboard .season-summary,
+  #playerDashboard .season-stats,
+  #playerDashboard .dashboard-stats,
+  #playerDashboard .dashboard-profile-card,
+  #playerDashboard .profile-hero,
+  #playerDashboard .ranking-season-card,
+  #playerDashboard .ranking-stats-card,
+  .rank-hero-card,.rank-zoom-card,.ranking-header,
+  .ranking-table,.ranking-list,.ranking-table thead,.ranking-list thead{
+    backdrop-filter:none!important;
+    -webkit-backdrop-filter:none!important;
+  }
+}
