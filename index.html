@@ -637,6 +637,39 @@
 </style>
 </head>
 <body>
+<div id="rankingEmergencyRecovery" style="position:fixed;inset:0;z-index:2147483646;display:none;align-items:center;justify-content:center;box-sizing:border-box;padding:20px;background:#07131e;color:white;font:16px Arial,sans-serif;text-align:center">
+ <div style="width:min(100%,450px);border:2px solid #d8ab4c;border-radius:18px;padding:26px;background:#0e2533">
+  <strong style="display:block;color:#ffd260;font-size:27px;margin-bottom:12px">RANKING8BP</strong>
+  <p style="margin:0 0 16px;line-height:1.5">La página está tardando en iniciar. Tu cuenta y tus partidas no se han borrado.</p>
+  <button id="rankingEmergencyRetry" type="button" style="border:0;border-radius:11px;padding:14px 18px;background:#1ab653;color:#fff;font-size:18px;font-weight:800;cursor:pointer">REINTENTAR CARGA</button>
+  <button id="rankingEmergencyLogin" type="button" style="display:block;margin:15px auto 0;border:1px solid #e0bb65;border-radius:10px;padding:12px 15px;background:#172c3b;color:#fff;font-size:16px;cursor:pointer">INICIAR SESIÓN</button>
+  <small style="display:block;margin-top:18px;opacity:.8">Si continúa así, envíanos una captura de la consola del navegador (F12).</small>
+ </div>
+</div>
+<script id="ranking-emergency-recovery-script">
+(function(){
+ var recovery=document.getElementById('rankingEmergencyRecovery');
+ function ready(){
+  var panel=document.getElementById('playerDashboard');
+  var guest=document.getElementById('guestEmpty');
+  return window.ranking8bpViewReady===true ||
+    (panel&&!panel.hidden&&panel.getBoundingClientRect().height>80) ||
+    (guest&&!guest.hidden&&guest.getBoundingClientRect().height>80);
+ }
+ setTimeout(function(){
+   if(!ready()&&recovery)recovery.style.display='flex';
+ },6500);
+ document.getElementById('rankingEmergencyRetry').addEventListener('click',function(){
+   location.href=location.pathname+'?recuperar='+Date.now();
+ });
+ document.getElementById('rankingEmergencyLogin').addEventListener('click',function(){
+   var btn=document.getElementById('loginBtn');
+   if(btn){recovery.style.display='none';btn.click();}
+   else location.href=location.pathname+'?recuperar='+Date.now();
+ });
+ window.addEventListener('pageshow',function(){if(ready())recovery.style.display='none'});
+})();
+</script>
 <div id="rankingReloadFallback" role="status" aria-live="polite" style="position:fixed;bottom:16px;left:16px;right:16px;z-index:2147483640;display:none;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;width:max-content;max-width:calc(100% - 32px);margin:0 auto;padding:14px 18px;border:1px solid #bd9443;border-radius:14px;box-shadow:0 8px 24px #0008;text-align:center;background:#0c2430;color:#fff;font:600 14px Arial,sans-serif"><span>LA PÁGINA TARDA EN CARGAR. TU SESIÓN SE CONSERVA.</span><button type="button" onclick="window.ranking8bpRetryAuth ? window.ranking8bpRetryAuth() : location.reload()" style="border:0;border-radius:10px;padding:11px 18px;background:#e4b34e;color:#101820;font-weight:800;cursor:pointer">REINTENTAR</button></div>
 <script>(function(){
  var start=Date.now();
@@ -1599,7 +1632,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261009-black-screen-shell-safe2"></script>
+  <script src="app-v5.js?v=20261009-recovery-black-screen3"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer>
 <div id="privateInviteFullNotice" hidden style="position:fixed;inset:0;z-index:2147483647;background:rgba(2,8,19,.94);display:none;align-items:center;justify-content:center;padding:20px"><div style="width:min(94vw,430px);padding:35px 22px;border:2px solid #f0bd46;border-radius:22px;background:#111e30;text-align:center;color:white"><div style="font-size:66px">😢</div><h2 style="font-size:27px;color:#ffce5a;margin:12px 0">LLEGASTE TARDE</h2><p style="font-size:21px;font-weight:900">YA ENTRÓ ALGUIEN</p><div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:18px"><button type="button" id="privateInviteFullClose" style="padding:13px 25px;border:0;border-radius:12px;background:#d62828;color:#fff;font-weight:900">ENTENDIDO</button><button type="button" id="privateInviteFullCopy" class="dashboard-share-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 12px;border:2px solid #51aeff;border-radius:12px;background:#126fe0;color:#fff;font-weight:900"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.2M8.7 13.3l6.6 4.2"/></svg><span>COPIAR LINK PARA SALA PRIVADA</span></button></div></div></div>
 <div id="privateInviteExpiredNotice" hidden style="position:fixed;inset:0;z-index:2147483647;background:rgba(2,8,19,.94);display:none;align-items:center;justify-content:center;padding:20px"><div style="width:min(94vw,430px);padding:35px 22px;border:2px solid #f0bd46;border-radius:22px;background:#111e30;text-align:center;color:white"><div style="font-size:66px">😢</div><h2 style="font-size:27px;color:#ffce5a;margin:12px 0">SALA EXPIRADA 😢</h2><div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:22px"><button type="button" id="privateInviteExpiredClose" style="padding:13px 25px;border:0;border-radius:12px;background:#d62828;color:#fff;font-weight:900">ENTENDIDO</button><button type="button" id="privateInviteExpiredCopy" class="dashboard-share-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 12px;border:2px solid #51aeff;border-radius:12px;background:#126fe0;color:#fff;font-weight:900"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.2M8.7 13.3l6.6 4.2"/></svg><span>COPIAR LINK PARA SALA PRIVADA</span></button></div></div></div>
