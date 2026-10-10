@@ -473,7 +473,7 @@ const RANKS=[
  css.textContent=`
  #rankingRankCarousel[hidden]{display:none!important}
  #rankingRankCarousel{position:fixed;inset:0;z-index:2147483647;display:flex;justify-content:center;align-items:center;padding:15px;background:rgba(0,0,0,.84);box-sizing:border-box}
- #rankingRankCarousel .rrc-panel{position:relative;width:min(100%,460px);max-height:94dvh;overflow:auto;background:rgba(5,16,29,.92);border:1.5px solid #b9944b;border-radius:24px;text-align:center;box-shadow:0 15px 55px #000b;padding:15px 12px 23px;box-sizing:border-box;color:#f7de91}
+ #rankingRankCarousel .rrc-panel{position:relative;width:min(100%,460px);max-height:94dvh;overflow:auto;background:rgba(5,16,29,.50);border:1.5px solid #b9944b;border-radius:24px;text-align:center;box-shadow:0 15px 55px #000b;padding:15px 12px 23px;box-sizing:border-box;color:#f7de91}
  #rankingRankCarousel .rrc-close{position:absolute;right:12px;top:8px;background:#90222a;border:1px solid #e4b65c;border-radius:50%;width:35px;height:35px;font-size:22px;color:white;cursor:pointer}
  #rankingRankCarousel .rrc-heading{font:bold 17px Arial,sans-serif;margin:8px 40px 3px}
  #rankingRankCarousel .rrc-stage{display:flex;align-items:center;justify-content:space-between;gap:4px;touch-action:pan-y}
