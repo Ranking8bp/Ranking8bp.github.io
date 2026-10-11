@@ -3248,6 +3248,14 @@ profilePhotoInput.addEventListener('change',async()=>{
   }catch(error){console.error(error);dashboardMessage.textContent='No se pudo guardar la foto de perfil.'}
 });
 
+async function rankingRegistrationDeviceHash(){
+ let id=localStorage.getItem('ranking8bp_device_id');
+ if(!id){id=crypto.randomUUID();localStorage.setItem('ranking8bp_device_id',id)}
+ const bytes=new TextEncoder().encode(id);
+ const digest=await crypto.subtle.digest('SHA-256',bytes);
+ return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
+}
+
 registerForm.addEventListener('submit',async event=>{
   event.preventDefault();registerError.textContent='';
   // Comprobación local: no utilizar IP ni Wi-Fi compartido para restringir cuentas.
@@ -3274,7 +3282,8 @@ registerForm.addEventListener('submit',async event=>{
   setRegisterBusy(true);
   try{
     registerSubmit.textContent='Creando cuenta...';
-    const {data:registerData,error:registerFunctionError}=await supabaseClient.functions.invoke('register-user',{body:{username:usernameValue,password:passwordValue}});
+    const deviceHash=await rankingRegistrationDeviceHash();
+    const {data:registerData,error:registerFunctionError}=await supabaseClient.functions.invoke('register-user',{body:{username:usernameValue,password:passwordValue,device_hash:deviceHash}});
     if(registerFunctionError||!registerData?.ok){let serverMsg=registerData?.error||'';if(!serverMsg&&registerFunctionError?.context){try{const response=registerFunctionError.context;const payload=typeof response?.json==='function'?await response.clone().json():null;serverMsg=payload?.error||''}catch(_){}}if(!serverMsg)serverMsg=registerFunctionError?.message||'';throw new Error(serverMsg||'No se pudo crear la cuenta.')}
 
     const {data:loginData,error:loginAfterRegisterError}=await supabaseClient.auth.signInWithPassword({email:usernameToInternalEmail(usernameValue),password:passwordValue});
