@@ -4569,3 +4569,41 @@ for(const id of ['adminVsTab','adminPlayersTab','adminModerationTab'])document.g
 
 document.addEventListener('click',e=>{if(e.target.closest('#dailyEvidenceSelect'))dailyUploadVictoryVideo()});
 document.getElementById('dailyEvidenceForgot')?.addEventListener('click',async()=>{if(!dailyMatchId||dailyBusy)return;if(!confirm('¿SALIR SIN ENVIAR VIDEO? TU VICTORIA NO SERÁ VALIDADA.'))return;dailyBusy=true;try{await dailyRpc('daily_classification_leave',{p_match_id:dailyMatchId,p_action:'forgot'});dailyEvidenceMatchId=null;const box=dailyEl('dailyEvidenceBox');if(box)box.hidden=true;dailyStopPolling();dailyEl('dailyMatchModal').hidden=true;dailyMatchId=null;await dailyRefreshStatus()}catch(e){alert('NO SE PUDO SALIR: '+e.message)}finally{dailyBusy=false}});
+
+
+/* Enlace compartible por WhatsApp: ejecuta el mismo botón verde JUGAR RANKING. */
+(function rankingPlayDeepLink(){
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('jugar')!=='ranking')return;
+  let launched=false,shownGuest=false;
+  const startedAt=Date.now();
+  const check=()=>{
+    if(launched)return;
+    const play=document.getElementById('dashboardPlayBtn');
+    const dashboard=document.getElementById('playerDashboard');
+    if(play&&dashboard&&!dashboard.hidden&&window.ranking8bpViewReady&&currentUser&&supabaseClient&&!play.disabled){
+      launched=true;
+      try{history.replaceState(history.state,'',location.pathname+location.search.replace(/([?&])jugar=ranking(&?)/,(m,a,b)=>b?a:'')+location.hash)}catch(_){}
+      play.click(); // Conserva todas las reglas, verificaciones y lógica de matchmaking existente.
+      return;
+    }
+    if(!shownGuest&&Date.now()-startedAt>5500&&!currentUser&&!window.ranking8bpViewReady){
+      shownGuest=true;
+      const msg=document.createElement('div');
+      msg.id='rankingSharedPlayNotice';
+      msg.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:2147483000;width:min(94vw,440px);padding:14px;background:#08192cee;color:white;border:1px solid #d6ad55;border-radius:12px;font:700 14px Arial;text-align:center;box-shadow:0 8px 25px #0008';
+      msg.textContent='INICIA SESIÓN PARA BUSCAR RIVAL EN RANKING. AL ENTRAR SE ABRIRÁ JUGAR.';
+      document.body.appendChild(msg);
+      const login=document.getElementById('loginBtn');
+      if(login&&!document.getElementById('loginModal')?.open)login.click();
+    }
+  };
+  const observer=new MutationObserver(check);
+  const init=()=>{
+    const dashboard=document.getElementById('playerDashboard');
+    if(dashboard)observer.observe(dashboard,{attributes:true,attributeFilter:['hidden']});
+    const timer=setInterval(()=>{check();if(launched||Date.now()-startedAt>180000){clearInterval(timer);observer.disconnect();document.getElementById('rankingSharedPlayNotice')?.remove()}},1000);
+    check();
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
