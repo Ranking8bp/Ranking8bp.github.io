@@ -2740,7 +2740,7 @@ if(new URLSearchParams(window.location.search).get('edgefeeds')!=='0'){
       }
       if(daily&&dailyEl('dailyRankingInfoModal')?.hidden===false&&
          dailyEl('dailyPreviousResultsBtn')?.dataset.previousDay!=='1'){
-        dailyLoadLeaderboard(false).catch(()=>{});
+        (Date.now()-dailyLeaderboardLastAutoRefresh>8000&&(dailyLeaderboardLastAutoRefresh=Date.now(),dailyLoadLeaderboard(false).catch(()=>{})));
       }
     },450);
   };
@@ -3987,6 +3987,9 @@ async function dailyLoadWinner(){
  }
 }
 
+let dailyLeaderboardLoading=false;
+let dailyLeaderboardLastRender='';
+let dailyLeaderboardLastAutoRefresh=0;
 async function dailyLoadLeaderboard(previousDay=false){
  const el=dailyEl('dailyRankingList');if(!el||!supabaseClient)return;
  const modal=dailyEl('dailyRankingInfoModal'),view=dailyEl('dailyWinnerView');
@@ -3996,6 +3999,8 @@ async function dailyLoadLeaderboard(previousDay=false){
  const previousBtn=dailyEl('dailyPreviousResultsBtn');
  if(previousBtn){previousBtn.dataset.previousDay=previousDay?'1':'0';const img=previousBtn.querySelector('img');if(img)img.alt=previousDay?'VOLVER A CLASIFICATORIA DE HOY':'RESULTADOS DEL DÍA ANTERIOR';}
  if(previousDay){await dailyLoadWinner();return;}
+ if(dailyLeaderboardLoading)return;
+ dailyLeaderboardLoading=true;
  ++dailyWinnerLoadToken;
  try{
  const {data:rows,error:dailyFeedError}=await rankingPublicFeed('daily');if(dailyFeedError)throw dailyFeedError;
@@ -4011,6 +4016,9 @@ async function dailyLoadLeaderboard(previousDay=false){
    for(const ranked of (rankRows||[]))dailyElos.set(String(ranked.player_id),Number(ranked.elo_points)||0);
   }
  }catch(rankError){console.warn('No se pudieron cargar insignias diarias:',rankError)}
+ const signature=JSON.stringify(rows.map(r=>[r.player_id,r.player_name,r.avatar_path,r.country,r.points,r.remaining,dailyElos.get(String(r.player_id))]));
+ if(signature===dailyLeaderboardLastRender)return;
+ dailyLeaderboardLastRender=signature;
  el.replaceChildren();
  rows.forEach((r,i)=>{
   const item=document.createElement('div');item.className='daily-leaderboard-row';item.dataset.playerId=String(r.player_id||'');
@@ -4044,7 +4052,7 @@ async function dailyLoadLeaderboard(previousDay=false){
   const remaining=document.createElement('strong');remaining.className='daily-leaderboard-remaining';remaining.textContent=String(r.remaining??0)+'/15';
   item.append(position,player,country,points,remaining);el.appendChild(item);
  })
- }catch(e){console.error(e);el.textContent='NO SE PUDO CARGAR LA CLASIFICATORIA DIARIA.'}
+ }catch(e){console.error(e);if(!el.children.length)el.textContent='NO SE PUDO CARGAR LA CLASIFICATORIA DIARIA.'}finally{dailyLeaderboardLoading=false}
 }
 function dailyStopPolling(){
  dailySearching=false;
