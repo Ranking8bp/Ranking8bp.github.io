@@ -1121,7 +1121,7 @@ html,body{color-scheme:dark!important}
 
 .player-admin-btn{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 14px;border:1px solid #b08b27;border-radius:10px;background:#172331;color:#f4d36d;font:900 11px Arial,sans-serif;cursor:pointer}
 .player-admin-btn:hover{background:#243547}
-.admin-player-editor-backdrop{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.82);backdrop-filter:blur(7px)}
+.admin-player-editor-backdrop{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.82);backdrop-filter:blur(7px)}
 .admin-player-editor{width:min(760px,96vw);max-height:92vh;overflow:auto;background:#07131d;border:1px solid #4b6576;border-radius:18px;box-shadow:0 25px 80px rgba(0,0,0,.7);color:#fff;padding:20px}
 .admin-player-editor-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #263d4a;padding-bottom:14px;margin-bottom:16px}
 .admin-player-editor-head small{color:#d4b34c;font:900 10px Arial,sans-serif;letter-spacing:2px}
