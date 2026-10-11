@@ -3332,7 +3332,7 @@ loginForm.addEventListener('submit',async event=>{
   finally{clearTimeout(slowLoginNotice);setLoginBusy(false)}
 });
 
-logoutBtn.addEventListener('click',async()=>{explicitLogoutRequested=true;settingsMenu.hidden=true;clearInterval(onlinePresenceTimer);onlinePresenceTimer=null;if(supabaseClient)await supabaseClient.auth.signOut();setGuestUI();explicitLogoutRequested=false;showToast('Sesión cerrada.')});
+logoutBtn.addEventListener('click',async()=>{try{if(currentUser?.id)localStorage.setItem('ranking8bp_registered_device','1')}catch(_){}explicitLogoutRequested=true;settingsMenu.hidden=true;clearInterval(onlinePresenceTimer);onlinePresenceTimer=null;if(supabaseClient)await supabaseClient.auth.signOut();setGuestUI();explicitLogoutRequested=false;showToast('Sesión cerrada.')});
 
 if(deleteAccountBtn)deleteAccountBtn.addEventListener('click',async()=>{
   settingsMenu.hidden=true;
