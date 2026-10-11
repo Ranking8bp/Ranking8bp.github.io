@@ -2384,7 +2384,7 @@ function openAdminPlayerEditor(player){
       <label class="field admin-editor-photo-field"><span class="field-label">Foto de perfil</span><input id="adminEditAvatar" type="file" accept="image/png,image/jpeg,image/webp"><small>JPG, PNG o WEBP · máximo 5 MB</small></label>
     </div>
     <div class="admin-editor-preview"><div id="adminEditAvatarPreview"></div><span id="adminEditStatus"></span></div>
-    <div class="admin-editor-actions"><button type="button" class="admin-editor-delete" style="background:#8b1111;color:#fff;border:1px solid #ff4d4d;font-weight:900">ELIMINAR CUENTA</button><button type="button" class="admin-editor-cancel">CANCELAR</button><button type="button" class="admin-editor-save">GUARDAR TODO</button></div>
+    <div class="admin-editor-actions"><button type="button" class="admin-editor-block" style="background:#a65308;color:#fff;border:1px solid #ffb04d;font-weight:900">BLOQUEAR CUENTA</button><button type="button" class="admin-editor-delete" style="background:#8b1111;color:#fff;border:1px solid #ff4d4d;font-weight:900">ELIMINAR CUENTA</button><button type="button" class="admin-editor-cancel">CANCELAR</button><button type="button" class="admin-editor-save">GUARDAR TODO</button></div>
   </section>`;
   document.body.appendChild(modal);
   const q=id=>modal.querySelector('#'+id);
@@ -2409,6 +2409,28 @@ function openAdminPlayerEditor(player){
   modal.querySelector('.admin-editor-close').onclick=closeAdminPlayerEditor;
   modal.querySelector('.admin-editor-cancel').onclick=closeAdminPlayerEditor;
   modal.addEventListener('click',e=>{if(e.target===modal)closeAdminPlayerEditor()});
+  const blockBtn=modal.querySelector('.admin-editor-block');
+  const refreshBlockStatus=async()=>{
+    const {data,error}=await supabaseClient.rpc('ikar_get_player_block',{p_player_id:player.player_id});
+    if(error)throw error;
+    blockBtn.dataset.blocked=String(data===true);
+    blockBtn.textContent=data===true?'DESBLOQUEAR CUENTA':'BLOQUEAR CUENTA';
+    blockBtn.style.background=data===true?'#176b42':'#a65308';
+  };
+  refreshBlockStatus().catch(e=>{console.error('Estado de bloqueo:',e);q('adminEditStatus').textContent='No se pudo consultar el bloqueo.'});
+  blockBtn.onclick=async()=>{
+    const blocked=blockBtn.dataset.blocked==='true';
+    if(!confirm(blocked?'¿Desbloquear esta cuenta para que pueda iniciar sesión?':'¿Bloquear esta cuenta? No podrá iniciar sesión hasta que la desbloquees.'))return;
+    blockBtn.disabled=true;
+    try{
+      const {error}=await supabaseClient.rpc('ikar_set_player_block',{p_player_id:player.player_id,p_blocked:!blocked});
+      if(error)throw error;
+      await refreshBlockStatus();
+      q('adminEditStatus').textContent=blocked?'Cuenta desbloqueada.':'Cuenta bloqueada. No podrá iniciar sesión.';
+      showToast(blocked?'Cuenta desbloqueada.':'Cuenta bloqueada.');
+    }catch(error){console.error('Bloqueo de cuenta:',error);q('adminEditStatus').textContent='No se pudo cambiar el bloqueo: '+(error?.message||'Error');}
+    finally{blockBtn.disabled=false}
+  };
   modal.querySelector('.admin-editor-delete').onclick=async()=>{
     const btn=modal.querySelector('.admin-editor-delete');
     const name=player.account_name||player.username||'este jugador';
@@ -3328,7 +3350,7 @@ loginForm.addEventListener('submit',async event=>{
     try{localStorage.setItem('ranking8bp_registered_device','1')}catch(_){}
     try{let deviceId=localStorage.getItem('ranking8bp_device_id');if(!deviceId){deviceId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2));localStorage.setItem('ranking8bp_device_id',deviceId)}const bytes=new TextEncoder().encode(deviceId);const digest=await crypto.subtle.digest('SHA-256',bytes);const deviceHash=Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');await supabaseClient.rpc('claim_my_registration_device',{p_device_hash:deviceHash})}catch(e){console.warn('No se pudo vincular el dispositivo',e)}
     loginForm.reset();closeModal(loginModal);setLoginBusy(false);showToast('Sesión iniciada correctamente.');setPlayerUI(profile,data.user).catch(e=>console.error('Carga posterior al login:',e))
-  }catch(error){console.error(error);loginError.textContent=error?.message||'No se pudo iniciar sesión.'}
+  }catch(error){console.error(error);loginError.textContent=/banned|blocked|suspend/i.test(String(error?.message||''))?'TU CUENTA FUE BLOQUEADA POR EL ADMINISTRADOR. CONTACTA AL ADMINISTRADOR SI CREES QUE ES UN ERROR.':(error?.message||'No se pudo iniciar sesión.')}
   finally{clearTimeout(slowLoginNotice);setLoginBusy(false)}
 });
 
