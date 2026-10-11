@@ -3250,6 +3250,19 @@ profilePhotoInput.addEventListener('change',async()=>{
 
 registerForm.addEventListener('submit',async event=>{
   event.preventDefault();registerError.textContent='';
+  // Comprobación local: no utilizar IP ni Wi-Fi compartido para restringir cuentas.
+  try{
+    const {data:sessionResult}=await supabaseClient.auth.getSession();
+    if(currentUser?.id||sessionResult?.session?.user?.id){
+      registerError.textContent='YA TIENES UNA CUENTA CON SESIÓN INICIADA. NO PUEDES CREAR OTRA DESDE ESTE DISPOSITIVO.';
+      return;
+    }
+    if(localStorage.getItem('ranking8bp_registered_device')==='1'){
+      registerError.textContent='SOLO PUEDES TENER 1 CUENTA POR DISPOSITIVO. INICIA SESIÓN CON TU CUENTA EXISTENTE.';
+      return;
+    }
+  }catch(e){registerError.textContent='NO SE PUDO VERIFICAR TU SESIÓN. VUELVE A INTENTARLO.';return;}
+
   if(!cloudReady){registerError.textContent='La nube todavía no está configurada.';return}
 
   const usernameValue=username.value.trim(),passwordValue=password.value,idValue=gameId.value.trim(),countryValue=country.value.trim();
@@ -3273,7 +3286,7 @@ registerForm.addEventListener('submit',async event=>{
     }).select('id, username, game_id, account_name, country, screenshot_path, avatar_path, rank_name, elo_points, wins, losses, created_at').single();
     if(profileError)throw new Error('No se pudo guardar el perfil: '+profileError.message);
 
-    registerForm.reset();closeModal(registerModal);await setPlayerUI(newProfile,loginData.user);showToast('Cuenta creada. Rango inicial: Latón · ELO 0.')
+    localStorage.setItem('ranking8bp_registered_device','1');registerForm.reset();closeModal(registerModal);await setPlayerUI(newProfile,loginData.user);showToast('Cuenta creada. Rango inicial: Latón · ELO 0.')
   }catch(error){console.error(error);registerError.textContent=error?.message||'No se pudo crear la cuenta.'}
   finally{setRegisterBusy(false)}
 });
@@ -3303,6 +3316,7 @@ loginForm.addEventListener('submit',async event=>{
     }
     if(!data?.session)throw new Error('No se recibió una sesión válida. Intenta nuevamente.');
     const profile=await getProfile(data.user.id);
+    try{localStorage.setItem('ranking8bp_registered_device','1')}catch(_){}
     try{let deviceId=localStorage.getItem('ranking8bp_device_id');if(!deviceId){deviceId=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2));localStorage.setItem('ranking8bp_device_id',deviceId)}const bytes=new TextEncoder().encode(deviceId);const digest=await crypto.subtle.digest('SHA-256',bytes);const deviceHash=Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');await supabaseClient.rpc('claim_my_registration_device',{p_device_hash:deviceHash})}catch(e){console.warn('No se pudo vincular el dispositivo',e)}
     loginForm.reset();closeModal(loginModal);setLoginBusy(false);showToast('Sesión iniciada correctamente.');setPlayerUI(profile,data.user).catch(e=>console.error('Carga posterior al login:',e))
   }catch(error){console.error(error);loginError.textContent=error?.message||'No se pudo iniciar sesión.'}
