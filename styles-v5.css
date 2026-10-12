@@ -2924,3 +2924,31 @@ html,body,.viewport-shell{
  .ranking-row.ranking-first{grid-template-columns:26px minmax(0,1fr) minmax(48px,.6fr) 106px!important}
  .ranking-row .ranking-elo-number{font-size:11px!important;min-width:40px!important}
 }
+
+
+/* Definitive mobile ranking grid: four tracks always fit the card width. */
+@media(max-width:700px){
+ .ranking-card,.ranking-list,.ranking-header,.ranking-row{max-width:100%;box-sizing:border-box}
+ .ranking-header,.ranking-row,.ranking-row.ranking-first{
+   display:grid!important;
+   grid-template-columns:32px minmax(0,1fr) minmax(0,.8fr) 116px!important;
+   gap:2px!important;
+   width:100%!important;max-width:100%!important;
+   margin-left:0!important;margin-right:0!important;
+   padding-left:4px!important;padding-right:4px!important;
+   box-sizing:border-box!important;
+ }
+ .ranking-row.ranking-first{border-width:1px!important}
+ .ranking-row>*,.ranking-header>*{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+ .ranking-player,.ranking-country{min-width:0!important;overflow:hidden!important}
+ .ranking-country{white-space:nowrap!important;text-overflow:ellipsis!important}
+ .ranking-elo{width:116px!important;min-width:0!important;max-width:116px!important;justify-content:flex-end!important;gap:3px!important;padding:0!important}
+ .ranking-elo-rank{width:61px!important;height:70px!important;flex:0 0 61px!important;transform:none!important}
+ .ranking-elo-number{width:50px!important;min-width:50px!important;max-width:50px!important;flex:0 0 50px!important;font-size:13px!important;text-align:right!important;overflow:visible!important}
+}
+@media(max-width:380px){
+ .ranking-header,.ranking-row,.ranking-row.ranking-first{grid-template-columns:28px minmax(0,1fr) minmax(0,.7fr) 108px!important}
+ .ranking-elo{width:108px!important;max-width:108px!important}
+ .ranking-elo-rank{width:55px!important;flex-basis:55px!important}
+ .ranking-elo-number{width:49px!important;min-width:49px!important;max-width:49px!important;flex-basis:49px!important;font-size:12px!important}
+}
