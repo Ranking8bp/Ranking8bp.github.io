@@ -4035,6 +4035,7 @@ async function dailyLoadWinner(){
 let dailyLeaderboardLoading=false;
 let dailyLeaderboardLastRender='';
 let dailyLeaderboardLastAutoRefresh=0;
+let dailyLeaderboardRefreshQueued=false;
 async function dailyLoadLeaderboard(previousDay=false){
  const el=dailyEl('dailyRankingList');if(!el||!supabaseClient)return;
  const modal=dailyEl('dailyRankingInfoModal'),view=dailyEl('dailyWinnerView');
@@ -4044,7 +4045,7 @@ async function dailyLoadLeaderboard(previousDay=false){
  const previousBtn=dailyEl('dailyPreviousResultsBtn');
  if(previousBtn){previousBtn.dataset.previousDay=previousDay?'1':'0';const img=previousBtn.querySelector('img');if(img)img.alt=previousDay?'VOLVER A CLASIFICATORIA DE HOY':'RESULTADOS DEL DÍA ANTERIOR';}
  if(previousDay){await dailyLoadWinner();return;}
- if(dailyLeaderboardLoading)return;
+ if(dailyLeaderboardLoading){dailyLeaderboardRefreshQueued=true;return;}
  dailyLeaderboardLoading=true;
  ++dailyWinnerLoadToken;
  try{
@@ -4062,7 +4063,7 @@ async function dailyLoadLeaderboard(previousDay=false){
   }
  }catch(rankError){console.warn('No se pudieron cargar insignias diarias:',rankError)}
  const signature=JSON.stringify(rows.map(r=>[r.player_id,r.player_name,r.avatar_path,r.country,r.points,r.remaining,dailyElos.get(String(r.player_id))]));
- if(signature===dailyLeaderboardLastRender)return;
+ if(signature===dailyLeaderboardLastRender&&el.children.length)return;
  dailyLeaderboardLastRender=signature;
  el.replaceChildren();
  rows.forEach((r,i)=>{
@@ -4097,7 +4098,10 @@ async function dailyLoadLeaderboard(previousDay=false){
   const remaining=document.createElement('strong');remaining.className='daily-leaderboard-remaining';remaining.textContent=String(r.remaining??0)+'/15';
   item.append(position,player,country,points,remaining);el.appendChild(item);
  })
- }catch(e){console.error(e);if(!el.children.length)el.textContent='NO SE PUDO CARGAR LA CLASIFICATORIA DIARIA.'}finally{dailyLeaderboardLoading=false}
+ }catch(e){console.error(e);if(!el.children.length)el.textContent='NO SE PUDO CARGAR LA CLASIFICATORIA DIARIA.'}finally{
+  dailyLeaderboardLoading=false;
+  if(dailyLeaderboardRefreshQueued){dailyLeaderboardRefreshQueued=false;setTimeout(()=>{if(dailyEl('dailyRankingInfoModal')?.hidden===false)dailyLoadLeaderboard(false).catch(()=>{})},1200)}
+ }
 }
 function dailyStopPolling(){
  dailySearching=false;
