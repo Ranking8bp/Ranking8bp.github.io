@@ -2891,3 +2891,36 @@ html,body,.viewport-shell{
   .ranking-row:nth-child(-n+3) .ranking-elo-rank{transform:none!important}
   .ranking-row:nth-child(-n+3) .ranking-elo-number{position:relative;z-index:2}
 }
+
+
+/* Mobile first-place row: same grid as all rows, without fixed ELO width or offsets. */
+@media(max-width:700px){
+ .ranking-row.ranking-first{
+   width:100%!important;
+   max-width:100%!important;
+   margin:4px 0!important;
+   padding:5px 5px!important;
+   box-sizing:border-box!important;
+   grid-template-columns:30px minmax(0,1.18fr) minmax(58px,.78fr) minmax(112px,auto)!important;
+ }
+ .ranking-row .ranking-elo{
+   width:100%!important;
+   min-width:0!important;
+   max-width:100%!important;
+   justify-content:flex-end!important;
+   padding-right:2px!important;
+   box-sizing:border-box!important;
+ }
+ .ranking-row .ranking-elo-number{
+   width:auto!important;
+   min-width:43px!important;
+   max-width:none!important;
+   font-size:clamp(11px,3vw,14px)!important;
+   font-variant-numeric:tabular-nums!important;
+   flex-shrink:0!important;
+ }
+}
+@media(max-width:380px){
+ .ranking-row.ranking-first{grid-template-columns:26px minmax(0,1fr) minmax(48px,.6fr) 106px!important}
+ .ranking-row .ranking-elo-number{font-size:11px!important;min-width:40px!important}
+}
