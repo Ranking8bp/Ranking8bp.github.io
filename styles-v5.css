@@ -2875,3 +2875,19 @@ html,body,.viewport-shell{
   .ranking-elo-rank{width:60px!important;flex-basis:60px!important}
   .ranking-elo-number{font-size:11px!important;min-width:37px!important}
 }
+
+
+/* FIX: the previous top-three transform (3x/2x/1.25x) caused badge overlap. */
+.ranking-row:nth-child(1) .ranking-elo-rank,
+.ranking-row:nth-child(2) .ranking-elo-rank,
+.ranking-row:nth-child(3) .ranking-elo-rank{
+  transform:none!important;
+  transform-origin:center!important;
+}
+.ranking-row .ranking-elo-rank{box-sizing:border-box;max-width:100%;overflow:hidden!important}
+.ranking-row .ranking-elo-rank img{display:block;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;transform:none!important}
+@media(max-width:700px){
+  .ranking-row:nth-child(-n+3){overflow:hidden!important}
+  .ranking-row:nth-child(-n+3) .ranking-elo-rank{transform:none!important}
+  .ranking-row:nth-child(-n+3) .ranking-elo-number{position:relative;z-index:2}
+}
