@@ -1424,7 +1424,7 @@
     <section class="player-detail-card" role="dialog" aria-modal="true" aria-labelledby="playerDetailName">
       <button type="button" class="player-detail-close" id="closePlayerDetail" aria-label="Cerrar">×</button>
 
-      <div class="player-detail-head" id="spectatorProfileTrigger" role="button" tabindex="0" aria-label="Abrir perfil completo del jugador en modo espectador">
+      <div class="player-detail-head">
         <div class="player-detail-avatar" id="playerDetailAvatar"><span>J</span></div>
         <div class="player-detail-identity">
           <div class="player-detail-name-row">
@@ -1441,7 +1441,6 @@
         </div>
       </div>
 
-      <button type="button" id="openSpectatorProfile" class="spectator-open-btn">👁 VER PERFIL COMPLETO · MODO ESPECTADOR</button>
       <div class="player-follow-area">
         <div class="player-follow-counts">
           <div><strong id="playerFollowersCount">0</strong><span>Seguidores</span></div>
@@ -2085,44 +2084,43 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
 
 
 <style>
-.spectator-open-btn{display:block;width:calc(100% - 28px);margin:8px 14px 14px;padding:13px 8px;background:linear-gradient(90deg,#13435b,#116c6d);border:1px solid #61d6e6;border-radius:9px;color:white;font-weight:900;cursor:pointer}
-#spectatorProfileOverlay{position:fixed;inset:0;z-index:2147483640;background:#02070e;overflow:auto;overscroll-behavior:contain}
+#spectatorProfileOverlay{position:fixed;inset:0;z-index:2147483640;background:#030a12;overflow-y:auto;overscroll-behavior:contain}
 #spectatorProfileOverlay[hidden]{display:none!important}
-#spectatorProfileOverlay .spectator-bar{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;background:#071c2b;color:#fff;padding:12px;border-bottom:1px solid #4bbbd0}
-#spectatorProfileOverlay .spectator-bar button{background:#183d51;color:#fff;border:1px solid #6aafc2;padding:9px 14px;border-radius:8px}
-#spectatorProfileOverlay .spectator-content{max-width:900px;margin:0 auto;padding:14px 12px 50px;color:#fff}
-.player-detail-card #openSpectatorProfile{display:block!important;visibility:visible!important;opacity:1!important;position:relative!important;z-index:3!important}
-.player-detail-card #spectatorProfileTrigger{cursor:pointer;outline-offset:4px}
-#spectatorProfileOverlay .spectator-content .identity-section,#spectatorProfileOverlay .spectator-content .rank-hero-card,#spectatorProfileOverlay .spectator-content .competitive-hub{display:block}
-#spectatorProfileOverlay .spectator-content .profile-header-actions,#spectatorProfileOverlay .spectator-content .avatar-edit{display:none!important}
-#spectatorProfileOverlay .spectator-content .rank-hero-card{margin:16px auto}
-#spectatorProfileOverlay .spectator-content .spectator-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
-#spectatorProfileOverlay .spectator-content .spectator-stats>div{background:#102536;border:1px solid #2d5268;border-radius:8px;text-align:center;padding:12px 4px}
-#spectatorProfileOverlay .spectator-content .spectator-stats strong{display:block;color:#e4c36d;font-size:20px}
-#spectatorProfileOverlay .spectator-content .spectator-stats small{font-size:10px;color:#b8c9d2}
-#spectatorProfileOverlay .spectator-content .spectator-history{margin-top:20px;background:#0b1a28;border:1px solid #284658;border-radius:10px;padding:14px}
-#spectatorProfileOverlay .spectator-content .spectator-history h3{margin:0 0 12px}
+#spectatorProfileOverlay .spectator-top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;padding:12px;background:#081c2c;color:#fff;border-bottom:1px solid #38657b}
+#spectatorProfileOverlay .spectator-top button{padding:9px 15px;background:#173c51;color:#fff;border:1px solid #70c6dd;border-radius:8px;font-weight:800}
+#spectatorProfileOverlay .spectator-dashboard{display:block!important;max-width:950px;margin:0 auto;padding:15px 10px 50px;min-height:100vh}
+#spectatorProfileOverlay .spectator-dashboard .identity-section,#spectatorProfileOverlay .spectator-dashboard .rank-hero-card{display:flex!important}
+#spectatorProfileOverlay .spectator-dashboard .rank-hero-card{margin:18px auto}
+#spectatorProfileOverlay .spectator-dashboard .spectator-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;max-width:760px;margin:20px auto;color:white}
+#spectatorProfileOverlay .spectator-summary>div{background:#10283b;border:1px solid #3d6279;border-radius:10px;padding:12px 5px;text-align:center}
+#spectatorProfileOverlay .spectator-summary strong{display:block;font-size:20px;color:#f1d17a}
+#spectatorProfileOverlay .spectator-summary small{font-size:10px;color:#d0e0e9}
+#spectatorProfileOverlay .spectator-records{max-width:760px;margin:20px auto;color:white;background:#0c2030;border:1px solid #35546c;border-radius:10px;padding:15px}
+#playerDetailAvatar{cursor:pointer}
 </style>
-<div id="spectatorProfileOverlay" hidden role="dialog" aria-modal="true" aria-label="Perfil del jugador en modo espectador">
- <div class="spectator-bar"><strong>👁 MODO ESPECTADOR</strong><button type="button" id="closeSpectatorProfile">✕ VOLVER</button></div>
- <div class="spectator-content" id="spectatorProfileContent"></div>
+<div id="spectatorProfileOverlay" hidden role="dialog" aria-modal="true" aria-label="Perfil del jugador">
+ <div class="spectator-top"><button id="closeSpectatorProfile" type="button">‹ VOLVER</button><strong>PERFIL DEL JUGADOR</strong></div>
+ <div id="spectatorProfileContent"></div>
 </div>
 <script>
 (function(){
- const open=document.getElementById('openSpectatorProfile');
+ const avatar=document.getElementById('playerDetailAvatar');
  const overlay=document.getElementById('spectatorProfileOverlay');
  const content=document.getElementById('spectatorProfileContent');
+ if(!avatar||!overlay||!content)return;
  const close=()=>{overlay.hidden=true;document.body.style.removeProperty('overflow')};
  document.getElementById('closeSpectatorProfile').addEventListener('click',close);
- const head=document.getElementById('spectatorProfileTrigger');
- if(head){head.addEventListener('click',e=>{if(e.target.closest('#playerDetailRankBadge'))return;open.click()});head.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open.click()}})}
- open.addEventListener('click',()=>{
+ avatar.setAttribute('role','button');avatar.setAttribute('tabindex','0');avatar.setAttribute('aria-label','Abrir perfil completo');
+ function openSpectator(){
   const detail=document.getElementById('playerDetailModal');
-  const original=document.getElementById('playerDashboard');
-  if(!detail||!original)return;
-  content.replaceChildren();
-  const identity=original.querySelector('.identity-section')?.cloneNode(true);
-  const hero=original.querySelector('.rank-hero-card')?.cloneNode(true);
+  const dashboard=document.getElementById('playerDashboard');
+  if(!detail||!dashboard)return;
+  const clone=dashboard.cloneNode(false);
+  clone.removeAttribute('id');clone.removeAttribute('hidden');
+  clone.classList.add('spectator-dashboard');
+  clone.setAttribute('aria-label','Perfil público en modo espectador');
+  const identity=dashboard.querySelector('.identity-section')?.cloneNode(true);
+  const hero=dashboard.querySelector('.rank-hero-card')?.cloneNode(true);
   if(!identity||!hero)return;
   for(const section of [identity,hero])section.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
   identity.querySelector('.avatar-edit')?.remove();
@@ -2135,31 +2133,36 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
   const badge=detail.querySelector('#playerDetailRankBadge');
   const photo=detail.querySelector('#playerDetailAvatar img');
   const nameEl=identity.querySelector('h2');if(nameEl)nameEl.textContent=name;
-  const countryEl=identity.querySelector('#countryName')||identity.querySelector('.country-line span:last-child');if(countryEl)countryEl.textContent=country;
+  const countryEl=identity.querySelector('.country-line span:last-child');if(countryEl)countryEl.textContent=country;
   const flagEl=identity.querySelector('.country-flag');if(flagEl)flagEl.textContent=flag;
-  const image=identity.querySelector('img');const placeholder=identity.querySelector('.avatar-placeholder');
+  const image=identity.querySelector('img'),placeholder=identity.querySelector('.avatar-placeholder');
   if(image){if(photo?.src){image.src=photo.src;image.hidden=false;if(placeholder)placeholder.hidden=true}else{image.hidden=true;if(placeholder)placeholder.hidden=false}}
-  const follower=identity.querySelector('.main-follow-stats strong');if(follower)follower.textContent=detail.querySelector('#playerFollowersCount')?.textContent||'0';
-  const following=identity.querySelectorAll('.main-follow-stats strong')[1];if(following)following.textContent=detail.querySelector('#playerFollowingCount')?.textContent||'0';
+  const followers=identity.querySelectorAll('.main-follow-stats strong');
+  if(followers[0])followers[0].textContent=detail.querySelector('#playerFollowersCount')?.textContent||'0';
+  if(followers[1])followers[1].textContent=detail.querySelector('#playerFollowingCount')?.textContent||'0';
   const heroRank=hero.querySelector('.dashboard-rank-name');if(heroRank)heroRank.textContent=rank;
   const heroElo=hero.querySelector('.elo-number');if(heroElo)heroElo.textContent=elo;
   const heroBadge=hero.querySelector('.rank-badge-image');
   if(heroBadge&&badge){heroBadge.replaceChildren(...Array.from(badge.childNodes).map(n=>n.cloneNode(true)));heroBadge.style.backgroundImage=badge.style.backgroundImage;heroBadge.setAttribute('aria-label',rank)}
   hero.querySelector('.rank-progress-row')?.remove();
-  content.append(identity,hero);
-  const stats=document.createElement('div');stats.className='spectator-stats';
+  clone.append(identity,hero);
+  const stats=document.createElement('div');stats.className='spectator-summary';
   for(const [label,selector] of [['ELO','#playerDetailElo'],['VICTORIAS','#playerDetailWins'],['DERROTAS','#playerDetailLosses'],['POSICIÓN','#playerDetailPosition'],['DINÁMICAS','#playerDetailDynamicWins'],['RACHA','#playerDetailStreak']]){
    const cell=document.createElement('div'),value=document.createElement('strong'),caption=document.createElement('small');
    value.textContent=detail.querySelector(selector)?.textContent||'0';caption.textContent=label;cell.append(value,caption);stats.append(cell);
   }
-  content.append(stats);
-  const history=document.createElement('section');history.className='spectator-history';
-  const title=document.createElement('h3');title.textContent='HISTORIAL DE PARTIDAS';
+  clone.append(stats);
+  const history=document.createElement('section');history.className='spectator-records';
+  const title=document.createElement('h3');title.textContent='ÚLTIMAS PARTIDAS';
+  history.append(title);
   const records=detail.querySelector('#playerDetailMatchHistory')?.cloneNode(true);
-  history.append(title);if(records){records.removeAttribute('id');history.append(records)}
-  content.append(history);
+  if(records){records.removeAttribute('id');history.append(records)}
+  clone.append(history);
+  content.replaceChildren(clone);
   overlay.hidden=false;document.body.style.overflow='hidden';overlay.scrollTop=0;
- });
+ }
+ avatar.addEventListener('click',openSpectator);
+ avatar.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openSpectator()}});
 })();
 </script>
 
