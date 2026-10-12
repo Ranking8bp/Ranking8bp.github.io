@@ -2958,3 +2958,24 @@ html,body,.viewport-shell{
 @media(max-width:700px){
  .ranking-row>.ranking-elo{padding-right:8px!important;box-sizing:border-box!important}
 }
+
+
+/* ELO number: larger and immediately beside the rank emblem. */
+.ranking-row>.ranking-elo,.ranking-row.ranking-first>.ranking-elo{
+  justify-content:flex-end!important;
+  gap:1px!important;
+}
+.ranking-row .ranking-elo-number,.ranking-row.ranking-first .ranking-elo-number{
+  font-size:20px!important;
+  letter-spacing:-.45px!important;
+  text-align:left!important;
+}
+@media(max-width:700px){
+  .ranking-row>.ranking-elo,.ranking-row.ranking-first>.ranking-elo{gap:1px!important}
+  .ranking-row .ranking-elo-number,.ranking-row.ranking-first .ranking-elo-number{
+    font-size:16px!important;
+    width:65px!important;min-width:65px!important;max-width:65px!important;
+    flex-basis:65px!important;
+    text-align:left!important;
+  }
+}
