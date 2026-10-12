@@ -2850,3 +2850,28 @@ html,body,.viewport-shell{
 .ranking-card>.ranking-title.ranking-image-title{
  overflow:hidden!important;
 }
+
+
+/* Ranking responsive: reserve real space for large rank emblems and ELO. */
+@media(max-width:700px){
+  .ranking-header,.ranking-row{
+    grid-template-columns:30px minmax(0,1.18fr) minmax(58px,.78fr) minmax(112px,auto)!important;
+    column-gap:3px!important;
+    box-sizing:border-box!important;
+    width:100%!important;
+  }
+  .ranking-row{min-height:90px!important;padding:5px 5px!important}
+  .ranking-first{min-height:96px!important;margin:4px 0!important}
+  .ranking-header{padding:0 5px!important}
+  .ranking-elo{min-width:0!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:3px!important;overflow:visible!important}
+  .ranking-elo-rank{width:66px!important;height:74px!important;flex:0 0 66px!important;display:grid!important;place-items:center!important;overflow:visible!important}
+  .ranking-elo-rank img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;max-width:100%!important;max-height:100%!important}
+  .ranking-elo-number{min-width:39px!important;flex:0 0 auto!important;font-size:12px!important;white-space:nowrap!important;text-align:right!important}
+  .ranking-player,.ranking-country{min-width:0!important}
+  .ranking-player-name{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+}
+@media(max-width:380px){
+  .ranking-header,.ranking-row{grid-template-columns:26px minmax(0,1fr) minmax(48px,.6fr) 106px!important;column-gap:2px!important}
+  .ranking-elo-rank{width:60px!important;flex-basis:60px!important}
+  .ranking-elo-number{font-size:11px!important;min-width:37px!important}
+}
