@@ -2007,5 +2007,80 @@ body.ranking-banner-editing .ranking-card>.ranking-title.ranking-image-title{
 })();
 </script>
 
+
+<!-- Editor temporal de posicion para insignia y ELO del primer lugar -->
+<style>
+#firstPlacePositionEditor{position:fixed;z-index:2147483646;bottom:12px;left:50%;transform:translateX(-50%);width:min(94vw,440px);box-sizing:border-box;background:#081321;color:#fff;border:2px solid #d8aa3f;border-radius:12px;padding:12px;font:13px Arial,sans-serif;box-shadow:0 6px 30px #000c}
+#firstPlacePositionEditor[hidden]{display:none!important}
+#firstPlacePositionEditor .fpe-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:8px 0}
+#firstPlacePositionEditor label{display:flex;flex-direction:column;gap:3px}
+#firstPlacePositionEditor input{box-sizing:border-box;width:100%;background:#162d40;color:white;border:1px solid #52718b;border-radius:5px;padding:7px;font-size:16px}
+#firstPlacePositionEditor button{border:1px solid #bd9a48;background:#1a3144;color:white;border-radius:6px;padding:9px;cursor:pointer}
+#firstPlacePositionEditor .fpe-buttons{display:flex;gap:6px;flex-wrap:wrap}
+#firstPlacePositionEditor .fpe-buttons button:first-child{background:#137c43;font-weight:bold}
+body.fpe-active .ranking-row.ranking-first .ranking-elo-rank{outline:2px dashed #27e6e6!important;touch-action:none!important;cursor:move!important}
+body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashed #ffcf45!important;touch-action:none!important;cursor:move!important}
+</style>
+<div id="firstPlacePositionEditor" hidden>
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><strong>EDITOR DEL PRIMER LUGAR</strong><button id="fpeHide" type="button">Cerrar</button></div>
+ <div style="font-size:12px;margin-top:5px">Arrastra la insignia o el ELO con el dedo. También puedes ajustar X/Y manualmente.</div>
+ <div class="fpe-grid">
+  <label>Insignia X (px)<input id="fpeBadgeX" type="number" step="1"></label>
+  <label>Insignia Y (px)<input id="fpeBadgeY" type="number" step="1"></label>
+  <label>ELO X (px)<input id="fpeEloX" type="number" step="1"></label>
+  <label>ELO Y (px)<input id="fpeEloY" type="number" step="1"></label>
+ </div>
+ <div class="fpe-buttons"><button id="fpeCopy" type="button">COPIAR COORDENADAS</button><button id="fpeReset" type="button">Restablecer</button></div>
+ <div id="fpeStatus" style="margin-top:6px;color:#b6e6b9;font-size:12px">Solo vista previa: no afecta a otros jugadores.</div>
+</div>
+<script>
+(function(){
+ if(new URLSearchParams(location.search).get('editarprimero')!=='1')return;
+ const panel=document.getElementById('firstPlacePositionEditor');
+ const ids=['fpeBadgeX','fpeBadgeY','fpeEloX','fpeEloY'];
+ const inputs=ids.map(id=>document.getElementById(id));
+ const status=document.getElementById('fpeStatus');
+ let values=[0,0,0,0],attached=[null,null];
+ try{const saved=JSON.parse(localStorage.getItem('ranking8bp-first-place-coords')||'null');if(Array.isArray(saved)&&saved.length===4)values=saved.map(v=>Number(v)||0)}catch(e){}
+ function locate(){const row=document.querySelector('.ranking-row.ranking-first');return row?[row.querySelector('.ranking-elo-rank'),row.querySelector('.ranking-elo-number')]:[null,null]}
+ function apply(){
+  const nodes=locate();
+  nodes.forEach((el,i)=>{if(el){el.style.setProperty('translate',values[i*2]+'px '+values[i*2+1]+'px','important');el.style.setProperty('position','relative','important');el.style.setProperty('z-index','10','important')}});
+  inputs.forEach((el,i)=>{if(document.activeElement!==el)el.value=values[i]});
+  try{localStorage.setItem('ranking8bp-first-place-coords',JSON.stringify(values))}catch(e){}
+  return nodes;
+ }
+ function bind(){
+  const nodes=apply();
+  nodes.forEach((el,i)=>{
+   if(!el||attached[i]===el)return;
+   attached[i]=el;
+   el.addEventListener('pointerdown',ev=>{
+    if(ev.button!==0)return;
+    ev.preventDefault();ev.stopPropagation();
+    const startX=ev.clientX,startY=ev.clientY,origX=values[i*2],origY=values[i*2+1];
+    el.setPointerCapture(ev.pointerId);
+    const move=e=>{values[i*2]=Math.round(origX+e.clientX-startX);values[i*2+1]=Math.round(origY+e.clientY-startY);apply()};
+    const stop=()=>{el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',stop);el.removeEventListener('pointercancel',stop)};
+    el.addEventListener('pointermove',move);el.addEventListener('pointerup',stop);el.addEventListener('pointercancel',stop);
+   },true);
+   el.addEventListener('click',e=>{e.preventDefault();e.stopPropagation()},true);
+  });
+ }
+ inputs.forEach((el,i)=>el.addEventListener('input',()=>{values[i]=Number(el.value)||0;apply()}));
+ document.getElementById('fpeReset').onclick=()=>{values=[0,0,0,0];inputs.forEach(el=>el.blur());apply();status.textContent='Coordenadas restablecidas'};
+ document.getElementById('fpeHide').onclick=()=>{panel.hidden=true;document.body.classList.remove('fpe-active');locate().forEach(el=>{if(el)el.style.removeProperty('translate')})};
+ document.getElementById('fpeCopy').onclick=async()=>{
+  const msg='RANKING8BP - PRIMER LUGAR\nINSIGNIA: X='+values[0]+'px, Y='+values[1]+'px\nELO: X='+values[2]+'px, Y='+values[3]+'px';
+  try{await navigator.clipboard.writeText(msg);status.textContent='Coordenadas copiadas. Pégalas en ChatGPT.'}catch(e){
+   const area=document.createElement('textarea');area.value=msg;document.body.appendChild(area);area.select();document.execCommand('copy');area.remove();status.textContent=msg.replace(/\n/g,' | ');
+  }
+ };
+ panel.hidden=false;document.body.classList.add('fpe-active');
+ bind();setInterval(bind,1000);
+ setTimeout(()=>document.querySelector('.ranking-row.ranking-first')?.scrollIntoView({behavior:'smooth',block:'center'}),1100);
+})();
+</script>
+
 </body>
 </html>
