@@ -3024,3 +3024,15 @@ html,body,.viewport-shell{
    overflow:visible!important;text-align:right!important;white-space:nowrap!important;
  }
 }
+
+
+/* Browser ranking: long names must never enlarge the first-place grid track. */
+@media(max-width:700px){
+ .ranking-row,.ranking-row.ranking-first{min-width:0!important;grid-template-columns:30px minmax(0,1fr) minmax(0,.72fr) 124px!important}
+ .ranking-row>.ranking-player{min-width:0!important;max-width:100%!important;overflow:hidden!important;display:flex!important;gap:5px!important}
+ .ranking-row>.ranking-player>.ranking-avatar{flex-shrink:0!important}
+ .ranking-row>.ranking-player>.ranking-player-name{display:block!important;min-width:0!important;max-width:100%!important;flex:1 1 0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+ .ranking-row>.ranking-country{min-width:0!important;max-width:100%!important;overflow:hidden!important;gap:3px!important}
+ .ranking-row>.ranking-country>.ranking-country-name{min-width:0!important;flex:1 1 0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+ .ranking-row.ranking-first>.ranking-elo{position:static!important;top:auto!important;right:auto!important;transform:none!important;align-self:center!important}
+}
