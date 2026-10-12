@@ -2577,6 +2577,16 @@ async function openRankingPlayer(player){
       }catch(error){console.error('No se pudo cargar el ID 8 Ball Pool del perfil:',error)}
     }
   }
+  const championStat=document.getElementById('playerDetailDailyChampions');
+  if(championStat){
+    championStat.textContent='…';
+    const championProfileId=player?.player_id||player?.id;
+    if(supabaseClient&&championProfileId){
+      supabaseClient.rpc('get_daily_champion_count',{p_profile_id:championProfileId}).then(({data,error})=>{
+        if(currentDetailPlayer&&(currentDetailPlayer.player_id||currentDetailPlayer.id)===championProfileId&&championStat){championStat.textContent=error?'—':String(Number(data)||0)}
+      }).catch(()=>{if(championStat)championStat.textContent='—'});
+    }else championStat.textContent='0';
+  }
   currentDetailPlayer=player;
   if(playerAdminBtn){
     playerAdminBtn.hidden=!isCurrentUserAdmin() || String(player?.username||'').toLowerCase()==='ikar8bp';
