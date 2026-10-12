@@ -1424,7 +1424,7 @@
     <section class="player-detail-card" role="dialog" aria-modal="true" aria-labelledby="playerDetailName">
       <button type="button" class="player-detail-close" id="closePlayerDetail" aria-label="Cerrar">×</button>
 
-      <div class="player-detail-head">
+      <div class="player-detail-head" id="spectatorProfileTrigger" role="button" tabindex="0" aria-label="Abrir perfil completo del jugador en modo espectador">
         <div class="player-detail-avatar" id="playerDetailAvatar"><span>J</span></div>
         <div class="player-detail-identity">
           <div class="player-detail-name-row">
@@ -2091,6 +2091,8 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
 #spectatorProfileOverlay .spectator-bar{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;background:#071c2b;color:#fff;padding:12px;border-bottom:1px solid #4bbbd0}
 #spectatorProfileOverlay .spectator-bar button{background:#183d51;color:#fff;border:1px solid #6aafc2;padding:9px 14px;border-radius:8px}
 #spectatorProfileOverlay .spectator-content{max-width:900px;margin:0 auto;padding:14px 12px 50px;color:#fff}
+.player-detail-card #openSpectatorProfile{display:block!important;visibility:visible!important;opacity:1!important;position:relative!important;z-index:3!important}
+.player-detail-card #spectatorProfileTrigger{cursor:pointer;outline-offset:4px}
 #spectatorProfileOverlay .spectator-content .identity-section,#spectatorProfileOverlay .spectator-content .rank-hero-card,#spectatorProfileOverlay .spectator-content .competitive-hub{display:block}
 #spectatorProfileOverlay .spectator-content .profile-header-actions,#spectatorProfileOverlay .spectator-content .avatar-edit{display:none!important}
 #spectatorProfileOverlay .spectator-content .rank-hero-card{margin:16px auto}
@@ -2112,6 +2114,8 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
  const content=document.getElementById('spectatorProfileContent');
  const close=()=>{overlay.hidden=true;document.body.style.removeProperty('overflow')};
  document.getElementById('closeSpectatorProfile').addEventListener('click',close);
+ const head=document.getElementById('spectatorProfileTrigger');
+ if(head){head.addEventListener('click',e=>{if(e.target.closest('#playerDetailRankBadge'))return;open.click()});head.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open.click()}})}
  open.addEventListener('click',()=>{
   const detail=document.getElementById('playerDetailModal');
   const original=document.getElementById('playerDashboard');
