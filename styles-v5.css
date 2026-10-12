@@ -2978,3 +2978,26 @@ html,body,.viewport-shell{
  .ranking-row .ranking-elo-rank{width:49px!important;flex-basis:49px!important}
  .ranking-row .ranking-elo-number{width:62px!important;min-width:62px!important;max-width:62px!important;flex-basis:62px!important;font-size:12px!important}
 }
+
+
+/* Browser-tab only: normalize leaderboard first row without changing installed PWA. */
+@media (display-mode: browser) and (max-width:700px){
+ .ranking-header,.ranking-row,.ranking-row.ranking-first{
+  grid-template-columns:30px minmax(0,1.15fr) minmax(0,.8fr) minmax(0,122px)!important;
+  width:100%!important;max-width:100%!important;box-sizing:border-box!important;
+  padding-inline:4px!important;margin-inline:0!important;
+ }
+ .ranking-row.ranking-first{border:1px solid #d5a640!important;min-width:0!important}
+ .ranking-row .ranking-elo{
+  display:grid!important;grid-template-columns:54px minmax(0,1fr)!important;
+  align-items:center!important;justify-content:stretch!important;
+  width:100%!important;min-width:0!important;max-width:100%!important;
+  gap:2px!important;padding:0!important;overflow:hidden!important;
+ }
+ .ranking-row .ranking-elo-rank{width:54px!important;height:64px!important;min-width:0!important;max-width:54px!important;transform:none!important}
+ .ranking-row .ranking-elo-number{
+  display:block!important;width:auto!important;min-width:0!important;max-width:100%!important;
+  font-size:12px!important;letter-spacing:-.5px!important;
+  overflow:visible!important;white-space:nowrap!important;text-align:right!important;
+ }
+}
