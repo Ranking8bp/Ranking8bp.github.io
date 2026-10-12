@@ -2983,8 +2983,8 @@ html,body,.viewport-shell{
 
 /* Permanent first-place positions measured with the visual editor. */
 .ranking-row.ranking-first .ranking-elo-rank{
-  translate:-31px -1px!important;
+  translate:-25px 1px!important;
 }
 .ranking-row.ranking-first .ranking-elo-number{
-  translate:-25px 0px!important;
+  translate:-20px 0px!important;
 }
