@@ -2951,3 +2951,10 @@ html,body,.viewport-shell{
   .ranking-row .ranking-country-name{font-size:11px!important}
   .ranking-row>.ranking-player,.ranking-row>.ranking-country{gap:3px!important}
 }
+
+
+/* Fine tune: shift ELO emblem and number slightly left without changing columns. */
+.ranking-row>.ranking-elo{padding-right:12px!important}
+@media(max-width:700px){
+ .ranking-row>.ranking-elo{padding-right:8px!important;box-sizing:border-box!important}
+}
