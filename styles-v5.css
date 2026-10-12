@@ -3001,3 +3001,26 @@ html,body,.viewport-shell{
   overflow:visible!important;white-space:nowrap!important;text-align:right!important;
  }
 }
+
+
+/* First-place ELO is anchored to its row, independent of conflicting grid widths. */
+@media(max-width:700px){
+ .ranking-row.ranking-first{position:relative!important;overflow:hidden!important}
+ .ranking-row.ranking-first>.ranking-elo{
+   position:absolute!important;right:5px!important;top:50%!important;
+   transform:translateY(-50%)!important;
+   width:120px!important;max-width:120px!important;min-width:120px!important;
+   display:grid!important;grid-template-columns:52px 66px!important;
+   gap:2px!important;justify-content:end!important;align-items:center!important;
+   margin:0!important;padding:0!important;box-sizing:border-box!important;
+ }
+ .ranking-row.ranking-first>.ranking-elo>.ranking-elo-rank{
+   width:52px!important;height:62px!important;min-width:0!important;max-width:52px!important;
+   transform:none!important;flex:none!important;
+ }
+ .ranking-row.ranking-first>.ranking-elo>.ranking-elo-number{
+   width:66px!important;min-width:0!important;max-width:66px!important;
+   font-size:13px!important;letter-spacing:0!important;
+   overflow:visible!important;text-align:right!important;white-space:nowrap!important;
+ }
+}
