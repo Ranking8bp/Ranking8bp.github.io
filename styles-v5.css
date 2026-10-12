@@ -2952,3 +2952,29 @@ html,body,.viewport-shell{
  .ranking-elo-rank{width:55px!important;flex-basis:55px!important}
  .ranking-elo-number{width:49px!important;min-width:49px!important;max-width:49px!important;flex-basis:49px!important;font-size:12px!important}
 }
+
+
+/* Five-digit ELO must fit: use a wider dedicated last track and smaller emblem. */
+@media(max-width:700px){
+ .ranking-header,.ranking-row,.ranking-row.ranking-first{
+   grid-template-columns:30px minmax(0,1fr) minmax(0,.70fr) 126px!important;
+ }
+ .ranking-row .ranking-elo,.ranking-row.ranking-first .ranking-elo{
+   width:126px!important;max-width:126px!important;min-width:0!important;
+   display:flex!important;align-items:center!important;justify-content:flex-end!important;
+   gap:2px!important;overflow:hidden!important;padding:0 4px 0 0!important;
+ }
+ .ranking-row .ranking-elo-rank{width:55px!important;height:66px!important;flex:0 0 55px!important}
+ .ranking-row .ranking-elo-number{
+   display:block!important;width:62px!important;min-width:62px!important;max-width:62px!important;
+   flex:0 0 62px!important;overflow:visible!important;
+   text-align:right!important;font-size:13px!important;letter-spacing:-.4px!important;
+ }
+ .ranking-row.ranking-first{min-width:0!important;overflow:hidden!important}
+}
+@media(max-width:380px){
+ .ranking-header,.ranking-row,.ranking-row.ranking-first{grid-template-columns:27px minmax(0,1fr) minmax(0,.55fr) 118px!important}
+ .ranking-row .ranking-elo,.ranking-row.ranking-first .ranking-elo{width:118px!important;max-width:118px!important}
+ .ranking-row .ranking-elo-rank{width:49px!important;flex-basis:49px!important}
+ .ranking-row .ranking-elo-number{width:62px!important;min-width:62px!important;max-width:62px!important;flex-basis:62px!important;font-size:12px!important}
+}
