@@ -2124,6 +2124,6 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
  document.getElementById('waAnnouncementClose').addEventListener('click',function(){notice.hidden=true;try{localStorage.setItem(key,'seen')}catch(e){}});
 })();
 </script>
-<script src="community-chat.js?v=20261014-body-modal-v4" defer></script>
+<script src="community-chat.js?v=20261014-working-emoji-voice-v5" defer></script>
 <script id="community-chat-open-fallback">(function(){function setup(){var b=document.getElementById('communityChatOpen'),m=document.getElementById('communityChatModal'),c=document.getElementById('communityChatClose');if(!b||!m||!c)return;document.body.appendChild(m);function open(){document.body.appendChild(m);m.hidden=false;m.removeAttribute('hidden');m.style.setProperty('display','flex','important');document.body.classList.add('community-chat-open');}function close(){m.hidden=true;m.style.removeProperty('display');document.body.classList.remove('community-chat-open');}b.addEventListener('click',open);c.addEventListener('click',close);m.addEventListener('click',function(e){if(e.target===m)close()});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup()})()</script></body>
 </html>
