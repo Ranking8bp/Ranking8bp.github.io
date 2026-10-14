@@ -313,7 +313,7 @@
    if(modal.hidden||busy||!client)return;
    busy=true;
    try{
-    const {data,error}=await client.from('lobby_chat_messages').select('id,sender_id,body,created_at,reply_to').order('created_at',{ascending:false}).limit(200);
+    const {data,error}=await client.from('lobby_chat_messages').select('id,sender_id,body,created_at,reply_to').order('id',{ascending:false}).limit(20);
     if(error)throw error;
     const rows=(data||[]).reverse(),sig=rows.map(x=>x.id+':'+(x.reply_to||'')).join(',');const messageLookup=new Map(rows.map(x=>[Number(x.id),x]));
     if(sig===previous){await refreshChallengeStatuses();await updateReadCounts();await refreshReactions();await refreshReactions();queueReads();return;}
