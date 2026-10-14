@@ -57,9 +57,9 @@
     }
    }catch(err){readersList.textContent='No se pudo cargar la lista de lectores.';console.warn('Chat readers:',err)}
   };
-  const challengeArea=document.createElement('div');challengeArea.className='community-challenge-area';
-  const challengeToggle=document.createElement('button');challengeToggle.type='button';challengeToggle.className='community-challenge-toggle';challengeToggle.textContent='⚔ DESAFÍO';
-  const challengeOptions=document.createElement('div');challengeOptions.className='community-challenge-options';challengeOptions.hidden=true;
+  const challengeArea=$('communityChallengeArea')||document.createElement('div');challengeArea.className='community-challenge-area';
+  const challengeToggle=$('communityChallengeToggle')||document.createElement('button');challengeToggle.type='button';challengeToggle.className='community-challenge-toggle';challengeToggle.textContent='⚔ DESAFÍO';
+  const challengeOptions=$('communityChallengeOptions')||document.createElement('div');challengeOptions.className='community-challenge-options';challengeOptions.hidden=true;
   challengeToggle.addEventListener('click',()=>{challengeOptions.hidden=!challengeOptions.hidden});
   const sendChallenge=async(type,control)=>{
    if(!client||!window.rankingChatChallengeBridge){say('El sistema de desafíos todavía no está listo.');return}
@@ -74,11 +74,11 @@
    }catch(e){say('No se pudo enviar el desafío: '+(e.message||'Inténtalo nuevamente'))}
    finally{control.disabled=false}
   };
-  for(const [type,title] of [['ranking','RANKING'],['daily','CLASIFICACIÓN']]){
+  if(!challengeOptions.children.length)for(const [type,title] of [['ranking','RANKING'],['daily','CLASIFICACIÓN']]){
    const option=document.createElement('button');option.type='button';option.textContent=title;
    option.addEventListener('click',()=>sendChallenge(type,option));challengeOptions.append(option);
   }
-  challengeArea.append(challengeToggle,challengeOptions);form.after(challengeArea);
+  challengeArea.append(challengeToggle,challengeOptions);if(!challengeArea.isConnected)form.after(challengeArea);for(const option of challengeOptions.querySelectorAll('[data-challenge]'))option.addEventListener('click',()=>sendChallenge(option.dataset.challenge,option));
   const closeChat=()=>{hideReaders();modal.hidden=true;clearInterval(interval);clearTimeout(readTimer);interval=null};
   const updateReadCounts=async()=>{
    if(!client||modal.hidden)return;
