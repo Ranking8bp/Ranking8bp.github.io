@@ -2087,5 +2087,27 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
 
 
 <style>.player-detail-daily-champions{border:1px solid #b9913d!important;background:linear-gradient(135deg,#211b10,#332612)!important}.player-detail-daily-champions strong{color:#f5ce69!important}</style>
+
+<style id="whatsapp-announcement-style">
+#waAnnouncement{position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.82);display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;backdrop-filter:blur(7px)}
+#waAnnouncement[hidden]{display:none!important}
+#waAnnouncement .wa-card{width:min(100%,410px);box-sizing:border-box;border:1px solid #24c96b;border-radius:20px;background:linear-gradient(155deg,#16291f,#0c1210);color:#fff;text-align:center;padding:28px 22px;box-shadow:0 16px 60px #000b;font-family:inherit}
+#waAnnouncement .wa-icon{font-size:42px;margin-bottom:10px}
+#waAnnouncement h2{font-size:20px;line-height:1.3;margin:0 0 14px;color:#4df39b}
+#waAnnouncement p{font-size:15px;line-height:1.6;margin:0 0 20px}
+#waAnnouncement button{width:100%;border:0;border-radius:12px;background:#20c76a;color:#062211;font-size:16px;font-weight:800;padding:15px;cursor:pointer}
+</style>
+<div id="waAnnouncement" role="dialog" aria-modal="true" aria-labelledby="waAnnouncementTitle" hidden>
+ <div class="wa-card"><div class="wa-icon" aria-hidden="true">📢🎱</div><h2 id="waAnnouncementTitle">¡TENEMOS NUEVO GRUPO DE WHATSAPP!</h2><p>Hemos creado un nuevo grupo oficial de Ranking8BP.<br><br>Para unirte, toca el botón <strong>GRUPO DE WHATSAPP</strong> que encontrarás en el sitio.<br><br>¡No te quedes fuera de nuestra comunidad!</p><button type="button" id="waAnnouncementClose">ENTENDIDO</button></div>
+</div>
+<script>
+(function(){
+ const key='ranking8bp_whatsapp_announcement_20261014_v1';
+ const notice=document.getElementById('waAnnouncement');
+ try{if(localStorage.getItem(key)==='seen')return;}catch(e){}
+ notice.hidden=false;
+ document.getElementById('waAnnouncementClose').addEventListener('click',function(){notice.hidden=true;try{localStorage.setItem(key,'seen')}catch(e){}});
+})();
+</script>
 </body>
 </html>
