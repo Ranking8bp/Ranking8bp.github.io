@@ -635,7 +635,7 @@
  }
 }
 </style>
-<style id="lobby-chat-styles">.lobby-chat-entry{display:block!important;visibility:visible!important;width:94%;max-width:760px;margin:8px auto 12px}.lobby-chat-entry button{width:100%;padding:15px;border:1px solid #38d879;border-radius:13px;background:linear-gradient(180deg,#174b35,#0b3023);color:white;font-weight:900;font-size:19px;cursor:pointer}#lobbyChatModal{position:fixed;inset:0;z-index:2147482000;background:#000b;display:grid;place-items:center;padding:12px}#lobbyChatModal[hidden]{display:none!important}.lobby-chat-panel{width:min(100%,520px);height:min(80dvh,700px);background:#0b151c;border:1px solid #38d879;border-radius:16px;display:flex;flex-direction:column;overflow:hidden;color:white}.lobby-chat-panel header{display:flex;align-items:center;justify-content:space-between;padding:16px;background:#102c22}.lobby-chat-panel header button{background:none;border:0;color:white;font-size:24px;cursor:pointer}.lobby-chat-messages{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px}.lobby-chat-message{display:flex;gap:9px;align-items:flex-start}.lobby-chat-avatar{width:38px;height:38px;flex:0 0 38px;border-radius:50%;background:#28443b;display:grid;place-items:center;overflow:hidden;font-weight:bold}.lobby-chat-avatar img{width:100%;height:100%;object-fit:cover}.lobby-chat-bubble{min-width:0;background:#182d34;border-radius:12px;padding:9px 12px;overflow-wrap:anywhere;max-width:calc(100% - 48px)}.lobby-chat-bubble strong{display:block;color:#64e6a0;font-size:13px;margin-bottom:4px}.lobby-chat-bubble span{white-space:pre-wrap;font-size:14px}.lobby-chat-panel form{display:flex;gap:7px;padding:12px;border-top:1px solid #315044}.lobby-chat-panel input{min-width:0;flex:1;border-radius:9px;background:#1b2d32;color:white;border:1px solid #4a6665;padding:11px;font-size:16px}.lobby-chat-panel form button{border:0;border-radius:9px;background:#21b765;color:#06200f;font-weight:800;padding:0 13px}.lobby-chat-panel small{padding:0 12px 10px;color:#ffcb83}</style></head>
+</head>
 <body>
 <div id="rankingEmergencyRecovery" style="position:fixed;inset:0;z-index:2147483646;display:none;align-items:center;justify-content:center;box-sizing:border-box;padding:20px;background:#07131e;color:white;font:16px Arial,sans-serif;text-align:center">
  <div style="width:min(100%,450px);border:2px solid #d8ab4c;border-radius:18px;padding:26px;background:#0e2533">
@@ -812,7 +812,7 @@
           </div>
         </section>
 
-        <section class="competitive-hub" id="competitiveHub"><div class="season-strip"><strong id="seasonName">TEMPORADA 1</strong><span id="seasonCountdown">Clasificación activa</span></div><div class="top3-showcase" id="top3Showcase"></div><div class="competitive-grid"><div class="competitive-record-card"><small>RESULTADOS</small><div class="competitive-record-values"><span><b id="competitiveWins">0</b><em>GANADAS</em></span><span><b id="competitiveLosses">0</b><em>PERDIDAS</em></span></div></div><div class="daily-victories-medal" aria-label="Clasificatorias diarias ganadas"><img class="daily-victories-image" src="https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/Clasificatoriadiariax.png" alt="CLASIFICATORIA DIARIA" decoding="async"><div class="daily-victories-overlay" aria-live="polite"><strong id="dailyVictoriesCount">0</strong><span id="dailyVictoriesLabel">VICTORIAS</span></div></div><div class="competitive-streak-card"><small>RACHA ACTUAL</small><strong id="competitiveStreak">0</strong></div></div><div class="match-history-box"><strong>ÚLTIMAS PARTIDAS</strong><div id="competitiveHistory"></div></div></section><div class="dashboard-play-area ranking-play-strip"><button type="button" class="dashboard-play-btn" id="dashboardPlayBtn">JUGAR</button><button type="button" class="dashboard-share-btn" id="dashboardShareBtn"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.2M8.7 13.3l6.6 4.2"/></svg><span>COPIAR LINK PARA SALA PRIVADA</span></button></div><div class="lobby-chat-entry"><button type="button" id="lobbyChatOpen">💬 CHAT GENERAL</button></div><div id="lobbyChatModal" hidden role="dialog" aria-modal="true" aria-label="Chat general"><div class="lobby-chat-panel"><header><strong>💬 CHAT GENERAL</strong><button type="button" id="lobbyChatClose" aria-label="Cerrar chat">✕</button></header><div id="lobbyChatMessages" class="lobby-chat-messages"></div><form id="lobbyChatForm"><input id="lobbyChatInput" maxlength="500" placeholder="Escribe tu mensaje..." autocomplete="off" required><button type="submit">ENVIAR</button></form><small id="lobbyChatStatus"></small></div></div><div id="liveSearchingPlayers" style="width:94%;max-width:760px;margin:8px auto 12px"></div><div class="dynamic-area" id="dynamicArea" hidden><input id="dynamicVideoInput" type="file" accept="video/*" hidden><small id="dynamicStatus"></small></div><div class="ikar-moderator-area" id="ikarModeratorArea" hidden><button type="button" class="ikar-moderator-btn" id="ikarModeratorBtn">MODERAR</button></div><style id="players-playing-hide-zero">#playersOnlineNow[hidden]{display:none!important}#playersOnlineNow:not([hidden]){display:flex!important}</style><div class="players-playing-row" id="playersOnlineNow" hidden style="display:none"><span class="online-player-dot"></span><strong id="playersOnlineCount">0</strong><span>JUGADORES JUGANDO</span></div><div class="dashboard-menu-grid" id="dashboardMenuGrid">
+        <section class="competitive-hub" id="competitiveHub"><div class="season-strip"><strong id="seasonName">TEMPORADA 1</strong><span id="seasonCountdown">Clasificación activa</span></div><div class="top3-showcase" id="top3Showcase"></div><div class="competitive-grid"><div class="competitive-record-card"><small>RESULTADOS</small><div class="competitive-record-values"><span><b id="competitiveWins">0</b><em>GANADAS</em></span><span><b id="competitiveLosses">0</b><em>PERDIDAS</em></span></div></div><div class="daily-victories-medal" aria-label="Clasificatorias diarias ganadas"><img class="daily-victories-image" src="https://raw.githubusercontent.com/Ranking8bp/RANKINGIKAR8BP/main/Clasificatoriadiariax.png" alt="CLASIFICATORIA DIARIA" decoding="async"><div class="daily-victories-overlay" aria-live="polite"><strong id="dailyVictoriesCount">0</strong><span id="dailyVictoriesLabel">VICTORIAS</span></div></div><div class="competitive-streak-card"><small>RACHA ACTUAL</small><strong id="competitiveStreak">0</strong></div></div><div class="match-history-box"><strong>ÚLTIMAS PARTIDAS</strong><div id="competitiveHistory"></div></div></section><div class="dashboard-play-area ranking-play-strip"><button type="button" class="dashboard-play-btn" id="dashboardPlayBtn">JUGAR</button><button type="button" class="dashboard-share-btn" id="dashboardShareBtn"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.2M8.7 13.3l6.6 4.2"/></svg><span>COPIAR LINK PARA SALA PRIVADA</span></button></div><div id="liveSearchingPlayers" style="width:94%;max-width:760px;margin:8px auto 12px"></div><div class="dynamic-area" id="dynamicArea" hidden><input id="dynamicVideoInput" type="file" accept="video/*" hidden><small id="dynamicStatus"></small></div><div class="ikar-moderator-area" id="ikarModeratorArea" hidden><button type="button" class="ikar-moderator-btn" id="ikarModeratorBtn">MODERAR</button></div><style id="players-playing-hide-zero">#playersOnlineNow[hidden]{display:none!important}#playersOnlineNow:not([hidden]){display:flex!important}</style><div class="players-playing-row" id="playersOnlineNow" hidden style="display:none"><span class="online-player-dot"></span><strong id="playersOnlineCount">0</strong><span>JUGADORES JUGANDO</span></div><div class="dashboard-menu-grid" id="dashboardMenuGrid">
 <button type="button" class="dashboard-menu-tile" data-menu="reglas"><img src="Botones/Reglasdebajodejugar.png" alt="REGLAS"></button>
 <button type="button" class="dashboard-menu-tile" data-menu="regalos"><img src="Botones/Regalosdebajodejugar.png" alt="REGALOS"></button>
 <button type="button" class="dashboard-menu-tile" data-menu="premio"><img src="Botones/Premiosdebajodejugar.png" alt="PREMIO"></button>
@@ -1632,7 +1632,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
   <script src="supabase-config-v3.js?v=20260930-0305"></script>
-  <script src="app-v5.js?v=20261014-lobby-chat-v2"></script>
+  <script src="app-v5.js?v=20261014-stable"></script>
 <footer class="site-legal-footer"><a href="acerca.html">Acerca de</a><a href="privacidad.html">Privacidad</a><a href="terminos.html">Términos</a><a href="contacto.html">Contacto</a></footer>
 <div id="privateInviteFullNotice" hidden style="position:fixed;inset:0;z-index:2147483647;background:rgba(2,8,19,.94);display:none;align-items:center;justify-content:center;padding:20px"><div style="width:min(94vw,430px);padding:35px 22px;border:2px solid #f0bd46;border-radius:22px;background:#111e30;text-align:center;color:white"><div style="font-size:66px">😢</div><h2 style="font-size:27px;color:#ffce5a;margin:12px 0">LLEGASTE TARDE</h2><p style="font-size:21px;font-weight:900">YA ENTRÓ ALGUIEN</p><div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:18px"><button type="button" id="privateInviteFullClose" style="padding:13px 25px;border:0;border-radius:12px;background:#d62828;color:#fff;font-weight:900">ENTENDIDO</button><button type="button" id="privateInviteFullCopy" class="dashboard-share-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 12px;border:2px solid #51aeff;border-radius:12px;background:#126fe0;color:#fff;font-weight:900"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.2M8.7 13.3l6.6 4.2"/></svg><span>COPIAR LINK PARA SALA PRIVADA</span></button></div></div></div>
 <div id="privateInviteExpiredNotice" hidden style="position:fixed;inset:0;z-index:2147483647;background:rgba(2,8,19,.94);display:none;align-items:center;justify-content:center;padding:20px"><div style="width:min(94vw,430px);padding:35px 22px;border:2px solid #f0bd46;border-radius:22px;background:#111e30;text-align:center;color:white"><div style="font-size:66px">😢</div><h2 style="font-size:27px;color:#ffce5a;margin:12px 0">SALA EXPIRADA 😢</h2><div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:22px"><button type="button" id="privateInviteExpiredClose" style="padding:13px 25px;border:0;border-radius:12px;background:#d62828;color:#fff;font-weight:900">ENTENDIDO</button><button type="button" id="privateInviteExpiredCopy" class="dashboard-share-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 12px;border:2px solid #51aeff;border-radius:12px;background:#126fe0;color:#fff;font-weight:900"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.2M8.7 13.3l6.6 4.2"/></svg><span>COPIAR LINK PARA SALA PRIVADA</span></button></div></div></div>
@@ -2109,65 +2109,6 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
  document.getElementById('waAnnouncementClose').addEventListener('click',function(){notice.hidden=true;try{localStorage.setItem(key,'seen')}catch(e){}});
 })();
 </script>
-<script id="lobby-chat-independent">/* Chat general: carga solo mientras está abierto para evitar consultas innecesarias. */
-(()=>{
- const supabaseClient=window.supabase?.createClient(window.SUPABASE_CONFIG.url,window.SUPABASE_CONFIG.key);let currentUser=null;
- const openBtn=document.getElementById('lobbyChatOpen'),modal=document.getElementById('lobbyChatModal'),closeBtn=document.getElementById('lobbyChatClose'),messages=document.getElementById('lobbyChatMessages'),form=document.getElementById('lobbyChatForm'),input=document.getElementById('lobbyChatInput'),status=document.getElementById('lobbyChatStatus');
- if(!openBtn||!modal||!form)return;
- let timer=null,loading=false,lastSignature='',profileCache=new Map();
- const clear=()=>{modal.hidden=true;clearInterval(timer);timer=null;status.textContent=''};
- const load=async()=>{
-  if(modal.hidden||loading||!supabaseClient)return;
-  loading=true;
-  try{
-   const {data,error}=await supabaseClient.from('lobby_chat_messages').select('id,sender_id,body,created_at').order('created_at',{ascending:false}).limit(60);
-   if(error)throw error;
-   const rows=(data||[]).reverse(),signature=rows.map(x=>x.id).join(',');
-   if(signature===lastSignature)return;
-   const missing=[...new Set(rows.map(x=>x.sender_id))].filter(id=>!profileCache.has(id));
-   if(missing.length){
-    const p=await supabaseClient.from('profiles').select('id,account_name,username,avatar_path').in('id',missing);
-    (p.data||[]).forEach(x=>profileCache.set(x.id,x));
-   }
-   const nearBottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<110;
-   messages.replaceChildren();
-   for(const row of rows){
-    const p=profileCache.get(row.sender_id)||{},name=p.account_name||p.username||'Jugador';
-    const wrap=document.createElement('div');wrap.className='lobby-chat-message';
-    const avatar=document.createElement('div');avatar.className='lobby-chat-avatar';avatar.textContent=name.charAt(0).toUpperCase();
-    if(p.avatar_path){
-     const raw=String(p.avatar_path),clean=raw.replace(/^profile-photos\\//,'').replace(/^\\/+/,''),url=/^https?:\\/\\//i.test(raw)?raw:supabaseClient.storage.from('profile-photos').getPublicUrl(clean).data?.publicUrl;
-     if(url){const img=document.createElement('img');img.src=url;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();avatar.replaceChildren(img)}
-    }
-    const bubble=document.createElement('div');bubble.className='lobby-chat-bubble';
-    const title=document.createElement('strong');title.textContent=name;
-    const body=document.createElement('span');body.textContent=row.body;
-    bubble.append(title,body);wrap.append(avatar,bubble);messages.append(wrap);
-   }
-   lastSignature=signature;
-   if(nearBottom||rows.length<10)messages.scrollTop=messages.scrollHeight;
-  }catch(e){status.textContent='No se pudo cargar el chat: '+(e.message||'Error');}
-  finally{loading=false}
- };
- openBtn.addEventListener('click',async()=>{
-  const auth=await supabaseClient?.auth.getUser();currentUser=auth?.data?.user||null;
-  if(!currentUser){modal.hidden=false;messages.textContent='Inicia sesión para participar en el chat.';return}
-  modal.hidden=false;lastSignature='';load();clearInterval(timer);timer=setInterval(load,6000);
- });
- closeBtn.addEventListener('click',clear);
- modal.addEventListener('click',e=>{if(e.target===modal)clear()});
- form.addEventListener('submit',async e=>{
-  e.preventDefault();if(!currentUser||!supabaseClient){status.textContent='Inicia sesión para enviar mensajes';return}
-  const body=input.value.trim();if(!body)return;
-  const btn=form.querySelector('button');btn.disabled=true;status.textContent='';
-  try{
-   const {error}=await supabaseClient.from('lobby_chat_messages').insert({sender_id:currentUser.id,body});
-   if(error)throw error;
-   input.value='';lastSignature='';await load();
-  }catch(err){status.textContent='No se pudo enviar: '+(err.message||'Error')}
-  finally{btn.disabled=false}
- });
-})();
-</script>
+
 </body>
 </html>
