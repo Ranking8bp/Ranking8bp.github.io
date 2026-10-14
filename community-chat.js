@@ -47,7 +47,7 @@
     const rows=(data||[]).reverse(),sig=rows.map(x=>x.id).join(',');
     if(sig===previous){await updateReadCounts();queueReads();return;}
     const missing=[...new Set(rows.map(x=>x.sender_id))].filter(id=>!profiles.has(id));
-    if(missing.length){const {data:ps}=await client.from('profiles').select('id,account_name,username,avatar_path,elo_points').in('id',missing);for(const p of ps||[])profiles.set(p.id,p)}
+    if(missing.length){const ps=await Promise.all(missing.map(async id=>{const {data}=await client.rpc('get_profile_by_id',{p_player_id:id});return Array.isArray(data)?data[0]:data}));for(const p of ps)if(p)profiles.set(p.player_id,p)}
     const bottom=list.scrollHeight-list.scrollTop-list.clientHeight<90;
     const fragment=document.createDocumentFragment();
     for(const m of rows){
