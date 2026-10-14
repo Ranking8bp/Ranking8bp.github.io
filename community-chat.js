@@ -28,7 +28,36 @@
   setInterval(refreshUnread,8000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshUnread()});
   refreshUnread();
-  const closeChat=()=>{modal.hidden=true;clearInterval(interval);clearTimeout(readTimer);interval=null};
+  const readersOverlay=document.createElement('div');readersOverlay.className='community-readers-overlay';readersOverlay.hidden=true;
+  const readersPanel=document.createElement('section');readersPanel.className='community-readers-panel';
+  const readersHeader=document.createElement('header');readersHeader.textContent='Leído por';
+  const readersClose=document.createElement('button');readersClose.type='button';readersClose.textContent='✕';readersClose.setAttribute('aria-label','Cerrar lectores');readersHeader.append(readersClose);
+  const readersList=document.createElement('div');readersList.className='community-readers-list';readersPanel.append(readersHeader,readersList);readersOverlay.append(readersPanel);document.body.append(readersOverlay);
+  const hideReaders=()=>{readersOverlay.hidden=true};
+  readersClose.addEventListener('click',hideReaders);
+  readersOverlay.addEventListener('click',e=>{if(e.target===readersOverlay)hideReaders()});
+  const showReaders=async messageId=>{
+   readersOverlay.hidden=false;readersList.textContent='Cargando lectores...';
+   try{
+    const {data,error}=await client.from('lobby_chat_reads').select('reader_id').eq('message_id',messageId).order('read_at',{ascending:true});
+    if(error)throw error;
+    const ids=[...new Set((data||[]).map(x=>x.reader_id))];
+    if(!ids.length){readersList.textContent='Nadie ha leído este mensaje todavía.';return}
+    const results=await Promise.allSettled(ids.map(async id=>{
+     let p=profiles.get(String(id));
+     if(!p){const {data:profile,error:err}=await client.rpc('get_profile_by_id',{p_player_id:id});if(err)throw err;p=Array.isArray(profile)?profile[0]:profile;if(p)profiles.set(String(id),p)}
+     return p;
+    }));
+    readersList.replaceChildren();
+    for(let i=0;i<ids.length;i++){
+     const p=results[i].status==='fulfilled'?results[i].value:null;
+     const entry=document.createElement('div');entry.className='community-readers-entry';
+     const name=document.createElement('span');name.textContent=p?.account_name||p?.username||'Jugador';
+     entry.append(name);readersList.append(entry);
+    }
+   }catch(err){readersList.textContent='No se pudo cargar la lista de lectores.';console.warn('Chat readers:',err)}
+  };
+  const closeChat=()=>{hideReaders();modal.hidden=true;clearInterval(interval);clearTimeout(readTimer);interval=null};
   const updateReadCounts=async()=>{
    if(!client||modal.hidden)return;
    const ids=[...list.querySelectorAll('[data-chat-message-id]')].map(x=>Number(x.dataset.chatMessageId));
@@ -83,7 +112,7 @@
      const item=document.createElement('div');item.className='community-chat-item';item.dataset.chatMessageId=String(m.id);item.dataset.senderId=m.sender_id;const rank=document.createElement('img');rank.className='community-chat-rank';const rankInfo=window.rankingChatProfileBridge?.rank?.(p.elo_points??200);if(rankInfo?.image){rank.src=rankInfo.image;rank.alt=rankInfo.name;rank.title=rankInfo.name;}else rank.style.visibility='hidden';
      const avatar=document.createElement('div');avatar.className='community-chat-avatar';avatar.textContent=name.slice(0,1).toUpperCase();
      if(p.avatar_path){const raw=String(p.avatar_path),clean=raw.replace(/^profile-photos\//,'').replace(/^\/+/,''),url=/^https?:\/\//i.test(raw)?raw:client.storage.from('profile-photos').getPublicUrl(clean).data?.publicUrl;if(url){const img=document.createElement('img');img.src=url;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();avatar.replaceChildren(img)}}avatar.classList.add('community-chat-avatar-clickable');avatar.title='Ver perfil de '+name;avatar.setAttribute('role','button');avatar.tabIndex=0;const view=async()=>{try{const {data,error}=await client.rpc('get_profile_by_id',{p_player_id:m.sender_id});if(error)throw error;const player=Array.isArray(data)?data[0]:data;if(player&&window.rankingChatProfileBridge?.open)window.rankingChatProfileBridge.open({...player,id:player.player_id||m.sender_id,player_id:player.player_id||m.sender_id});else say('No se pudo abrir el perfil.')}catch(e){say('No se pudo abrir el perfil.')}};avatar.addEventListener('click',view);avatar.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();view()}});
-     const bubble=document.createElement('div');bubble.className='community-chat-bubble';const nameEl=document.createElement('strong');nameEl.textContent=name;const body=document.createElement('span');const linkRegex=/https?:\/\/[^\s<>"']+/gi;const source=String(m.body||'');let cursor=0,match;while((match=linkRegex.exec(source))!==null){if(match.index>cursor)body.append(document.createTextNode(source.slice(cursor,match.index)));const raw=match[0];const trimmed=raw.replace(/[.,;!?)}\]]+$/,'');let safe=null;try{const parsed=new URL(trimmed);if(['https:','http:'].includes(parsed.protocol))safe=parsed.href}catch(e){}if(safe){const link=document.createElement('a');link.href=safe;link.target='_blank';link.rel='noopener noreferrer';link.textContent=trimmed;link.className='community-chat-link';body.append(link)}else body.append(document.createTextNode(trimmed));if(raw.length>trimmed.length)body.append(document.createTextNode(raw.slice(trimmed.length)));cursor=match.index+raw.length}if(cursor<source.length)body.append(document.createTextNode(source.slice(cursor)));const readEl=document.createElement('small');readEl.className='community-chat-read';readEl.textContent='Leído por: 0';bubble.append(nameEl,body,readEl);item.append(rank,avatar,bubble);fragment.append(item);
+     const bubble=document.createElement('div');bubble.className='community-chat-bubble';const nameEl=document.createElement('strong');nameEl.textContent=name;const body=document.createElement('span');const linkRegex=/https?:\/\/[^\s<>"']+/gi;const source=String(m.body||'');let cursor=0,match;while((match=linkRegex.exec(source))!==null){if(match.index>cursor)body.append(document.createTextNode(source.slice(cursor,match.index)));const raw=match[0];const trimmed=raw.replace(/[.,;!?)}\]]+$/,'');let safe=null;try{const parsed=new URL(trimmed);if(['https:','http:'].includes(parsed.protocol))safe=parsed.href}catch(e){}if(safe){const link=document.createElement('a');link.href=safe;link.target='_blank';link.rel='noopener noreferrer';link.textContent=trimmed;link.className='community-chat-link';body.append(link)}else body.append(document.createTextNode(trimmed));if(raw.length>trimmed.length)body.append(document.createTextNode(raw.slice(trimmed.length)));cursor=match.index+raw.length}if(cursor<source.length)body.append(document.createTextNode(source.slice(cursor)));const readEl=document.createElement('button');readEl.type='button';readEl.className='community-chat-read';readEl.textContent='Leído por: 0';readEl.title='Ver quién leyó este mensaje';readEl.addEventListener('click',()=>showReaders(m.id));bubble.append(nameEl,body,readEl);item.append(rank,avatar,bubble);fragment.append(item);
     }
     list.replaceChildren(fragment);previous=sig;if(bottom)list.scrollTop=list.scrollHeight;say('');await updateReadCounts();queueReads();
    }catch(e){say('No se pudieron cargar los mensajes. '+(e.message||''))}
