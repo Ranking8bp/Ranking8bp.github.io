@@ -2124,7 +2124,7 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
  document.getElementById('waAnnouncementClose').addEventListener('click',function(){notice.hidden=true;try{localStorage.setItem(key,'seen')}catch(e){}});
 })();
 </script>
-<script id="community-chat-inline-v6">/* Chat general independiente: no modifica el controlador principal. */
+<script id="community-chat-modal-placement">document.body.appendChild(document.getElementById('communityChatModal'));</script><script id="community-chat-inline-v6">/* Chat general independiente: no modifica el controlador principal. */
 (() => {
  'use strict';
  const ready = () => {
