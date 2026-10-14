@@ -2559,6 +2559,7 @@ async function loadPlayerDetailCompetitive(player){
   }
 }
 
+window.rankingChatProfileBridge={open:player=>openRankingPlayer(player),rank:elo=>getRankByElo(elo)};
 async function openRankingPlayer(player){
   if(!playerDetailModal)return;
   if(supabaseClient&&player&&(player.game_id===undefined||player.game_id===null||String(player.game_id).trim()==='')){
