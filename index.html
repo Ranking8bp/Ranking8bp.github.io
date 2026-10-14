@@ -650,7 +650,13 @@
 #communityChatModal .community-challenge-area{flex:0 0 auto}
 #communityChatModal .community-chat-panel small{flex:0 0 auto;padding-bottom:calc(7px + env(safe-area-inset-bottom,0px))}
 #communityChatModal .community-voice-player{display:block;width:min(270px,70vw);max-width:100%;height:40px;margin-top:5px}
-</style><style id="community-chat-front-fix">#communityChatModal:not([hidden]){position:fixed!important;inset:0!important;z-index:2147483647!important;display:flex!important;visibility:visible!important;opacity:1!important;transform:none!important;pointer-events:auto!important}#communityChatModal:not([hidden]) .community-chat-panel{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}body.community-chat-open{overflow:hidden!important}</style></head>
+</style><style id="community-chat-front-fix">#communityChatModal:not([hidden]){position:fixed!important;inset:0!important;z-index:2147483647!important;display:flex!important;visibility:visible!important;opacity:1!important;transform:none!important;pointer-events:auto!important}#communityChatModal:not([hidden]) .community-chat-panel{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}body.community-chat-open{overflow:hidden!important}</style><style id="community-emoji-visibility-fix">
+#communityChatModal .community-chat-panel{min-height:0!important;overflow:hidden!important}
+#communityChatModal #communityEmojiPicker:not([hidden]){display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;gap:5px!important;flex:0 0 auto!important;min-height:0!important;max-height:160px!important;overflow-y:auto!important;overflow-x:hidden!important;position:relative!important;z-index:3!important;box-sizing:border-box!important;padding:8px 10px!important;background:#10272d!important;border-top:1px solid #325259!important}
+#communityChatModal #communityEmojiPicker button{display:flex!important;align-items:center!important;justify-content:center!important;min-width:0!important;min-height:38px!important;padding:3px!important;font-size:23px!important;line-height:1!important}
+#communityChatModal .community-challenge-area{flex-shrink:0!important;position:relative!important;z-index:1!important}
+#communityChatModal .community-chat-list{min-height:0!important;flex:1 1 0!important}
+</style></head>
 <body>
 <div id="rankingEmergencyRecovery" style="position:fixed;inset:0;z-index:2147483646;display:none;align-items:center;justify-content:center;box-sizing:border-box;padding:20px;background:#07131e;color:white;font:16px Arial,sans-serif;text-align:center">
  <div style="width:min(100%,450px);border:2px solid #d8ab4c;border-radius:18px;padding:26px;background:#0e2533">
