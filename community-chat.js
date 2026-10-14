@@ -118,7 +118,7 @@
    }catch(e){console.warn('Chat sound:',e)}
   };
   const checkNewChatSound=async()=>{
-   if(!client||soundCheckBusy||document.hidden)return;
+   if(!client||soundCheckBusy)return;
    soundCheckBusy=true;
    try{
     const {data:{user}}=await client.auth.getUser();
@@ -132,13 +132,30 @@
    }catch(e){console.warn('Chat sound check:',e)}
    finally{soundCheckBusy=false}
   };
+  // Realtime delivers promptly while the page is running; polling remains as fallback.
+  if(client){
+   try{
+    client.channel('lobby-chat-background-sound')
+     .on('postgres_changes',{event:'INSERT',schema:'public',table:'lobby_chat_messages'},payload=>{
+      const m=payload.new;if(!m)return;
+      const id=Number(m.id);
+      if(lastNotifiedMessageId===null){lastNotifiedMessageId=id;return}
+      if(id>lastNotifiedMessageId){
+       lastNotifiedMessageId=id;
+       if(m.sender_id!==viewerId)playChatSound();
+       refreshUnreadSoon();
+      }
+     }).subscribe();
+   }catch(error){console.warn('Chat realtime sound:',error)}
+  }
+  function refreshUnreadSoon(){setTimeout(()=>{if(typeof refreshUnread==='function')refreshUnread()},150)}
   setInterval(checkNewChatSound,8000);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkNewChatSound()});
+  document.addEventListener('visibilitychange',()=>{checkNewChatSound();if(!document.hidden)unlockChatSound()});
   checkNewChatSound();
   const badge=document.createElement('span');badge.className='community-chat-unread-badge';badge.hidden=true;badge.setAttribute('aria-label','Mensajes sin leer');button.appendChild(badge);
   let unreadBusy=false;
   const refreshUnread=async()=>{
-   if(!client||unreadBusy||document.hidden)return;
+   if(!client||unreadBusy)return;
    unreadBusy=true;
    try{
     const {data:{user}}=await client.auth.getUser();
@@ -153,7 +170,7 @@
    finally{unreadBusy=false}
   };
   setInterval(refreshUnread,8000);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshUnread()});
+  document.addEventListener('visibilitychange',()=>refreshUnread());
   refreshUnread();
   const readersOverlay=document.createElement('div');readersOverlay.className='community-readers-overlay';readersOverlay.hidden=true;
   const readersPanel=document.createElement('section');readersPanel.className='community-readers-panel';
