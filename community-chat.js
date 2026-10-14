@@ -8,6 +8,50 @@
   let client=null,interval=null,busy=false,previous='',profiles=new Map(),lastSent=0,viewerId=null,readBusy=false,readTimer=null;const readSent=new Set();
   try{const config=window.SUPABASE_CONFIG;if(config?.url&&config?.key&&window.supabase?.createClient)client=window.supabase.createClient(config.url,config.key,{auth:{persistSession:true,storage:window.localStorage,storageKey:'ranking8bp-auth'}})}catch(e){console.warn('Chat init:',e)}
   const say=s=>{info.textContent=s||''};
+  let notificationAudio=null,lastNotifiedMessageId=null,soundCheckBusy=false;
+  const unlockChatSound=()=>{
+   try{
+    const AudioContextType=window.AudioContext||window.webkitAudioContext;
+    if(!AudioContextType)return;
+    if(!notificationAudio)notificationAudio=new AudioContextType();
+    if(notificationAudio.state==='suspended')notificationAudio.resume().catch(()=>{});
+   }catch(e){}
+  };
+  document.addEventListener('pointerdown',unlockChatSound,{passive:true});
+  document.addEventListener('keydown',unlockChatSound);
+  const playChatSound=()=>{
+   try{
+    if(!notificationAudio||notificationAudio.state!=='running')return;
+    const now=notificationAudio.currentTime;
+    for(const [delay,freq] of [[0,880],[0.11,1174]]){
+     const osc=notificationAudio.createOscillator(),gain=notificationAudio.createGain();
+     osc.type='sine';osc.frequency.setValueAtTime(freq,now+delay);
+     gain.gain.setValueAtTime(0.0001,now+delay);
+     gain.gain.exponentialRampToValueAtTime(0.13,now+delay+0.012);
+     gain.gain.exponentialRampToValueAtTime(0.0001,now+delay+0.10);
+     osc.connect(gain);gain.connect(notificationAudio.destination);
+     osc.start(now+delay);osc.stop(now+delay+0.11);
+    }
+   }catch(e){console.warn('Chat sound:',e)}
+  };
+  const checkNewChatSound=async()=>{
+   if(!client||soundCheckBusy||document.hidden)return;
+   soundCheckBusy=true;
+   try{
+    const {data:{user}}=await client.auth.getUser();
+    if(!user){lastNotifiedMessageId=null;return}
+    const {data,error}=await client.from('lobby_chat_messages').select('id,sender_id').order('id',{ascending:false}).limit(1);
+    if(error)throw error;
+    const newest=data?.[0];if(!newest)return;
+    const id=Number(newest.id);
+    if(lastNotifiedMessageId!==null&&id>lastNotifiedMessageId&&newest.sender_id!==user.id)playChatSound();
+    lastNotifiedMessageId=Math.max(lastNotifiedMessageId||0,id);
+   }catch(e){console.warn('Chat sound check:',e)}
+   finally{soundCheckBusy=false}
+  };
+  setInterval(checkNewChatSound,8000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkNewChatSound()});
+  checkNewChatSound();
   const badge=document.createElement('span');badge.className='community-chat-unread-badge';badge.hidden=true;badge.setAttribute('aria-label','Mensajes sin leer');button.appendChild(badge);
   let unreadBusy=false;
   const refreshUnread=async()=>{
