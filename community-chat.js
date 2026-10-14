@@ -8,6 +8,26 @@
   let client=null,interval=null,busy=false,previous='',profiles=new Map(),lastSent=0,viewerId=null,readBusy=false,readTimer=null;const readSent=new Set();
   try{const config=window.SUPABASE_CONFIG;if(config?.url&&config?.key&&window.supabase?.createClient)client=window.supabase.createClient(config.url,config.key,{auth:{persistSession:true,storage:window.localStorage,storageKey:'ranking8bp-auth'}})}catch(e){console.warn('Chat init:',e)}
   const say=s=>{info.textContent=s||''};
+  const badge=document.createElement('span');badge.className='community-chat-unread-badge';badge.hidden=true;badge.setAttribute('aria-label','Mensajes sin leer');button.appendChild(badge);
+  let unreadBusy=false;
+  const refreshUnread=async()=>{
+   if(!client||unreadBusy||document.hidden)return;
+   unreadBusy=true;
+   try{
+    const {data:{user}}=await client.auth.getUser();
+    viewerId=user?.id||null;
+    if(!viewerId){badge.hidden=true;return}
+    const {data,error}=await client.rpc('lobby_chat_unread_count');
+    if(error)throw error;
+    const count=Math.max(0,Number(data)||0);
+    badge.textContent=String(count);badge.hidden=count===0;
+    button.setAttribute('aria-label',count?'Chat general, '+count+' mensajes sin leer':'Chat general, sin mensajes pendientes');
+   }catch(e){console.warn('Chat unread counter:',e)}
+   finally{unreadBusy=false}
+  };
+  setInterval(refreshUnread,8000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshUnread()});
+  refreshUnread();
   const closeChat=()=>{modal.hidden=true;clearInterval(interval);clearTimeout(readTimer);interval=null};
   const updateReadCounts=async()=>{
    if(!client||modal.hidden)return;
@@ -32,7 +52,7 @@
     const {error}=await client.from('lobby_chat_reads').upsert(payload,{onConflict:'message_id,reader_id',ignoreDuplicates:true});
     if(error)throw error;
     visible.forEach(el=>readSent.add(el.dataset.chatMessageId));
-    await updateReadCounts();
+    await updateReadCounts();await refreshUnread();
    }catch(err){console.warn('Chat read receipts:',err)}
    finally{readBusy=false}
   };
@@ -73,7 +93,7 @@
    modal.hidden=false;if(!list.children.length)list.textContent='Cargando historial...';say('');
    if(!client){say('No se pudo conectar al servidor.');return}
    try{const {data}=await client.auth.getUser();viewerId=data?.user?.id||null}catch(e){viewerId=null}
-   await load();clearInterval(interval);interval=setInterval(load,8000);
+   await load();await refreshUnread();clearInterval(interval);interval=setInterval(load,8000);
   });
   close.addEventListener('click',closeChat);
   modal.addEventListener('click',e=>{if(e.target===modal)closeChat()});
