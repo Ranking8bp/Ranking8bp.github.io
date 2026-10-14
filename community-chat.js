@@ -13,7 +13,7 @@
    if(modal.hidden||busy||!client)return;
    busy=true;
    try{
-    const {data,error}=await client.from('lobby_chat_messages').select('id,sender_id,body,created_at').order('created_at',{ascending:false}).limit(50);
+    const {data,error}=await client.from('lobby_chat_messages').select('id,sender_id,body,created_at').order('created_at',{ascending:false}).limit(200);
     if(error)throw error;
     const rows=(data||[]).reverse(),sig=rows.map(x=>x.id).join(',');
     if(sig===previous)return;
@@ -33,7 +33,7 @@
    finally{busy=false}
   };
   button.addEventListener('click',async()=>{
-   modal.hidden=false;list.textContent='Cargando mensajes...';previous='';say('');
+   modal.hidden=false;if(!list.children.length)list.textContent='Cargando historial...';say('');
    if(!client){say('No se pudo conectar al servidor.');return}
    await load();clearInterval(interval);interval=setInterval(load,8000);
   });
