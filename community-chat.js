@@ -175,6 +175,19 @@
   };
   const reactionEmojis=['❤️','😂','👍','🔥','😮','😢','🎱','👏'];
   let reactionMap=new Map();
+  const reactionsOverlay=document.createElement('div');reactionsOverlay.className='community-reactions-overlay';reactionsOverlay.hidden=true;reactionsOverlay.setAttribute('role','dialog');reactionsOverlay.setAttribute('aria-modal','true');reactionsOverlay.setAttribute('aria-label','Personas que reaccionaron');
+  const reactionsPanel=document.createElement('section');reactionsPanel.className='community-reactions-panel';
+  const reactionsHeader=document.createElement('header');reactionsHeader.className='community-reactions-header';const reactionsTitle=document.createElement('strong');reactionsTitle.textContent='Reacciones';const reactionsClose=document.createElement('button');reactionsClose.type='button';reactionsClose.textContent='✕';reactionsClose.setAttribute('aria-label','Cerrar reacciones');reactionsClose.addEventListener('click',()=>{reactionsOverlay.hidden=true});
+  reactionsHeader.append(reactionsTitle,reactionsClose);const reactionsPeople=document.createElement('div');reactionsPeople.className='community-reactions-people';reactionsPanel.append(reactionsHeader,reactionsPeople);reactionsOverlay.append(reactionsPanel);document.body.append(reactionsOverlay);reactionsOverlay.addEventListener('click',e=>{if(e.target===reactionsOverlay)reactionsOverlay.hidden=true});
+  const showReactionPeople=async(messageId,selectedEmoji)=>{
+   reactionsOverlay.hidden=false;reactionsTitle.textContent='Reacciones '+selectedEmoji;reactionsPeople.textContent='Cargando reacciones...';
+   try{
+    const {data,error}=await client.rpc('lobby_chat_reaction_people',{p_message_id:Number(messageId)});if(error)throw error;
+    reactionsPeople.replaceChildren();const people=(data||[]).filter(r=>r.emoji===selectedEmoji);
+    if(!people.length){reactionsPeople.textContent='Todavía no hay reacciones de este tipo.';return}
+    for(const person of people){const entry=document.createElement('div');entry.className='community-reaction-person';const name=document.createElement('span');name.textContent=person.user_name||'Jugador';const emoji=document.createElement('strong');emoji.textContent=person.emoji;entry.append(name,emoji);reactionsPeople.append(entry)}
+   }catch(error){reactionsPeople.textContent='No se pudieron cargar las reacciones.';console.warn('Reaction people:',error)}
+  };
   const refreshReactions=async()=>{
    if(!client||modal.hidden)return;
    const ids=[...list.querySelectorAll('[data-chat-message-id]')].map(el=>Number(el.dataset.chatMessageId));
@@ -187,7 +200,7 @@
     const target=el.querySelector('.community-chat-reaction-summary');if(!target)continue;
     target.replaceChildren();const entries=reactionMap.get(el.dataset.chatMessageId)||[];
     const counts=new Map();for(const r of entries)counts.set(r.emoji,(counts.get(r.emoji)||0)+1);
-    for(const [emoji,count] of counts){const b=document.createElement('button');b.type='button';b.textContent=emoji+' '+count;b.className='community-reaction-count';if(entries.some(r=>r.emoji===emoji&&r.user_id===viewerId))b.classList.add('mine');b.addEventListener('click',()=>setReaction(el.dataset.chatMessageId,emoji));target.append(b)}
+    for(const [emoji,count] of counts){const b=document.createElement('button');b.type='button';b.textContent=emoji+' '+count;b.className='community-reaction-count';if(entries.some(r=>r.emoji===emoji&&r.user_id===viewerId))b.classList.add('mine');b.addEventListener('click',()=>showReactionPeople(el.dataset.chatMessageId,emoji));target.append(b)}
    }
   };
   const setReaction=async(id,emoji)=>{
