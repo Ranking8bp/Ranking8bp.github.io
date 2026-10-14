@@ -3084,6 +3084,27 @@ async function sharePrivateRankedInvite(){
   stopPrivateInvitePoll();privateInvitePollTimer=setInterval(()=>pollPrivateInvite(token),2000);pollPrivateInvite(token);
  }catch(e){console.error('Crear invitación:',e);showToast(String(e?.message||'').includes('ACTIVE_MATCH')?'Ya tienes un VS activo.':'No se pudo crear la invitación.')}finally{dashboardShareBtn.disabled=false}
 }
+window.rankingChatChallengeBridge=async function(type){
+ if(!currentUser||!supabaseClient)throw new Error('INICIA SESIÓN PARA ENVIAR DESAFÍOS.');
+ if(type==='ranking'){
+  if(!window.rankingRulesAccepted){window.openRankingRules?.(true);throw new Error('ACEPTA LAS REGLAS DE RANKING ANTES DE ENVIAR EL DESAFÍO.')}
+  const {data,error}=await supabaseClient.rpc('create_ranked_match_invite');
+  if(error)throw error;
+  const token=String(data||'');if(!token)throw new Error('NO SE PUDO CREAR EL DESAFÍO.');
+  privateInviteToken=token;
+  stopPrivateInvitePoll();privateInvitePollTimer=setInterval(()=>pollPrivateInvite(token),2000);pollPrivateInvite(token);
+  const url=new URL(location.origin+location.pathname);url.searchParams.set('invite',token);
+  return 'ESTÁ BUSCANDO RIVAL PARA PARTIDO POR RANKING. TOCA EL ENLACE PARA JUGAR:\n'+url.toString();
+ }
+ if(type==='daily'){
+  const data=await dailyRpc('daily_classification_create_invite');
+  const token=typeof data==='string'?data:(data?.token||data?.invite_token||'');
+  if(!token)throw new Error('NO SE PUDO CREAR EL DESAFÍO DE CLASIFICACIÓN.');
+  const url=new URL(location.origin+location.pathname);url.searchParams.set('dailyinvite',String(token));
+  return 'ESTÁ BUSCANDO RIVAL PARA CLASIFICACIÓN DIARIA. TOCA EL ENLACE PARA JUGAR:\n'+url.toString();
+ }
+ throw new Error('TIPO DE DESAFÍO INVÁLIDO.');
+};
 async function acceptPrivateInviteFromUrl(){
  const token=new URLSearchParams(location.search).get('invite')||(()=>{try{return sessionStorage.getItem('ranking8bp-pending-invite')}catch(_){return null}})();if(!token||!currentUser||!supabaseClient)return;
  try{
