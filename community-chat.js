@@ -8,6 +8,50 @@
   let client=null,interval=null,busy=false,previous='',profiles=new Map(),lastSent=0,viewerId=null,readBusy=false,readTimer=null;const readSent=new Set();
   try{const config=window.SUPABASE_CONFIG;if(config?.url&&config?.key&&window.supabase?.createClient)client=window.supabase.createClient(config.url,config.key,{auth:{persistSession:true,storage:window.localStorage,storageKey:'ranking8bp-auth'}})}catch(e){console.warn('Chat init:',e)}
   const say=s=>{info.textContent=s||''};
+  const emojiToggle=$('communityEmojiToggle'),emojiPicker=$('communityEmojiPicker'),voiceToggle=$('communityVoiceToggle');
+  if(emojiToggle&&emojiPicker){
+   for(const emoji of [...'😀 😃 😄 😁 😂 🥰 😍 😎 😢 😭 😡 👍 👎 👏 🙌 ❤️ 💚 🔥 🎱 🏆 💪 🤝 👀 🎉 😅 🤣 🙏 💯 👑 😘'.split(' ')]){
+    const b=document.createElement('button');b.type='button';b.textContent=emoji;b.addEventListener('click',()=>{const pos=input.selectionStart??input.value.length;input.setRangeText(emoji,pos,input.selectionEnd??pos,'end');input.focus()});emojiPicker.append(b);
+   }
+   emojiToggle.addEventListener('click',()=>{emojiPicker.hidden=!emojiPicker.hidden});
+  }
+  let recorder=null,voiceStream=null,voiceChunks=[],voiceStarted=0,voiceTimer=null;
+  const stopVoice=()=>{if(recorder?.state==='recording')recorder.stop()};
+  if(voiceToggle)voiceToggle.addEventListener('click',async()=>{
+   if(recorder?.state==='recording'){stopVoice();return}
+   if(!client||!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){say('Este navegador no permite grabar notas de voz.');return}
+   try{
+    const {data:{user}}=await client.auth.getUser();
+    if(!user){say('Inicia sesión para grabar una nota de voz.');return}
+    voiceStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    const types=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg'];
+    const mime=types.find(t=>MediaRecorder.isTypeSupported(t))||'';
+    recorder=new MediaRecorder(voiceStream,mime?{mimeType:mime}:undefined);
+    voiceChunks=[];voiceStarted=Date.now();
+    recorder.ondataavailable=e=>{if(e.data.size)voiceChunks.push(e.data)};
+    recorder.onstop=async()=>{
+     clearTimeout(voiceTimer);voiceToggle.classList.remove('recording');voiceToggle.textContent='🎤';
+     voiceStream?.getTracks().forEach(t=>t.stop());voiceStream=null;
+     const blob=new Blob(voiceChunks,{type:recorder.mimeType||'audio/webm'});
+     if(!blob.size){say('No se grabó audio.');return}
+     if(blob.size>2097152){say('La nota de voz supera los 2 MB. Graba una más corta.');return}
+     voiceToggle.disabled=true;say('Enviando nota de voz...');
+     try{
+      const extension=blob.type.includes('mp4')?'m4a':blob.type.includes('ogg')?'ogg':'webm';
+      const path=user.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,9)+'.'+extension;
+      const {error:uploadError}=await client.storage.from('lobby-voice').upload(path,blob,{contentType:blob.type.split(';')[0],upsert:false});
+      if(uploadError)throw uploadError;
+      const {error:sendError}=await client.from('lobby_chat_messages').insert({sender_id:user.id,body:'[VOICE]'+path});
+      if(sendError)throw sendError;
+      previous='';await load();say('');
+     }catch(e){say('No se pudo enviar la nota de voz: '+(e.message||''))}
+     finally{voiceToggle.disabled=false}
+    };
+    recorder.start();voiceToggle.classList.add('recording');voiceToggle.textContent='⏹';say('Grabando... Toca ⏹ para enviar (máximo 60 segundos).');
+    voiceTimer=setTimeout(stopVoice,60000);
+   }catch(e){voiceStream?.getTracks().forEach(t=>t.stop());voiceStream=null;say('No se pudo acceder al micrófono: '+(e.message||''))}
+  });
+
   let notificationAudio=null,lastNotifiedMessageId=null,soundCheckBusy=false;
   const unlockChatSound=()=>{
    try{
@@ -206,7 +250,7 @@
      const item=document.createElement('div');item.className='community-chat-item';item.dataset.chatMessageId=String(m.id);item.dataset.senderId=m.sender_id;const rank=document.createElement('img');rank.className='community-chat-rank';const rankInfo=window.rankingChatProfileBridge?.rank?.(p.elo_points??200);if(rankInfo?.image){rank.src=rankInfo.image;rank.alt=rankInfo.name;rank.title=rankInfo.name;}else rank.style.visibility='hidden';
      const avatar=document.createElement('div');avatar.className='community-chat-avatar';avatar.textContent=name.slice(0,1).toUpperCase();
      if(p.avatar_path){const raw=String(p.avatar_path),clean=raw.replace(/^profile-photos\//,'').replace(/^\/+/,''),url=/^https?:\/\//i.test(raw)?raw:client.storage.from('profile-photos').getPublicUrl(clean).data?.publicUrl;if(url){const img=document.createElement('img');img.src=url;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();avatar.replaceChildren(img)}}avatar.classList.add('community-chat-avatar-clickable');avatar.title='Ver perfil de '+name;avatar.setAttribute('role','button');avatar.tabIndex=0;const view=async()=>{try{const {data,error}=await client.rpc('get_profile_by_id',{p_player_id:m.sender_id});if(error)throw error;const player=Array.isArray(data)?data[0]:data;if(player&&window.rankingChatProfileBridge?.open)window.rankingChatProfileBridge.open({...player,id:player.player_id||m.sender_id,player_id:player.player_id||m.sender_id});else say('No se pudo abrir el perfil.')}catch(e){say('No se pudo abrir el perfil.')}};avatar.addEventListener('click',view);avatar.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();view()}});
-     const bubble=document.createElement('div');bubble.className='community-chat-bubble';const nameEl=document.createElement('strong');nameEl.textContent=name;const body=document.createElement('span');const challengeMatch=String(m.body||'').match(/https?:\/\/[^\s<>\"']+/i);if(challengeMatch){try{const u=new URL(challengeMatch[0].replace(/[.,;!?)}\]]+$/,''));const rankingToken=u.searchParams.get('invite'),dailyToken=u.searchParams.get('dailyinvite');if((rankingToken||dailyToken)&&u.hostname==='ranking8bp.github.io'){body.dataset.challengeKind=rankingToken?'ranking':'daily';body.dataset.challengeToken=rankingToken||dailyToken;}}catch(_){}}const linkRegex=/https?:\/\/[^\s<>"']+/gi;const source=String(m.body||'');let cursor=0,match;while((match=linkRegex.exec(source))!==null){if(match.index>cursor)body.append(document.createTextNode(source.slice(cursor,match.index)));const raw=match[0];const trimmed=raw.replace(/[.,;!?)}\]]+$/,'');let safe=null;try{const parsed=new URL(trimmed);if(['https:','http:'].includes(parsed.protocol))safe=parsed.href}catch(e){}if(safe){const link=document.createElement('a');link.href=safe;link.target='_blank';link.rel='noopener noreferrer';link.textContent=trimmed;link.className='community-chat-link';body.append(link)}else body.append(document.createTextNode(trimmed));if(raw.length>trimmed.length)body.append(document.createTextNode(raw.slice(trimmed.length)));cursor=match.index+raw.length}if(cursor<source.length)body.append(document.createTextNode(source.slice(cursor)));const readEl=document.createElement('button');readEl.type='button';readEl.className='community-chat-read';readEl.textContent='Leído por: 0';readEl.title='Ver quién leyó este mensaje';readEl.addEventListener('click',()=>showReaders(m.id));const messageTime=document.createElement('time');messageTime.className='community-chat-time';const sentAt=new Date(m.created_at);if(!Number.isNaN(sentAt.getTime())){messageTime.dateTime=sentAt.toISOString();messageTime.textContent=new Intl.DateTimeFormat('es-MX',{hour:'2-digit',minute:'2-digit',hour12:false}).format(sentAt);messageTime.title=sentAt.toLocaleString('es-MX',{dateStyle:'full',timeStyle:'short'});}const meta=document.createElement('div');meta.className='community-chat-meta';meta.append(messageTime,readEl);bubble.append(nameEl,body,meta);item.append(rank,avatar,bubble);fragment.append(item);
+     const bubble=document.createElement('div');bubble.className='community-chat-bubble';const nameEl=document.createElement('strong');nameEl.textContent=name;const body=document.createElement('span');const challengeMatch=String(m.body||'').match(/https?:\/\/[^\s<>\"']+/i);if(challengeMatch){try{const u=new URL(challengeMatch[0].replace(/[.,;!?)}\]]+$/,''));const rankingToken=u.searchParams.get('invite'),dailyToken=u.searchParams.get('dailyinvite');if((rankingToken||dailyToken)&&u.hostname==='ranking8bp.github.io'){body.dataset.challengeKind=rankingToken?'ranking':'daily';body.dataset.challengeToken=rankingToken||dailyToken;}}catch(_){}}if(String(m.body||'').startsWith('[VOICE]')){const path=String(m.body).slice(7);if(/^[a-f0-9-]{36}\\/[a-zA-Z0-9._-]+\\.(webm|m4a|ogg)$/.test(path)){const {data:voiceUrl}=client.storage.from('lobby-voice').getPublicUrl(path);const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.className='community-voice-player';audio.src=voiceUrl.publicUrl;body.append(document.createTextNode('🎤 Nota de voz'),audio);}else body.textContent='Nota de voz no disponible';}else{const linkRegex=/https?:\\/\\/[^\\s<>"']+/gi;const source=String(m.body||'');let cursor=0,match;while((match=linkRegex.exec(source))!==null){if(match.index>cursor)body.append(document.createTextNode(source.slice(cursor,match.index)));const raw=match[0];const trimmed=raw.replace(/[.,;!?)}\]]+$/,'');let safe=null;try{const parsed=new URL(trimmed);if(['https:','http:'].includes(parsed.protocol))safe=parsed.href}catch(e){}if(safe){const link=document.createElement('a');link.href=safe;link.target='_blank';link.rel='noopener noreferrer';link.textContent=trimmed;link.className='community-chat-link';body.append(link)}else body.append(document.createTextNode(trimmed));if(raw.length>trimmed.length)body.append(document.createTextNode(raw.slice(trimmed.length)));cursor=match.index+raw.length}if(cursor<source.length)body.append(document.createTextNode(source.slice(cursor)));}const readEl=document.createElement('button');readEl.type='button';readEl.className='community-chat-read';readEl.textContent='Leído por: 0';readEl.title='Ver quién leyó este mensaje';readEl.addEventListener('click',()=>showReaders(m.id));const messageTime=document.createElement('time');messageTime.className='community-chat-time';const sentAt=new Date(m.created_at);if(!Number.isNaN(sentAt.getTime())){messageTime.dateTime=sentAt.toISOString();messageTime.textContent=new Intl.DateTimeFormat('es-MX',{hour:'2-digit',minute:'2-digit',hour12:false}).format(sentAt);messageTime.title=sentAt.toLocaleString('es-MX',{dateStyle:'full',timeStyle:'short'});}const meta=document.createElement('div');meta.className='community-chat-meta';meta.append(messageTime,readEl);bubble.append(nameEl,body,meta);item.append(rank,avatar,bubble);fragment.append(item);
     }
     list.replaceChildren(fragment);previous=sig;if(bottom)list.scrollTop=list.scrollHeight;say('');await refreshChallengeStatuses();await updateReadCounts();queueReads();
    }catch(e){say('No se pudieron cargar los mensajes. '+(e.message||''))}
