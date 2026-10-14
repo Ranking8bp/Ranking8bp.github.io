@@ -650,7 +650,7 @@
 #communityChatModal .community-challenge-area{flex:0 0 auto}
 #communityChatModal .community-chat-panel small{flex:0 0 auto;padding-bottom:calc(7px + env(safe-area-inset-bottom,0px))}
 #communityChatModal .community-voice-player{display:block;width:min(270px,70vw);max-width:100%;height:40px;margin-top:5px}
-</style></head>
+</style><style id="community-chat-front-fix">#communityChatModal:not([hidden]){position:fixed!important;inset:0!important;z-index:2147483647!important;display:flex!important;visibility:visible!important;opacity:1!important;transform:none!important;pointer-events:auto!important}#communityChatModal:not([hidden]) .community-chat-panel{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}body.community-chat-open{overflow:hidden!important}</style></head>
 <body>
 <div id="rankingEmergencyRecovery" style="position:fixed;inset:0;z-index:2147483646;display:none;align-items:center;justify-content:center;box-sizing:border-box;padding:20px;background:#07131e;color:white;font:16px Arial,sans-serif;text-align:center">
  <div style="width:min(100%,450px);border:2px solid #d8ab4c;border-radius:18px;padding:26px;background:#0e2533">
@@ -2124,6 +2124,6 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
  document.getElementById('waAnnouncementClose').addEventListener('click',function(){notice.hidden=true;try{localStorage.setItem(key,'seen')}catch(e){}});
 })();
 </script>
-<script src="community-chat.js?v=20261014-fix-open-chat-v2" defer></script>
-</body>
+<script src="community-chat.js?v=20261014-chat-front-fix-v3" defer></script>
+<script id="community-chat-open-fallback">(function(){function setup(){var b=document.getElementById('communityChatOpen'),m=document.getElementById('communityChatModal'),c=document.getElementById('communityChatClose');if(!b||!m||!c)return;function open(){m.hidden=false;m.removeAttribute('hidden');document.body.classList.add('community-chat-open');}function close(){m.hidden=true;document.body.classList.remove('community-chat-open');}b.addEventListener('click',open);c.addEventListener('click',close);m.addEventListener('click',function(e){if(e.target===m)close()});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup()})()</script></body>
 </html>
