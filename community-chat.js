@@ -27,34 +27,70 @@
    });
    emojiToggle.addEventListener('click',()=>{emojiPicker.hidden=!emojiPicker.hidden});
   }
-  let recorder=null,voiceStream=null,voiceChunks=[],voiceTimer=null;
-  if(voiceToggle)voiceToggle.addEventListener('click',async()=>{
-   if(recorder&&recorder.state==='recording'){recorder.stop();return}
-   if(!client||!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){say('Este navegador no permite grabar notas de voz.');return}
-   try{
-    const {data:{user}}=await client.auth.getUser();if(!user){say('Inicia sesión para enviar audios.');return}
-    voiceStream=await navigator.mediaDevices.getUserMedia({audio:true});
-    const mime=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg'].find(t=>MediaRecorder.isTypeSupported(t));
-    recorder=new MediaRecorder(voiceStream,mime?{mimeType:mime}:undefined);voiceChunks=[];
-    recorder.ondataavailable=e=>{if(e.data.size)voiceChunks.push(e.data)};
-    recorder.onstop=async()=>{
-     clearTimeout(voiceTimer);voiceToggle.textContent='🎤';voiceToggle.classList.remove('recording');
-     voiceStream?.getTracks().forEach(t=>t.stop());voiceStream=null;
-     const blob=new Blob(voiceChunks,{type:recorder.mimeType||'audio/webm'});
-     if(!blob.size||blob.size>2097152){say('Audio vacío o demasiado grande (máximo 2 MB).');return}
-     voiceToggle.disabled=true;say('Enviando audio...');
-     try{
-      const ext=blob.type.includes('mp4')?'m4a':blob.type.includes('ogg')?'ogg':'webm';
-      const path=user.id+'/'+Date.now()+'.'+ext;
-      const {error:uploadError}=await client.storage.from('lobby-voice').upload(path,blob,{contentType:blob.type.split(';')[0]});if(uploadError)throw uploadError;
-      const {error:sendError}=await client.from('lobby_chat_messages').insert({sender_id:user.id,body:'[VOICE]'+path});if(sendError)throw sendError;
-      previous='';await load();say('');
-     }catch(e){say('Error al enviar audio: '+(e.message||''))}
-     finally{voiceToggle.disabled=false}
-    };
-    recorder.start();voiceToggle.textContent='⏹';voiceToggle.classList.add('recording');say('Grabando... Toca ⏹ para enviar.');voiceTimer=setTimeout(()=>{if(recorder.state==='recording')recorder.stop()},60000);
-   }catch(e){voiceStream?.getTracks().forEach(t=>t.stop());say('No se pudo usar el micrófono: '+e.message)}
-  });
+  let recorder=null,voiceStream=null,voiceChunks=[],voiceTimer=null,voicePointer=null,voiceCancel=false,voiceReleased=false,voiceSession=0,voiceStarted=0,voiceStartX=0,voiceStartY=0,voiceUser=null,voiceReplyId=null;
+  const voiceIndicator=document.createElement('div');voiceIndicator.className='community-voice-indicator';voiceIndicator.hidden=true;voiceIndicator.innerHTML='<span class="community-voice-dot">●</span><span class="community-voice-time">0:00</span><span class="community-voice-hint">← Desliza para cancelar</span><span class="community-voice-trash">🗑️</span>';form.before(voiceIndicator);
+  const resetVoiceUI=()=>{clearInterval(voiceTimer);voiceTimer=null;voiceIndicator.hidden=true;voiceIndicator.classList.remove('cancelling');voiceToggle.classList.remove('recording');voiceToggle.textContent='🎤';voiceToggle.style.transform='';};
+  const releaseVoiceStream=()=>{voiceStream?.getTracks().forEach(t=>t.stop());voiceStream=null;};
+  const endVoice=(cancel=false)=>{
+   if(cancel)voiceCancel=true;
+   voiceReleased=true;
+   if(recorder?.state==='recording')recorder.stop();
+   else if(!recorder){voiceSession++;releaseVoiceStream();resetVoiceUI();}
+  };
+  if(voiceToggle){
+   voiceToggle.style.touchAction='none';
+   voiceToggle.addEventListener('contextmenu',e=>e.preventDefault());
+   voiceToggle.addEventListener('pointerdown',async e=>{
+    if(voicePointer!==null||voiceToggle.disabled)return;
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    e.preventDefault();voicePointer=e.pointerId;voiceCancel=false;voiceReleased=false;voiceStartX=e.clientX;voiceStartY=e.clientY;voiceStarted=Date.now();const session=++voiceSession;
+    voiceToggle.setPointerCapture?.(e.pointerId);
+    voiceIndicator.hidden=false;voiceIndicator.querySelector('.community-voice-time').textContent='0:00';
+    voiceToggle.classList.add('recording');voiceToggle.textContent='🎙️';
+    voiceTimer=setInterval(()=>{const seconds=Math.floor((Date.now()-voiceStarted)/1000);voiceIndicator.querySelector('.community-voice-time').textContent=Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0')},250);
+    if(!client||!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){say('Este navegador no permite grabar notas de voz.');endVoice(true);return}
+    try{
+     const {data:{user}}=await client.auth.getUser();
+     if(!user)throw new Error('Inicia sesión para enviar audios.');
+     if(session!==voiceSession||voiceReleased)return;
+     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+     if(session!==voiceSession||voiceReleased){stream.getTracks().forEach(t=>t.stop());return}
+     voiceStream=stream;voiceUser=user;voiceReplyId=replyTarget?.id||null;
+     const mime=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg'].find(t=>MediaRecorder.isTypeSupported(t));
+     recorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);voiceChunks=[];
+     recorder.ondataavailable=event=>{if(event.data.size)voiceChunks.push(event.data)};
+     recorder.onstop=async()=>{
+      const cancelled=voiceCancel;const blob=new Blob(voiceChunks,{type:recorder.mimeType||'audio/webm'});const userId=voiceUser.id,replyId=voiceReplyId;
+      recorder=null;releaseVoiceStream();resetVoiceUI();voicePointer=null;
+      if(cancelled){say('Nota de voz cancelada.');return}
+      if(!blob.size){say('No se grabó audio. Mantén presionado el micrófono.');return}
+      if(blob.size>2097152){say('Audio demasiado grande (máximo 2 MB).');return}
+      voiceToggle.disabled=true;say('Enviando nota de voz...');
+      try{
+       const ext=blob.type.includes('mp4')?'m4a':blob.type.includes('ogg')?'ogg':'webm';
+       const path=userId+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,7)+'.'+ext;
+       const {error:uploadError}=await client.storage.from('lobby-voice').upload(path,blob,{contentType:blob.type.split(';')[0]});if(uploadError)throw uploadError;
+       const {error:sendError}=await client.from('lobby_chat_messages').insert({sender_id:userId,body:'[VOICE]'+path,reply_to:replyId});if(sendError)throw sendError;
+       if(replyId&&replyTarget?.id===replyId)clearReply();previous='';await load();say('');
+      }catch(error){say('Error al enviar audio: '+(error.message||''))}
+      finally{voiceToggle.disabled=false}
+     };
+     recorder.start();
+     setTimeout(()=>{if(session===voiceSession&&recorder?.state==='recording')endVoice(false)},60000);
+    }catch(error){if(session===voiceSession){say('No se pudo grabar: '+(error.message||'Permiso de micrófono denegado'));endVoice(true)}}
+   });
+   voiceToggle.addEventListener('pointermove',e=>{
+    if(e.pointerId!==voicePointer)return;
+    const dx=e.clientX-voiceStartX;
+    if(dx< -65){voiceCancel=true;voiceIndicator.classList.add('cancelling');voiceIndicator.querySelector('.community-voice-hint').textContent='Suelta para eliminar';}
+    else{voiceCancel=false;voiceIndicator.classList.remove('cancelling');voiceIndicator.querySelector('.community-voice-hint').textContent='← Desliza para cancelar'}
+    voiceToggle.style.transform='translateX('+Math.max(-70,Math.min(0,dx))+'px)';
+   });
+   const finish=e=>{if(e.pointerId!==voicePointer)return;e.preventDefault();voicePointer=null;endVoice(voiceCancel)};
+   voiceToggle.addEventListener('pointerup',finish);
+   voiceToggle.addEventListener('pointercancel',e=>{if(e.pointerId!==voicePointer)return;voicePointer=null;endVoice(true)});
+   window.addEventListener('blur',()=>{if(voicePointer!==null){voicePointer=null;endVoice(true)}});
+  }
   let notificationAudio=null,lastNotifiedMessageId=null,soundCheckBusy=false;
   const unlockChatSound=()=>{
    try{
