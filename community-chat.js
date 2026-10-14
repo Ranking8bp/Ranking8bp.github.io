@@ -164,17 +164,18 @@
   list.addEventListener('scroll',queueReads,{passive:true});
   const refreshChallengeStatuses=async()=>{
    if(!client||modal.hidden)return;
-   const nodes=[...list.querySelectorAll('[data-challenge-token]')].filter(el=>el.dataset.challengeAccepted!=='yes');
+   const nodes=[...list.querySelectorAll('[data-chat-message-id]')].filter(el=>el.querySelector('[data-challenge-token]'));
    if(!nodes.length)return;
-   const ranking=[...new Set(nodes.filter(x=>x.dataset.challengeKind==='ranking').map(x=>x.dataset.challengeToken))];
-   const daily=[...new Set(nodes.filter(x=>x.dataset.challengeKind==='daily').map(x=>x.dataset.challengeToken))];
    try{
-    const {data,error}=await client.rpc('chat_challenge_status',{p_ranking_tokens:ranking,p_daily_tokens:daily});
+    const ids=nodes.map(el=>Number(el.dataset.chatMessageId));
+    const {data,error}=await client.rpc('chat_accepted_messages',{p_message_ids:ids});
     if(error)throw error;
-    const accepted=new Map((data||[]).map(x=>[x.kind+':'+x.token,x.accepted_name]));
-    for(const el of nodes){
-     const name=accepted.get(el.dataset.challengeKind+':'+el.dataset.challengeToken);
+    const accepted=new Map((data||[]).map(x=>[String(x.message_id),x.accepted_name]));
+    for(const item of nodes){
+     const name=accepted.get(item.dataset.chatMessageId);
      if(!name)continue;
+     const el=item.querySelector('[data-challenge-token]');
+     if(!el||el.dataset.challengeAccepted==='yes')continue;
      el.dataset.challengeAccepted='yes';
      el.replaceChildren(document.createTextNode('✅ Desafío Aceptado por: '+name));
     }
