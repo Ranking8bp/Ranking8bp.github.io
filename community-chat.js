@@ -47,11 +47,19 @@
     const rows=(data||[]).reverse(),sig=rows.map(x=>x.id).join(',');
     if(sig===previous){await updateReadCounts();queueReads();return;}
     const missing=[...new Set(rows.map(x=>x.sender_id))].filter(id=>!profiles.has(id));
-    if(missing.length){const ps=await Promise.all(missing.map(async id=>{const {data}=await client.rpc('get_profile_by_id',{p_player_id:id});return Array.isArray(data)?data[0]:data}));for(const p of ps)if(p)profiles.set(p.player_id,p)}
+    if(missing.length){
+     const results=await Promise.allSettled(missing.map(async id=>{
+      const {data,error}=await client.rpc('get_profile_by_id',{p_player_id:id});
+      if(error)throw error;
+      const p=Array.isArray(data)?data[0]:data;
+      return p?{...p,id:p.player_id||id}:null;
+     }));
+     for(const result of results)if(result.status==='fulfilled'&&result.value)profiles.set(String(result.value.id),result.value);
+    }
     const bottom=list.scrollHeight-list.scrollTop-list.clientHeight<90;
     const fragment=document.createDocumentFragment();
     for(const m of rows){
-     const p=profiles.get(m.sender_id)||{},name=p.account_name||p.username||'Jugador';
+     const p=profiles.get(String(m.sender_id))||{},name=p.account_name||p.username||'Jugador';
      const item=document.createElement('div');item.className='community-chat-item';item.dataset.chatMessageId=String(m.id);item.dataset.senderId=m.sender_id;const rank=document.createElement('img');rank.className='community-chat-rank';const rankInfo=window.rankingChatProfileBridge?.rank?.(p.elo_points??200);if(rankInfo?.image){rank.src=rankInfo.image;rank.alt=rankInfo.name;rank.title=rankInfo.name;}else rank.style.visibility='hidden';
      const avatar=document.createElement('div');avatar.className='community-chat-avatar';avatar.textContent=name.slice(0,1).toUpperCase();
      if(p.avatar_path){const raw=String(p.avatar_path),clean=raw.replace(/^profile-photos\//,'').replace(/^\/+/,''),url=/^https?:\/\//i.test(raw)?raw:client.storage.from('profile-photos').getPublicUrl(clean).data?.publicUrl;if(url){const img=document.createElement('img');img.src=url;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();avatar.replaceChildren(img)}}avatar.classList.add('community-chat-avatar-clickable');avatar.title='Ver perfil de '+name;avatar.setAttribute('role','button');avatar.tabIndex=0;const view=async()=>{try{const {data,error}=await client.rpc('get_profile_by_id',{p_player_id:m.sender_id});if(error)throw error;const player=Array.isArray(data)?data[0]:data;if(player&&window.rankingChatProfileBridge?.open)window.rankingChatProfileBridge.open({...player,id:player.player_id||m.sender_id,player_id:player.player_id||m.sender_id});else say('No se pudo abrir el perfil.')}catch(e){say('No se pudo abrir el perfil.')}};avatar.addEventListener('click',view);avatar.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();view()}});
