@@ -660,7 +660,7 @@
 #playerDetailModal.player-detail-backdrop.open{position:fixed!important;inset:0!important;z-index:2147483647!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
 #rankZoomModal.rank-zoom-backdrop.open{position:fixed!important;inset:0!important;z-index:2147483647!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
 #playerDetailModal .player-detail-card,#rankZoomModal .rank-zoom-card{position:relative!important;pointer-events:auto!important}
-</style></head>
+</style><style id="community-reaction-people-style">.community-reactions-overlay:not([hidden]){position:fixed!important;inset:0!important;z-index:2147483647!important;background:rgba(0,0,0,.77)!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:15px!important}.community-reactions-panel{width:min(94vw,430px)!important;max-height:80dvh!important;overflow:auto!important;background:#102d31!important;color:white!important;border:1px solid #397a6c!important;border-radius:16px!important;padding:14px!important;box-shadow:0 12px 45px #0009!important}.community-reactions-header{display:flex!important;align-items:center!important;justify-content:space-between!important;padding:8px 5px 15px!important}.community-reactions-header strong{font-size:19px!important}.community-reactions-header button{border:0!important;background:transparent!important;color:white!important;font-size:24px!important}.community-reaction-person{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;padding:12px 9px!important;border-bottom:1px solid #ffffff22!important;font-size:15px!important}.community-reaction-person strong{font-size:25px!important}</style></head>
 <body>
 <div id="rankingEmergencyRecovery" style="position:fixed;inset:0;z-index:2147483646;display:none;align-items:center;justify-content:center;box-sizing:border-box;padding:20px;background:#07131e;color:white;font:16px Arial,sans-serif;text-align:center">
  <div style="width:min(100%,450px);border:2px solid #d8ab4c;border-radius:18px;padding:26px;background:#0e2533">
@@ -2134,7 +2134,7 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
  document.getElementById('waAnnouncementClose').addEventListener('click',function(){notice.hidden=true;try{localStorage.setItem(key,'seen')}catch(e){}});
 })();
 </script>
-<script id="community-chat-modal-placement">document.body.appendChild(document.getElementById('communityChatModal'));</script><script id="community-chat-inline-v11">/* Chat general independiente: no modifica el controlador principal. */
+<script id="community-chat-modal-placement">document.body.appendChild(document.getElementById('communityChatModal'));</script><script id="community-chat-inline-v12">/* Chat general independiente: no modifica el controlador principal. */
 (() => {
  'use strict';
  const ready = () => {
@@ -2311,6 +2311,19 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
   };
   const reactionEmojis=['❤️','😂','👍','🔥','😮','😢','🎱','👏'];
   let reactionMap=new Map();
+  const reactionsOverlay=document.createElement('div');reactionsOverlay.className='community-reactions-overlay';reactionsOverlay.hidden=true;reactionsOverlay.setAttribute('role','dialog');reactionsOverlay.setAttribute('aria-modal','true');reactionsOverlay.setAttribute('aria-label','Personas que reaccionaron');
+  const reactionsPanel=document.createElement('section');reactionsPanel.className='community-reactions-panel';
+  const reactionsHeader=document.createElement('header');reactionsHeader.className='community-reactions-header';const reactionsTitle=document.createElement('strong');reactionsTitle.textContent='Reacciones';const reactionsClose=document.createElement('button');reactionsClose.type='button';reactionsClose.textContent='✕';reactionsClose.setAttribute('aria-label','Cerrar reacciones');reactionsClose.addEventListener('click',()=>{reactionsOverlay.hidden=true});
+  reactionsHeader.append(reactionsTitle,reactionsClose);const reactionsPeople=document.createElement('div');reactionsPeople.className='community-reactions-people';reactionsPanel.append(reactionsHeader,reactionsPeople);reactionsOverlay.append(reactionsPanel);document.body.append(reactionsOverlay);reactionsOverlay.addEventListener('click',e=>{if(e.target===reactionsOverlay)reactionsOverlay.hidden=true});
+  const showReactionPeople=async(messageId,selectedEmoji)=>{
+   reactionsOverlay.hidden=false;reactionsTitle.textContent='Reacciones '+selectedEmoji;reactionsPeople.textContent='Cargando reacciones...';
+   try{
+    const {data,error}=await client.rpc('lobby_chat_reaction_people',{p_message_id:Number(messageId)});if(error)throw error;
+    reactionsPeople.replaceChildren();const people=(data||[]).filter(r=>r.emoji===selectedEmoji);
+    if(!people.length){reactionsPeople.textContent='Todavía no hay reacciones de este tipo.';return}
+    for(const person of people){const entry=document.createElement('div');entry.className='community-reaction-person';const name=document.createElement('span');name.textContent=person.user_name||'Jugador';const emoji=document.createElement('strong');emoji.textContent=person.emoji;entry.append(name,emoji);reactionsPeople.append(entry)}
+   }catch(error){reactionsPeople.textContent='No se pudieron cargar las reacciones.';console.warn('Reaction people:',error)}
+  };
   const refreshReactions=async()=>{
    if(!client||modal.hidden)return;
    const ids=[...list.querySelectorAll('[data-chat-message-id]')].map(el=>Number(el.dataset.chatMessageId));
@@ -2323,7 +2336,7 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
     const target=el.querySelector('.community-chat-reaction-summary');if(!target)continue;
     target.replaceChildren();const entries=reactionMap.get(el.dataset.chatMessageId)||[];
     const counts=new Map();for(const r of entries)counts.set(r.emoji,(counts.get(r.emoji)||0)+1);
-    for(const [emoji,count] of counts){const b=document.createElement('button');b.type='button';b.textContent=emoji+' '+count;b.className='community-reaction-count';if(entries.some(r=>r.emoji===emoji&&r.user_id===viewerId))b.classList.add('mine');b.addEventListener('click',()=>setReaction(el.dataset.chatMessageId,emoji));target.append(b)}
+    for(const [emoji,count] of counts){const b=document.createElement('button');b.type='button';b.textContent=emoji+' '+count;b.className='community-reaction-count';if(entries.some(r=>r.emoji===emoji&&r.user_id===viewerId))b.classList.add('mine');b.addEventListener('click',()=>showReactionPeople(el.dataset.chatMessageId,emoji));target.append(b)}
    }
   };
   const setReaction=async(id,emoji)=>{
