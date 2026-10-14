@@ -79,6 +79,15 @@
    option.addEventListener('click',()=>sendChallenge(type,option));challengeOptions.append(option);
   }
   challengeArea.append(challengeToggle,challengeOptions);if(!challengeArea.isConnected)form.after(challengeArea);for(const option of challengeOptions.querySelectorAll('[data-challenge]'))option.addEventListener('click',()=>sendChallenge(option.dataset.challenge,option));
+  const markChatOpenedRead=async()=>{
+   if(!client||modal.hidden||!viewerId)return;
+   try{
+    const {error}=await client.rpc('lobby_chat_mark_all_read');
+    if(error)throw error;
+    await refreshUnread();
+    await updateReadCounts();
+   }catch(e){console.warn('Chat mark all read:',e)}
+  };
   const closeChat=()=>{hideReaders();modal.hidden=true;clearInterval(interval);clearTimeout(readTimer);interval=null};
   const updateReadCounts=async()=>{
    if(!client||modal.hidden)return;
@@ -144,7 +153,7 @@
    modal.hidden=false;if(!list.children.length)list.textContent='Cargando historial...';say('');
    if(!client){say('No se pudo conectar al servidor.');return}
    try{const {data}=await client.auth.getUser();viewerId=data?.user?.id||null}catch(e){viewerId=null}
-   await load();await refreshUnread();clearInterval(interval);interval=setInterval(load,8000);
+   await load();await markChatOpenedRead();clearInterval(interval);interval=setInterval(async()=>{await load();await markChatOpenedRead()},8000);
   });
   close.addEventListener('click',closeChat);
   modal.addEventListener('click',e=>{if(e.target===modal)closeChat()});
