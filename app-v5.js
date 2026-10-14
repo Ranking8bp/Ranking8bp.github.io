@@ -4674,4 +4674,3 @@ document.getElementById('dailyEvidenceForgot')?.addEventListener('click',async()
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
-
