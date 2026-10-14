@@ -119,23 +119,38 @@
   const showReaders=async messageId=>{
    readersOverlay.hidden=false;readersList.textContent='Cargando lectores...';
    try{
-    const {data,error}=await client.from('lobby_chat_reads').select('reader_id').eq('message_id',messageId).order('read_at',{ascending:true});
+    const {data,error}=await client.rpc('lobby_chat_reader_names',{p_message_id:Number(messageId)});
     if(error)throw error;
-    const ids=[...new Set((data||[]).map(x=>x.reader_id))];
-    if(!ids.length){readersList.textContent='Nadie ha leído este mensaje todavía.';return}
-    const results=await Promise.allSettled(ids.map(async id=>{
-     let p=profiles.get(String(id));
-     if(!p){const {data:profile,error:err}=await client.rpc('get_profile_by_id',{p_player_id:id});if(err)throw err;p=Array.isArray(profile)?profile[0]:profile;if(p)profiles.set(String(id),p)}
-     return p;
-    }));
     readersList.replaceChildren();
-    for(let i=0;i<ids.length;i++){
-     const p=results[i].status==='fulfilled'?results[i].value:null;
-     const entry=document.createElement('div');entry.className='community-readers-entry';
-     const name=document.createElement('span');name.textContent=p?.account_name||p?.username||'Jugador';
-     entry.append(name);readersList.append(entry);
-    }
+    if(!data?.length){readersList.textContent='Nadie ha leído este mensaje todavía.';return}
+    for(const person of data){const entry=document.createElement('div');entry.className='community-readers-entry';const name=document.createElement('span');name.textContent=person.reader_name||'Jugador';entry.append(name);readersList.append(entry)}
    }catch(err){readersList.textContent='No se pudo cargar la lista de lectores.';console.warn('Chat readers:',err)}
+  };
+  const reactionEmojis=['❤️','😂','👍','🔥','😮','😢','🎱','👏'];
+  let reactionMap=new Map();
+  const refreshReactions=async()=>{
+   if(!client||modal.hidden)return;
+   const ids=[...list.querySelectorAll('[data-chat-message-id]')].map(el=>Number(el.dataset.chatMessageId));
+   if(!ids.length)return;
+   const {data,error}=await client.from('lobby_chat_reactions').select('message_id,user_id,emoji').in('message_id',ids);
+   if(error){console.warn('Chat reactions:',error);return}
+   reactionMap=new Map();
+   for(const r of data||[]){const id=String(r.message_id);if(!reactionMap.has(id))reactionMap.set(id,[]);reactionMap.get(id).push(r)}
+   for(const el of list.querySelectorAll('[data-chat-message-id]')){
+    const target=el.querySelector('.community-chat-reaction-summary');if(!target)continue;
+    target.replaceChildren();const entries=reactionMap.get(el.dataset.chatMessageId)||[];
+    const counts=new Map();for(const r of entries)counts.set(r.emoji,(counts.get(r.emoji)||0)+1);
+    for(const [emoji,count] of counts){const b=document.createElement('button');b.type='button';b.textContent=emoji+' '+count;b.className='community-reaction-count';if(entries.some(r=>r.emoji===emoji&&r.user_id===viewerId))b.classList.add('mine');b.addEventListener('click',()=>setReaction(el.dataset.chatMessageId,emoji));target.append(b)}
+   }
+  };
+  const setReaction=async(id,emoji)=>{
+   if(!client){say('No se pudo conectar.');return}
+   try{const {data:{user}}=await client.auth.getUser();if(!user){say('Inicia sesión para reaccionar.');return}
+    const existing=(reactionMap.get(String(id))||[]).find(r=>r.user_id===user.id);
+    if(existing?.emoji===emoji){const {error}=await client.from('lobby_chat_reactions').delete().eq('message_id',Number(id)).eq('user_id',user.id);if(error)throw error}
+    else{const {error}=await client.from('lobby_chat_reactions').upsert({message_id:Number(id),user_id:user.id,emoji},{onConflict:'message_id,user_id'});if(error)throw error}
+    await refreshReactions();
+   }catch(e){say('No se pudo guardar la reacción: '+(e.message||''))}
   };
   const challengeArea=$('communityChallengeArea')||document.createElement('div');challengeArea.className='community-challenge-area';
   const challengeToggle=$('communityChallengeToggle')||document.createElement('button');challengeToggle.type='button';challengeToggle.className='community-challenge-toggle';challengeToggle.textContent='⚔ DESAFÍO';
@@ -224,7 +239,7 @@
     const {data,error}=await client.from('lobby_chat_messages').select('id,sender_id,body,created_at').order('created_at',{ascending:false}).limit(200);
     if(error)throw error;
     const rows=(data||[]).reverse(),sig=rows.map(x=>x.id).join(',');
-    if(sig===previous){await refreshChallengeStatuses();await updateReadCounts();queueReads();return;}
+    if(sig===previous){await refreshChallengeStatuses();await updateReadCounts();await refreshReactions();await refreshReactions();queueReads();return;}
     const missing=[...new Set(rows.map(x=>x.sender_id))].filter(id=>!profiles.has(id));
     if(missing.length){
      const results=await Promise.allSettled(missing.map(async id=>{
@@ -242,7 +257,7 @@
      const item=document.createElement('div');item.className='community-chat-item';item.dataset.chatMessageId=String(m.id);item.dataset.senderId=m.sender_id;const rank=document.createElement('img');rank.className='community-chat-rank';const rankInfo=window.rankingChatProfileBridge?.rank?.(p.elo_points??200);if(rankInfo?.image){rank.src=rankInfo.image;rank.alt=rankInfo.name;rank.title=rankInfo.name;}else rank.style.visibility='hidden';
      const avatar=document.createElement('div');avatar.className='community-chat-avatar';avatar.textContent=name.slice(0,1).toUpperCase();
      if(p.avatar_path){const raw=String(p.avatar_path),clean=raw.replace(/^profile-photos\//,'').replace(/^\/+/,''),url=/^https?:\/\//i.test(raw)?raw:client.storage.from('profile-photos').getPublicUrl(clean).data?.publicUrl;if(url){const img=document.createElement('img');img.src=url;img.alt='';img.loading='lazy';img.onerror=()=>img.remove();avatar.replaceChildren(img)}}avatar.classList.add('community-chat-avatar-clickable');avatar.title='Ver perfil de '+name;avatar.setAttribute('role','button');avatar.tabIndex=0;const view=async()=>{try{const {data,error}=await client.rpc('get_profile_by_id',{p_player_id:m.sender_id});if(error)throw error;const player=Array.isArray(data)?data[0]:data;if(player&&window.rankingChatProfileBridge?.open)window.rankingChatProfileBridge.open({...player,id:player.player_id||m.sender_id,player_id:player.player_id||m.sender_id});else say('No se pudo abrir el perfil.')}catch(e){say('No se pudo abrir el perfil.')}};avatar.addEventListener('click',view);avatar.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();view()}});
-     const bubble=document.createElement('div');bubble.className='community-chat-bubble';const nameEl=document.createElement('strong');nameEl.textContent=name;const body=document.createElement('span');if(String(m.body||'').startsWith('[VOICE]')){const path=String(m.body).slice(7);if(/^[a-f0-9-]{36}\/[a-zA-Z0-9._-]+\.(webm|m4a|ogg)$/.test(path)){const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.className='community-voice-player';audio.src=client.storage.from('lobby-voice').getPublicUrl(path).data.publicUrl;body.append('🎤 Nota de voz',audio);}else body.textContent='Audio no disponible';}else{const challengeMatch=String(m.body||'').match(/https?:\/\/[^\s<>\"']+/i);if(challengeMatch){try{const u=new URL(challengeMatch[0].replace(/[.,;!?)}\]]+$/,''));const rankingToken=u.searchParams.get('invite'),dailyToken=u.searchParams.get('dailyinvite');if((rankingToken||dailyToken)&&u.hostname==='ranking8bp.github.io'){body.dataset.challengeKind=rankingToken?'ranking':'daily';body.dataset.challengeToken=rankingToken||dailyToken;}}catch(_){}}const linkRegex=/https?:\/\/[^\s<>"']+/gi;const source=String(m.body||'');let cursor=0,match;while((match=linkRegex.exec(source))!==null){if(match.index>cursor)body.append(document.createTextNode(source.slice(cursor,match.index)));const raw=match[0];const trimmed=raw.replace(/[.,;!?)}\]]+$/,'');let safe=null;try{const parsed=new URL(trimmed);if(['https:','http:'].includes(parsed.protocol))safe=parsed.href}catch(e){}if(safe){const link=document.createElement('a');link.href=safe;link.target='_blank';link.rel='noopener noreferrer';link.textContent=trimmed;link.className='community-chat-link';body.append(link)}else body.append(document.createTextNode(trimmed));if(raw.length>trimmed.length)body.append(document.createTextNode(raw.slice(trimmed.length)));cursor=match.index+raw.length}if(cursor<source.length)body.append(document.createTextNode(source.slice(cursor)));}const readEl=document.createElement('button');readEl.type='button';readEl.className='community-chat-read';readEl.textContent='Leído por: 0';readEl.title='Ver quién leyó este mensaje';readEl.addEventListener('click',()=>showReaders(m.id));const messageTime=document.createElement('time');messageTime.className='community-chat-time';const sentAt=new Date(m.created_at);if(!Number.isNaN(sentAt.getTime())){messageTime.dateTime=sentAt.toISOString();messageTime.textContent=new Intl.DateTimeFormat('es-MX',{hour:'2-digit',minute:'2-digit',hour12:false}).format(sentAt);messageTime.title=sentAt.toLocaleString('es-MX',{dateStyle:'full',timeStyle:'short'});}const meta=document.createElement('div');meta.className='community-chat-meta';meta.append(messageTime,readEl);bubble.append(nameEl,body,meta);item.append(rank,avatar,bubble);fragment.append(item);
+     const bubble=document.createElement('div');bubble.className='community-chat-bubble';const nameEl=document.createElement('strong');nameEl.textContent=name;const body=document.createElement('span');if(String(m.body||'').startsWith('[VOICE]')){const path=String(m.body).slice(7);if(/^[a-f0-9-]{36}\/[a-zA-Z0-9._-]+\.(webm|m4a|ogg)$/.test(path)){const audio=document.createElement('audio');audio.controls=true;audio.preload='none';audio.className='community-voice-player';audio.src=client.storage.from('lobby-voice').getPublicUrl(path).data.publicUrl;body.append('🎤 Nota de voz',audio);}else body.textContent='Audio no disponible';}else{const challengeMatch=String(m.body||'').match(/https?:\/\/[^\s<>\"']+/i);if(challengeMatch){try{const u=new URL(challengeMatch[0].replace(/[.,;!?)}\]]+$/,''));const rankingToken=u.searchParams.get('invite'),dailyToken=u.searchParams.get('dailyinvite');if((rankingToken||dailyToken)&&u.hostname==='ranking8bp.github.io'){body.dataset.challengeKind=rankingToken?'ranking':'daily';body.dataset.challengeToken=rankingToken||dailyToken;}}catch(_){}}const linkRegex=/https?:\/\/[^\s<>"']+/gi;const source=String(m.body||'');let cursor=0,match;while((match=linkRegex.exec(source))!==null){if(match.index>cursor)body.append(document.createTextNode(source.slice(cursor,match.index)));const raw=match[0];const trimmed=raw.replace(/[.,;!?)}\]]+$/,'');let safe=null;try{const parsed=new URL(trimmed);if(['https:','http:'].includes(parsed.protocol))safe=parsed.href}catch(e){}if(safe){const link=document.createElement('a');link.href=safe;link.target='_blank';link.rel='noopener noreferrer';link.textContent=trimmed;link.className='community-chat-link';body.append(link)}else body.append(document.createTextNode(trimmed));if(raw.length>trimmed.length)body.append(document.createTextNode(raw.slice(trimmed.length)));cursor=match.index+raw.length}if(cursor<source.length)body.append(document.createTextNode(source.slice(cursor)));}const readEl=document.createElement('button');readEl.type='button';readEl.className='community-chat-read';readEl.textContent='Leído por: 0';readEl.title='Ver quién leyó este mensaje';readEl.addEventListener('click',()=>showReaders(m.id));const messageTime=document.createElement('time');messageTime.className='community-chat-time';const sentAt=new Date(m.created_at);if(!Number.isNaN(sentAt.getTime())){messageTime.dateTime=sentAt.toISOString();messageTime.textContent=new Intl.DateTimeFormat('es-MX',{hour:'2-digit',minute:'2-digit',hour12:false}).format(sentAt);messageTime.title=sentAt.toLocaleString('es-MX',{dateStyle:'full',timeStyle:'short'});}const meta=document.createElement('div');meta.className='community-chat-meta';meta.append(messageTime,readEl);const reactions=document.createElement('div');reactions.className='community-chat-reaction-summary';const reactButton=document.createElement('button');reactButton.type='button';reactButton.className='community-chat-react-button';reactButton.textContent='♡ Reaccionar';const picker=document.createElement('div');picker.className='community-chat-reaction-picker';picker.hidden=true;for(const emoji of reactionEmojis){const option=document.createElement('button');option.type='button';option.textContent=emoji;option.addEventListener('click',async()=>{picker.hidden=true;await setReaction(m.id,emoji)});picker.append(option)}reactButton.addEventListener('click',()=>{picker.hidden=!picker.hidden});bubble.append(nameEl,body,reactions,reactButton,picker,meta);item.append(rank,avatar,bubble);fragment.append(item);
     }
     list.replaceChildren(fragment);previous=sig;if(bottom)list.scrollTop=list.scrollHeight;say('');await refreshChallengeStatuses();await updateReadCounts();queueReads();
    }catch(e){say('No se pudieron cargar los mensajes. '+(e.message||''))}
