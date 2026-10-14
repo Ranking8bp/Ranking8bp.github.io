@@ -6,7 +6,7 @@
   const button=$('communityChatOpen'),modal=$('communityChatModal'),close=$('communityChatClose'),list=$('communityChatList'),form=$('communityChatForm'),input=$('communityChatInput'),info=$('communityChatInfo');
   if(!button||!modal||!close||!list||!form||!input||!info)return;
   let client=null,interval=null,busy=false,previous='',profiles=new Map(),lastSent=0;
-  try{const config=window.SUPABASE_CONFIG;if(config?.url&&config?.key&&window.supabase?.createClient)client=window.supabase.createClient(config.url,config.key,{auth:{persistSession:true,storageKey:'ranking8bp-community-chat-auth'}})}catch(e){console.warn('Chat init:',e)}
+  try{const config=window.SUPABASE_CONFIG;if(config?.url&&config?.key&&window.supabase?.createClient)client=window.supabase.createClient(config.url,config.key,{auth:{persistSession:true}})}catch(e){console.warn('Chat init:',e)}
   const say=s=>{info.textContent=s||''};
   const closeChat=()=>{modal.hidden=true;clearInterval(interval);interval=null};
   const load=async()=>{
