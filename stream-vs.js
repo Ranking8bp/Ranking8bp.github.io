@@ -369,6 +369,50 @@
    }catch(e){console.warn('Actualizar salas:',e)}
    finally{polling=false}
   }
+  // Enlaces seguros para mensajes VS. Nunca interpretar texto enviado como HTML.
+  // Se admiten URLs http(s), www y dominios sin prefijo.
+  function appendMessageLinks(target,body){
+   const source=String(body??'');
+   const pattern=/https?:\/\/[^\s<>"'\x60]+|www\.[^\s<>"'\x60]+|(?:[a-z\d](?:[a-z\d-]{0,61}[a-z\d])?\.)+[a-z]{2,24}(?::\d{2,5})?(?:\/[^\s<>"'\x60]*)?/gi;
+   let match,last=0;
+   while((match=pattern.exec(source))!==null){
+    const start=match.index;
+    if(start>last)target.appendChild(document.createTextNode(source.slice(last,start)));
+    const raw=match[0];
+    // El punto o paréntesis final suele pertenecer a la frase y no al enlace.
+    let end=raw.length;
+    while(end>0&&/[.,!?;:\]}]/.test(raw[end-1]))end--;
+    while(end>0&&raw[end-1]===')'){
+     const portion=raw.slice(0,end);
+     const left=(portion.match(/\(/g)||[]).length;
+     const right=(portion.match(/\)/g)||[]).length;
+     if(right<=left)break;
+     end--;
+    }
+    const label=raw.slice(0,end);
+    let safeURL=null;
+    if(label){
+     try{
+      const url=new URL(/^https?:\/\//i.test(label)?label:'https://'+label);
+      if(['http:','https:'].includes(url.protocol)&&url.hostname.includes('.')&&!url.username&&!url.password){
+       safeURL=url.href;
+      }
+     }catch(_){}
+    }
+    if(safeURL){
+     const link=h('a','sv-message-link',label);
+     link.href=safeURL;
+     link.target='_blank';
+     link.rel='noopener noreferrer';
+     link.referrerPolicy='no-referrer';
+     link.title='Abrir enlace en el navegador';
+     target.appendChild(link);
+    }else target.appendChild(document.createTextNode(label));
+    if(end<raw.length)target.appendChild(document.createTextNode(raw.slice(end)));
+    last=start+raw.length;
+   }
+   if(last<source.length)target.appendChild(document.createTextNode(source.slice(last)));
+  }
   async function loadMessages(force=false){
    if(!roomId||overlay.hidden||messagesBusy)return;
    messagesBusy=true;
@@ -393,7 +437,9 @@
      const mine=uid===m.sender_id;
      const line=h('div','sv-message-line'+(mine?' mine':''));
      const item=h('div','sv-message'+(mine?' mine':''));
-     item.append(h('strong','',m.sender_name),h('p','',m.body));
+     const messageText=h('p','');
+     appendMessageLinks(messageText,m.body);
+     item.append(h('strong','',m.sender_name),messageText);
      const row=h('div','sv-reactions');
      for(const emoji of ['👍','😂','❤️','🔥','👏','😮']){
       const n=Number(m.reactions?.[emoji]||0);
