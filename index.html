@@ -2131,11 +2131,11 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
 #waAnnouncement button{width:100%;border:0;border-radius:12px;background:#20c76a;color:#062211;font-size:16px;font-weight:800;padding:15px;cursor:pointer}
 </style>
 <div id="waAnnouncement" role="dialog" aria-modal="true" aria-labelledby="waAnnouncementTitle" hidden>
- <div class="wa-card"><div class="wa-icon" aria-hidden="true">📢🎱</div><h2 id="waAnnouncementTitle">¡TENEMOS NUEVO GRUPO DE WHATSAPP!</h2><p>Hemos creado un nuevo grupo oficial de Ranking8BP.<br><br>Para unirte, toca el botón <strong>GRUPO DE WHATSAPP</strong> que encontrarás en el sitio.<br><br>¡No te quedes fuera de nuestra comunidad!</p><button type="button" id="waAnnouncementClose">ENTENDIDO</button></div>
+ <div class="wa-card"><div class="wa-icon" aria-hidden="true">⚠️</div><h2 id="waAnnouncementTitle">⚠️ AVISO IMPORTANTE ⚠️</h2><p>SE HA DETECTADO A PERSONAS HACIENDO TRAMPA. CADA VEZ QUE ESTO PASE, SERÁN SANCIONADAS Y SE LES DESCONTARÁ ELO. SI VUELVEN A HACERLO, LA SANCIÓN SERÁ MÁS FUERTE.</p><button type="button" id="waAnnouncementClose">ENTENDIDO</button></div>
 </div>
 <script>
 (function(){
- const key='ranking8bp_whatsapp_announcement_20261014_v1';
+ const key='ranking8bp_aviso_trampas_20261016_v1';
  const notice=document.getElementById('waAnnouncement');
  try{if(localStorage.getItem(key)==='seen')return;}catch(e){}
  notice.hidden=false;
