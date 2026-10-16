@@ -98,3 +98,8 @@ body.ts-player-playing #communityChatModal{visibility:hidden!important}
  #tsPlayerOverlay .ts-player-head{min-height:31px;padding:3px 10px}
  #tsPlayerOverlay .ts-player-foot{height:25px;padding:2px 10px}
 }
+
+#tsPlayerOverlay .ts-player-head #tsPlayerAdminFinish{
+ background:#982323;border-color:#ed6666;flex:0 0 auto;
+}
+#tsPlayerOverlay #tsPlayerAdminFinish[hidden]{display:none!important}
