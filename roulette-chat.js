@@ -146,13 +146,13 @@
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,radius,start,end);ctx.closePath();
     ctx.fillStyle=palette[i%palette.length];ctx.fill();
     ctx.lineWidth=n>180?0.35:1.6;ctx.strokeStyle='#ffffff90';ctx.stroke();
-    if(n<=35){
+    if(n<=72){
      const mid=start+unit/2;
      ctx.save();ctx.translate(cx,cy);ctx.rotate(mid);
      ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillStyle='#fff';
      ctx.shadowColor='#000b';ctx.shadowBlur=4;
-     ctx.font='bold '+(n>23?16:n>12?20:26)+'px system-ui, sans-serif';
-     const maxLen=n>23?9:n>12?13:18;
+     ctx.font='bold '+(n>55?10:n>35?12:n>23?16:n>12?20:26)+'px system-ui, sans-serif';
+     const maxLen=n>55?7:n>35?9:n>23?9:n>12?13:18;
      ctx.fillText((roster[i].player_name||'Jugador').slice(0,maxLen),radius-17,0,radius-74);
      ctx.restore();
     }
@@ -256,6 +256,7 @@
     roster=rows;
     renderRoster();
     paintWheel();
+    // El ganador definitivo se mostrará después del giro cuando es un resultado nuevo.
     if(active.status==='finished'&&!spinningId)showWinner();
     // El feed actualiza el contador. La lista muestra el total exacto recibido.
     count.textContent=roster.length+' '+(roster.length===1?'JUGADOR INSCRITO':'JUGADORES INSCRITOS');
