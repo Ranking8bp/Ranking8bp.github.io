@@ -199,9 +199,24 @@
    if(active){
     const p1=active.player1_name||'Jugador 1',p2=active.player2_name||'Esperando rival';
     fixed.append(h('strong','',active.status==='playing'?'🔴 PARTIDO JUGÁNDOSE EN VIVO':'🎱 SE CREÓ UNA SALA DE VERSUS PARA RANKING'));
-    fixed.append(h('div','sv-banner-duel',p1+' ⚔ '+p2));
+    const pair=h('div','sv-banner-pair');
+    for(const ix of [1,2]){
+     if(ix===2)pair.append(h('b','sv-banner-vs','VS'));
+     const p=side(active,ix),card=h('div','sv-banner-person');
+     const src=imageFor(p.avatar);
+     if(src){const img=h('img','sv-banner-photo');img.src=src;img.alt=p.name;img.onerror=()=>img.remove();card.append(img)}
+     const rank=window.rankingChatProfileBridge?.rank?.(Number(p.elo)||0);
+     if(rank?.image){const img=h('img','sv-banner-rank');img.src=rank.image;img.alt=rank.name;card.append(img)}
+     card.append(h('b','',p.name||'ESPERANDO...'));pair.append(card);
+    }
+    fixed.append(pair);
+    if(active.status==='playing'){
+     const clock=h('span','sv-live-elapsed','⏱ 00:00');clock.dataset.started=active.started_at||'';fixed.append(clock);
+    }
     fixed.append(b(active.status==='open'?'⚔ UNIRME':'👀 VER VS EN VIVO',()=>open(active.room_id,active.status==='open'),'sv-join'));
-    bannerOutside.textContent='🎱 '+(active.status==='playing'?'VS EN VIVO · '+p1+' VS '+p2:'SALA DE RANKING ABIERTA · UNIRME');
+    bannerOutside.dataset.base='🎱 '+(active.status==='playing'?'VS EN VIVO · '+p1+' VS '+p2:'SALA DE RANKING ABIERTA · UNIRME');
+    bannerOutside.dataset.started=active.status==='playing'?active.started_at||'':'';
+    bannerOutside.textContent=bannerOutside.dataset.base;
    }
    feed.replaceChildren();
    feed.hidden=!finished.length;
@@ -223,6 +238,17 @@
     feed.append(result);
    }
   }
+  const updatePublicClock=()=>{
+   const clock=fixed.querySelector('.sv-live-elapsed');
+   if(!clock||!clock.dataset.started)return;
+   const seconds=Math.max(0,Math.floor((Date.now()-new Date(clock.dataset.started).getTime())/1000));
+   if(!Number.isFinite(seconds))return;
+   const hh=Math.floor(seconds/3600),mm=Math.floor((seconds%3600)/60),ss=seconds%60;
+   const formatted=(hh?String(hh).padStart(2,'0')+':':'')+String(mm).padStart(2,'0')+':'+String(ss).padStart(2,'0');
+   clock.textContent='⏱ TIEMPO TRANSCURRIDO '+formatted;
+   bannerOutside.textContent=bannerOutside.dataset.base+' · '+formatted;
+  };
+  setInterval(updatePublicClock,1000);
   async function refresh(){
    if(!uid||polling)return;
    polling=true;
