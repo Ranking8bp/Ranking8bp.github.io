@@ -3499,24 +3499,35 @@ if(deleteAccountBtn)deleteAccountBtn.addEventListener('click',async()=>{
 });
 
 if(cloudReady){
-  supabaseClient.auth.onAuthStateChange(async(event,session)=>{
-    // Never throw a player back to guest mode because Supabase temporarily
-    // failed to restore/refresh a session. Only an explicit SIGNED_OUT event
-    // is allowed to close the UI session.
-    if(event==='SIGNED_OUT'){if(explicitLogoutRequested){setGuestUI()}return}
+  // CRITICAL: never await Supabase API/database calls inside onAuthStateChange.
+  // Auth callbacks run while the auth client holds its internal session lock.
+  // getProfile() needs that same session and can deadlock signInWithPassword().
+  supabaseClient.auth.onAuthStateChange((event,session)=>{
+    if(event==='SIGNED_OUT'){
+      if(explicitLogoutRequested)setGuestUI();
+      return;
+    }
     if(!session)return;
     if(event==='TOKEN_REFRESHED'){currentUser=session.user;return}
     if(event==='SIGNED_IN'||event==='INITIAL_SESSION'){
-      const uid=String(session.user.id||'');
-      if((currentUser?.id===session.user.id&&currentProfile)||playerUiLoadingFor===uid||playerUiReadyFor===uid)return;
-      try{
-        const profile=await getProfile(session.user.id);
-        await setPlayerUI(profile,session.user);
-      }catch(error){
-        console.error('Recuperar sesión/perfil:',error);
-      }
+      const user=session.user;
+      const uid=String(user.id||'');
+      // Defer profile loading so the callback returns synchronously and
+      // Supabase releases its auth lock before getProfile() starts.
+      setTimeout(async()=>{
+        if(!uid||((currentUser?.id===uid)&&currentProfile)||
+            playerUiLoadingFor===uid||playerUiReadyFor===uid)return;
+        try{
+          const profile=await getProfile(uid);
+          if(!profile)return; // A temporary backend error must not sign out the user.
+          if(playerUiLoadingFor===uid||playerUiReadyFor===uid)return;
+          await setPlayerUI(profile,user);
+        }catch(error){
+          console.error('Recuperar sesión/perfil:',error);
+        }
+      },0);
     }
-  })
+  });
 }
 setTimeout(()=>{if(guestEmpty&&!guestEmpty.hidden)renderGuestRankShowcase().catch(()=>{})},300);
 
