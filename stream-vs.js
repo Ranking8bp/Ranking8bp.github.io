@@ -40,7 +40,7 @@
   const feed=h('section','sv-feed');feed.hidden=true;
   panel.insertBefore(fixed,history);
   panel.insertBefore(feed,history);
-  const create=b('＋ ENVIAR SALA VS','', 'sv-create');create.hidden=true;
+  const create=b('＋ ENVIAR SALA VS',()=>{},'sv-create');create.hidden=true;
   create.onclick=async()=>{
    create.disabled=true;
    try{
