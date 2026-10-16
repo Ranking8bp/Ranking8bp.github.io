@@ -2135,11 +2135,18 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
 </div>
 <script>
 (function(){
- const key='ranking8bp_aviso_trampas_20261016_v1';
  const notice=document.getElementById('waAnnouncement');
- try{if(localStorage.getItem(key)==='seen')return;}catch(e){}
+ const close=document.getElementById('waAnnouncementClose');
+ // Cada recarga vuelve a mostrar el aviso. Hay que confirmar tres veces
+ // en esa misma visita antes de poder continuar.
+ let confirmations=0;
  notice.hidden=false;
- document.getElementById('waAnnouncementClose').addEventListener('click',function(){notice.hidden=true;try{localStorage.setItem(key,'seen')}catch(e){}});
+ close.textContent='ENTENDIDO (1/3)';
+ close.addEventListener('click',function(){
+   confirmations++;
+   if(confirmations>=3){notice.hidden=true;return;}
+   close.textContent='ENTENDIDO ('+(confirmations+1)+'/3)';
+ });
 })();
 </script>
 <script id="community-chat-modal-placement">document.body.appendChild(document.getElementById('communityChatModal'));</script><script id="community-chat-inline-v14">/* Chat general independiente: no modifica el controlador principal. */
