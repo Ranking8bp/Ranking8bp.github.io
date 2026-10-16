@@ -36,6 +36,7 @@ const init=()=>{
     <span id="tsPlayerNames">🎱 DUELO DE TRICKSHOT</span>
     <span id="tsPlayerClock">15 s</span>
     <span class="ts-player-locked" aria-label="Partida en pantalla horizontal">↔ MODO HORIZONTAL · PARTIDA EN CURSO</span>
+    <button id="tsPlayerAdminFinish" type="button" hidden>🛑 FINALIZAR VS</button>
    </header>
    <div class="ts-player-field">
     <iframe id="tsPlayerGame" title="Mesa horizontal de Duelo de Trickshot" allow="fullscreen; autoplay" loading="eager" allowfullscreen></iframe>
@@ -83,6 +84,7 @@ const init=()=>{
  // los navegadores pueden bloquearlo. El CSS mantiene la mesa horizontal
  // incluso cuando el dispositivo físico está en orientación vertical.
 
+ byId('tsPlayerAdminFinish').addEventListener('click',()=>byId('tsAdminFinish').click());
  byId('tsAdminFinish').addEventListener('click',async()=>{
     if(!canAdmin()||!state||!['waiting','active','shot'].includes(state.phase))return;
     if(!window.confirm('¿FINALIZAR ESTE DUELO DE TRICKSHOT? Se cerrará para todos. No se sumará ni descontará ELO.'))return;
@@ -127,6 +129,7 @@ const init=()=>{
    live.hidden=false;
    const player=!!isPlayer();
    if(adminButton)adminButton.hidden=!canAdmin()||!['waiting','active','shot'].includes(state.phase);
+   byId('tsPlayerAdminFinish').hidden=!canAdmin()||!['active','shot'].includes(state.phase);
    const isPlaying=player&&['active','shot'].includes(state.phase);
    const showFinalResult=player&&state.phase==='finished'&&finishedClosedMatch!==state.id;
    if(isPlaying||showFinalResult)showPlayer();
