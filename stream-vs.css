@@ -62,3 +62,14 @@
 #communityChatModal .sv-banner-rank{width:32px;height:32px;object-fit:contain}
 #communityChatModal .sv-banner-vs{color:#f7d17a;font-size:18px}
 #communityChatModal .sv-live-elapsed{color:#8fffaa;font-weight:900;font-size:12px}
+
+/* Identidad visible junto a cada mensaje del chat VS (móvil y escritorio). */
+.sv-message-line{display:flex;align-items:flex-start;gap:7px;width:100%;min-width:0}
+.sv-message-line.mine{justify-content:flex-end}
+.sv-message-identity{display:flex;align-items:center;gap:3px;flex:0 0 auto;margin-top:5px}
+.sv-message-identity .sv-message-badge{display:block;width:32px;height:32px;object-fit:contain;flex-shrink:0}
+.sv-message-identity .sv-message-profile{display:grid;place-items:center;width:34px;height:34px;overflow:hidden;border:1px solid #d1b66b;border-radius:50%;background:#214557;color:#ffdf93;font-size:14px;font-weight:900;flex-shrink:0}
+.sv-message-identity .sv-message-profile img{display:block;width:100%;height:100%;object-fit:cover}
+.sv-message-line .sv-message,.sv-message-line.mine .sv-message{align-self:auto;min-width:0;max-width:calc(100% - 76px);overflow-wrap:anywhere}
+.sv-message-line .sv-message .sv-readers{display:block;margin-top:7px;font-size:11px;color:#bbd8cb;overflow-wrap:anywhere}
+@media(max-width:390px){.sv-message-line{gap:4px}.sv-message-identity{gap:2px}.sv-message-identity .sv-message-badge{width:27px;height:27px}.sv-message-identity .sv-message-profile{width:29px;height:29px}.sv-message-line .sv-message,.sv-message-line.mine .sv-message{max-width:calc(100% - 63px)}}
