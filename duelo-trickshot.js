@@ -12,7 +12,7 @@ const init=()=>{
  challenge.appendChild(button);
  const live=document.createElement('section');
  live.id='trickshotLive';live.hidden=true;
- live.innerHTML=`<div class="ts-live-head"><strong>🎱 DUELO DE TRICKSHOT</strong><div class="ts-live-actions"><button id="tsResumePlay" type="button" hidden>↗ MI MESA</button><button id="tsAdminFinish" type="button" hidden>🛑 FINALIZAR VS</button><span class="ts-live-indicator">● EN VIVO</span></div></div>
+ live.innerHTML=`<div class="ts-live-head"><strong>🎱 DUELO DE TRICKSHOT</strong><div class="ts-live-actions"><button id="tsAdminFinish" type="button" hidden>🛑 FINALIZAR VS</button><span class="ts-live-indicator">● EN VIVO</span></div></div>
  <div class="ts-names"><span id="tsYellowPlayer">🟡 AMARILLAS</span><span id="tsTimer">15 s</span><span id="tsRedPlayer">ROJAS 🔴</span></div>
  <div class="ts-stage"><iframe id="tsGame" title="Duelo de Trickshot en vivo" allow="autoplay" loading="lazy"></iframe><div id="tsWaiting" class="ts-waiting" hidden></div></div>
  <div class="ts-scores"><span id="tsYellowScore">🟡 0/3</span><span id="tsTurnLabel">Esperando partida...</span><span id="tsRedScore">🔴 0/3</span></div>
@@ -35,8 +35,7 @@ const init=()=>{
    <header class="ts-player-head">
     <span id="tsPlayerNames">🎱 DUELO DE TRICKSHOT</span>
     <span id="tsPlayerClock">15 s</span>
-    <button id="tsPlayerFullscreen" type="button">⛶ PANTALLA COMPLETA</button>
-    <button id="tsPlayerBack" type="button">✕ VOLVER AL CHAT</button>
+    <span class="ts-player-locked" aria-label="Partida en pantalla horizontal">↔ MODO HORIZONTAL · PARTIDA EN CURSO</span>
    </header>
    <div class="ts-player-field">
     <iframe id="tsPlayerGame" title="Mesa horizontal de Duelo de Trickshot" allow="fullscreen; autoplay" loading="eager" allowfullscreen></iframe>
@@ -50,7 +49,7 @@ const init=()=>{
    </div>
   </div>`;
  document.body.appendChild(playerOverlay);
- let playerDismissed=false,autoOpenMatch=0,playerReady=false,openingPlayerMatch=0;
+ let playerReady=false,finishedClosedMatch=0,finishedCloseScheduledMatch=0;
  let state=null,role='spectator',currentMatch=0,realtime=null,gameReady=false,busy=false,lastFrameAt=0;
  let lastCheck=0,lastAdvance=0,lastSync=0,lastShotReq=false,updating=false;
  const iframe=byId('tsGame'),playerFrame=byId('tsPlayerGame');
@@ -67,32 +66,30 @@ const init=()=>{
  }
  iframe.addEventListener('load',()=>installFix(iframe,'preview'));
  playerFrame.addEventListener('load',()=>installFix(playerFrame,'player'));
- function openPlayer(){
-   if(!isPlayer())return;
-   playerDismissed=false;playerOverlay.hidden=false;
-   document.body.classList.add('ts-player-playing');
-   render();
- }
- function hidePlayer(){
-   playerDismissed=true;playerOverlay.hidden=true;
+ // Pantalla de juego autónoma: no se abre ni se cierra desde el chat.
+ // Se muestra sola cuando hay dos jugadores y permanece bloqueada hasta el final.
+ function closePlayer(){
+   playerOverlay.hidden=true;
    document.body.classList.remove('ts-player-playing');
-   try{if(document.fullscreenElement===playerOverlay)document.exitFullscreen()}catch(_){}
+   if(document.fullscreenElement===playerOverlay){
+     try{document.exitFullscreen()?.catch?.(()=>{})}catch(_){}
+   }
  }
- byId('tsPlayerBack').addEventListener('click',hidePlayer);
- byId('tsResumePlay').addEventListener('click',openPlayer);
- byId('tsPlayerFullscreen').addEventListener('click',async()=>{
-    try{
-      if(!document.fullscreenElement)await playerOverlay.requestFullscreen();
-      if(screen.orientation?.lock)await screen.orientation.lock('landscape');
-    }catch(_){alertMsg('Puedes girar el celular para jugar en horizontal.');}
- });
+ function showPlayer(){
+   playerOverlay.hidden=false;
+   document.body.classList.add('ts-player-playing');
+ }
+ // No intentamos abrir una ventana emergente ni forzar fullscreen sin gesto:
+ // los navegadores pueden bloquearlo. El CSS mantiene la mesa horizontal
+ // incluso cuando el dispositivo físico está en orientación vertical.
+
  byId('tsAdminFinish').addEventListener('click',async()=>{
     if(!canAdmin()||!state||!['waiting','active','shot'].includes(state.phase))return;
     if(!window.confirm('¿FINALIZAR ESTE DUELO DE TRICKSHOT? Se cerrará para todos. No se sumará ni descontará ELO.'))return;
     const b=byId('tsAdminFinish');b.disabled=true;
     try{
       await rpc('trickshot_admin_finish',{p_match:state.id});
-      hidePlayer();state={phase:'empty'};subscribe(0);render();
+      closePlayer();state={phase:'empty'};subscribe(0);render();
       await refresh(true);alertMsg('Duelo finalizado por IKAR. Ya pueden iniciar otro.');
     }catch(e){alertMsg('No se pudo finalizar el VS: '+(e.message||e))}
     finally{b.disabled=false;}
@@ -121,26 +118,28 @@ const init=()=>{
    sendToGame({type:'sync',state,role:canShoot()?'shooter':'viewer',color:myColor()},'player');
  }
  function render(){
-   const resume=byId('tsResumePlay'),adminButton=byId('tsAdminFinish');
+   const adminButton=byId('tsAdminFinish');
    if(!state||state.phase==='empty'||state.phase==='cancelled'){
-      live.hidden=true;playerOverlay.hidden=true;
-      document.body.classList.remove('ts-player-playing');
-      if(resume)resume.hidden=true;if(adminButton)adminButton.hidden=true;
+      live.hidden=true;closePlayer();
+      if(adminButton)adminButton.hidden=true;
       return;
    }
    live.hidden=false;
-   const player=isPlayer();
-   if(resume)resume.hidden=!player;
+   const player=!!isPlayer();
    if(adminButton)adminButton.hidden=!canAdmin()||!['waiting','active','shot'].includes(state.phase);
-   if(player && ['active','shot'].includes(state.phase) && autoOpenMatch!==state.id){
-      autoOpenMatch=state.id;playerDismissed=false;
-   }
-   if(player && !playerDismissed){
-      playerOverlay.hidden=false;
-      document.body.classList.add('ts-player-playing');
-   }else{
-      playerOverlay.hidden=true;
-      document.body.classList.remove('ts-player-playing');
+   const isPlaying=player&&['active','shot'].includes(state.phase);
+   const showFinalResult=player&&state.phase==='finished'&&finishedClosedMatch!==state.id;
+   if(isPlaying||showFinalResult)showPlayer();
+   else closePlayer();
+   if(showFinalResult&&finishedCloseScheduledMatch!==state.id){
+     const finishedId=state.id;
+     finishedCloseScheduledMatch=finishedId;
+     setTimeout(()=>{
+       if(state?.id===finishedId&&state.phase==='finished'){
+         finishedClosedMatch=finishedId;
+         render();
+       }
+     },6000);
    }
    const yellowName=state.yellow_id===state.player1_id?state.player1_name:(state.player2_name||'AMARILLAS');
    const redName=state.red_id===state.player1_id?state.player1_name:(state.player2_name||'ROJAS');
@@ -198,7 +197,7 @@ const init=()=>{
   for(const f of [iframe,playerFrame]){
     f.dataset.started='';f.removeAttribute('src');
   }
-  gameReady=false;playerReady=false;playerDismissed=false;autoOpenMatch=0;
+  gameReady=false;playerReady=false;finishedClosedMatch=0;finishedCloseScheduledMatch=0;
   if(realtime&&client())client().removeChannel(realtime);
   realtime=null;currentMatch=id;
   if(!id)return;
@@ -283,7 +282,9 @@ const init=()=>{
   }
  });
  setInterval(()=>{
-  if(!user()||(chat.hidden&&playerOverlay.hidden))return;
+  if(!user())return;
+  // El primer jugador sigue recibiendo actualizaciones aunque cierre el chat
+  // mientras espera que el segundo se una a la partida.
   const now=Date.now();
   if(state?.phase==='active')ui('tsPlayerClock',timeRemaining()+' s');
   const admin=byId('tsAdminFinish');if(admin&&state)admin.hidden=!canAdmin()||!['waiting','active','shot'].includes(state.phase);
