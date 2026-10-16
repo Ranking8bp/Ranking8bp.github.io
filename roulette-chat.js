@@ -35,12 +35,15 @@
     CUENTA_BLOQUEADA:'Tu cuenta está bloqueada.',
     RULETA_YA_GIRADA_O_CERRADA:'Esta selección ya terminó.',
     MINIMO_DOS_JUGADORES:'Necesitas al menos dos jugadores inscritos para seleccionar.',
-    SIN_JUGADORES:'No hay jugadores disponibles.'
+    SIN_JUGADORES:'No hay jugadores disponibles.',
+    EXPULSADO_DEL_SELECTOR:'El administrador te quitó de este selector. No puedes volver a inscribirte aquí.',
+    JUGADOR_NO_INSCRITO:'Este jugador ya no está inscrito.',
+    SELECTOR_CERRADO:'Esta selección ya terminó y no permite eliminar participantes.'
    };
    return Object.keys(mapping).find(k=>t.includes(k))?mapping[Object.keys(mapping).find(k=>t.includes(k))]:(t||'Inténtalo de nuevo.');
   };
   let viewer=null,admin=false,active=null,busy=false,rosterBusy=false,rosterId=null,roster=[],lastPoll=0;
-  let spinningId=null,spinTimeout=null,spinTick=null;
+  let spinningId=null,spinTimeout=null,spinTick=null,removingPlayerId=null;
   let dismissedSelectors=new Set(),dismissalsLoadedFor=null;
   const animationsPlayed=new Set();
   const container=history.parentElement;
@@ -133,10 +136,45 @@
     item.append(el('span','rw-player-name',p.player_name||'Jugador'));
     if(viewer===p.player_id)item.append(el('span','rw-you','TÚ'));
     if(winning)item.append(el('span','rw-profile-symbol','VER PERFIL ›'));
+    if(admin&&active?.status==='open'){
+     const removeBtn=btn('✕',()=>removePlayer(p),'rw-remove-player');
+     removeBtn.title='Quitar a '+(p.player_name||'Jugador')+' de esta selección';
+     removeBtn.setAttribute('aria-label','Quitar a '+(p.player_name||'Jugador')+' de la lista');
+     removeBtn.disabled=removingPlayerId!==null;
+     item.append(removeBtn);
+    }
     rosterBox.append(item);
    });
   }
 
+  async function removePlayer(player){
+   if(!admin||!active||active.status!=='open'||removingPlayerId!==null||!player?.player_id)return;
+   const name=String(player.player_name||'Jugador');
+   if(!window.confirm('¿QUITAR A '+name+' DE ESTA SELECCIÓN?\\nNo podrá volver a inscribirse en esta misma selección, pero sí en las siguientes.'))return;
+   const id=active.roulette_id;
+   removingPlayerId=player.player_id;
+   rosterBox.querySelectorAll('.rw-remove-player').forEach(button=>button.disabled=true);
+   try{
+    await api('chat_roulette_remove',{p_roulette_id:id,p_player_id:player.player_id});
+    if(active&&active.roulette_id===id){
+     roster=roster.filter(p=>p.player_id!==player.player_id);
+     active.participants=roster.length;
+     if(active.has_joined&&viewer===player.player_id)active.has_joined=false;
+     count.textContent=roster.length+' '+(roster.length===1?'JUGADOR INSCRITO':'JUGADORES INSCRITOS');
+     renderRoster();renderSelector();renderBanner();renderControls();
+    }
+    notice('✅ '+name+' fue quitado. No podrá volver a este selector.');
+    await refresh();
+    await loadRoster();
+   }catch(error){
+    notice('No se pudo quitar al jugador: '+friendlyError(error));
+    console.error('Eliminar inscrito del selector:',error);
+    await loadRoster();
+   }finally{
+    removingPlayerId=null;
+    renderRoster();
+   }
+  }
   // No rueda, círculo, aguja o iconos de azar: solo nombres en un panel.
   function renderSelector(){
    if(spinningId||overlay.hidden)return;
@@ -418,7 +456,7 @@
   try{
    db.channel('ranking8bp-chat-roulette')
     .on('postgres_changes',{event:'*',schema:'public',table:'chat_roulettes'},soon)
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_roulette_entries'},soon)
+    .on('postgres_changes',{event:'*',schema:'public',table:'chat_roulette_entries'},soon)
     .subscribe();
   }catch(e){console.warn('Ruleta: Realtime',e);}
   chatOpen.addEventListener('click',()=>setTimeout(()=>checkSession().then(()=>loadDismissedSelectors(true)),200));
