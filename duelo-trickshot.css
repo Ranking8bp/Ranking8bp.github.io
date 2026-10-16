@@ -36,3 +36,41 @@
 #trickshotLive .ts-controls button:active{background:#137347}
 #trickshotLive #tsGame.ts-viewer{pointer-events:none!important}
 @media(max-width:450px){#trickshotLive .ts-stage{height:46vw!important;min-height:160px!important}#trickshotLive .ts-controls{padding:6px 8px}#trickshotLive .ts-controls label{gap:4px}#trickshotLive .ts-controls button{padding:10px 12px}}
+
+/* r4 — Los controles pertenecen exclusivamente a la mesa horizontal de los jugadores. */
+#trickshotLive .ts-controls{display:none!important}
+#trickshotLive .ts-live-head{gap:7px}
+#trickshotLive .ts-live-actions{display:flex;gap:5px;align-items:center;justify-content:flex-end}
+#trickshotLive .ts-live-actions button{font-size:11px;font-weight:850;border-radius:7px;border:1px solid #e0c47f;padding:6px;background:#263b34;color:#fff;cursor:pointer}
+#trickshotLive .ts-live-actions #tsAdminFinish{border-color:#f17676;background:#9d2020}
+#trickshotLive .ts-live-actions #tsResumePlay{border-color:#47e8aa;background:#125544}
+#trickshotLive .ts-live-actions button[hidden]{display:none!important}
+#trickshotLive .ts-live-indicator{font-size:12px}
+body.ts-player-playing{overflow:hidden!important;touch-action:none!important}
+#tsPlayerOverlay[hidden]{display:none!important}
+#tsPlayerOverlay{position:fixed!important;inset:0!important;z-index:2147483500!important;background:#020b0c!important;overflow:hidden!important;display:block;box-sizing:border-box}
+#tsPlayerOverlay *{box-sizing:border-box}
+#tsPlayerOverlay .ts-player-landscape{position:absolute;inset:0;display:flex;flex-direction:column;width:100%;height:100%;background:#05100e;color:#fff;overflow:hidden}
+#tsPlayerOverlay .ts-player-head{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#0b2b22;padding:6px 12px;min-height:44px;flex:0 0 auto;font:800 13px Arial,sans-serif}
+#tsPlayerOverlay .ts-player-head #tsPlayerNames{color:#fff;max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tsPlayerOverlay .ts-player-head #tsPlayerClock{background:#21373a;border-radius:7px;padding:5px 9px;color:#fff}
+#tsPlayerOverlay .ts-player-head button{border:1px solid #348d70;border-radius:7px;padding:7px 9px;background:#153a31;color:#fff;font:800 11px Arial,sans-serif;white-space:nowrap;cursor:pointer}
+#tsPlayerOverlay .ts-player-head #tsPlayerBack{border-color:#dd6c6c;background:#652020}
+#tsPlayerOverlay .ts-player-field{flex:1 1 auto;min-height:0;position:relative;background:#000;overflow:hidden}
+#tsPlayerOverlay iframe{display:block!important;width:100%;height:100%;border:none;touch-action:none;background:#000}
+#tsPlayerOverlay iframe[hidden]{display:none!important}
+#tsPlayerOverlay .ts-player-waiting,#tsPlayerOverlay .ts-player-result{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;text-align:center;color:#ffe55b;font:900 clamp(18px,4vw,42px) Arial,sans-serif;z-index:2;padding:20px;background:#00170f}
+#tsPlayerOverlay .ts-player-result{background:#010c0ccf}
+#tsPlayerOverlay .ts-player-waiting[hidden],#tsPlayerOverlay .ts-player-result[hidden]{display:none!important}
+#tsPlayerOverlay .ts-player-foot{height:35px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:4px 16px;background:#0d3329;font:850 12px Arial,sans-serif}
+#tsPlayerOverlay .ts-player-foot span:first-child{color:#ffe364}
+#tsPlayerOverlay .ts-player-foot span:last-child{color:#ff7777}
+@media (orientation:portrait){
+ #tsPlayerOverlay .ts-player-landscape{
+   position:absolute!important;inset:auto!important;
+   top:0!important;left:100vw!important;width:100dvh!important;height:100vw!important;
+   transform-origin:top left!important;transform:rotate(90deg)!important
+ }
+ #tsPlayerOverlay .ts-player-head{min-height:38px;padding:4px 10px}
+ #tsPlayerOverlay .ts-player-foot{height:29px;font-size:11px}
+}
