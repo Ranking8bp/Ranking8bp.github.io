@@ -140,3 +140,13 @@
 .rw-player.rw-winner-profile-link:hover,.rw-player.rw-winner-profile-link:focus-visible{background:#435475!important;outline:2px solid #ffd982;outline-offset:1px}
 .rw-profile-symbol{font-size:10px;font-weight:900;color:#ffe79b;flex:0 0 auto}
 @media(max-width:390px){.rw-profile-symbol{font-size:9px}.rw-winner-profile .rw-avatar{width:58px;height:58px;flex-basis:58px}}
+
+/* X para archivar el resultado del selector exclusivamente en la cuenta actual. */
+#communityChatModal .rw-banner{position:relative}
+#communityChatModal .rw-banner-title{padding-left:23px;padding-right:23px;max-width:100%;overflow-wrap:anywhere}
+#communityChatModal .rw-result-dismiss{
+ position:absolute;top:6px;right:6px;z-index:2;display:grid;place-items:center;
+ width:28px;height:28px;border:1px solid #7b8baf;border-radius:8px;
+ background:#293750;color:#fff;font:bold 18px/1 Arial,sans-serif;cursor:pointer
+}
+#communityChatModal .rw-result-dismiss:hover,#communityChatModal .rw-result-dismiss:focus-visible{background:#aa4a50;outline:2px solid #f7d6a8;outline-offset:1px}
