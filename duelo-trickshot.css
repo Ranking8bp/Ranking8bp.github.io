@@ -25,3 +25,14 @@
 .ts-choose-buttons button[data-ts-color="roja"]{background:#8e242c}
 #tsChooseCancel{margin-top:14px;border:none;background:transparent;color:#cdd4d6;padding:8px 20px;cursor:pointer}
 @media(max-width:600px){.ts-stage{height:clamp(185px,32dvh,300px)}.ts-live-head{font-size:12px!important}.ts-names{font-size:11px}}
+
+/* Reparación visual v2: mesa completa y control táctil sin tapar los comentarios. */
+#trickshotLive .ts-stage{height:clamp(165px,46vw,365px)!important;min-height:0!important;max-height:365px!important}
+#trickshotLive .ts-controls[hidden]{display:none!important}
+#trickshotLive .ts-controls{display:flex;flex:0 0 auto;align-items:center;justify-content:space-between;gap:10px;background:#102923;border-top:1px solid #367656;padding:8px 12px;color:#fff}
+#trickshotLive .ts-controls label{display:flex;flex:1;align-items:center;gap:8px;font-size:12px;font-weight:800}
+#trickshotLive .ts-controls input[type=range]{min-width:75px;flex:1;accent-color:#41c88c;touch-action:pan-x}
+#trickshotLive .ts-controls button{border:0;border-radius:9px;background:#21a969;padding:10px 15px;color:#fff;font-size:15px;font-weight:900;white-space:nowrap;cursor:pointer}
+#trickshotLive .ts-controls button:active{background:#137347}
+#trickshotLive #tsGame.ts-viewer{pointer-events:none!important}
+@media(max-width:450px){#trickshotLive .ts-stage{height:46vw!important;min-height:160px!important}#trickshotLive .ts-controls{padding:6px 8px}#trickshotLive .ts-controls label{gap:4px}#trickshotLive .ts-controls button{padding:10px 12px}}
