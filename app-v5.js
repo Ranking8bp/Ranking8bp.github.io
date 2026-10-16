@@ -2323,31 +2323,87 @@ async function loadFollowStats(player){
   if(playerFollowBtn){const own=player.player_id===currentUser?.id;playerFollowBtn.hidden=own;playerFollowBtn.dataset.following=s?.viewer_follows?'1':'0';playerFollowBtn.dataset.friend=s?.is_friend?'1':'0';playerFollowBtn.textContent=s?.is_friend?'AMIGOS':(s?.viewer_follows?'SIGUIENDO':'SEGUIR');playerFollowBtn.classList.toggle('following',!!s?.viewer_follows);playerFollowBtn.classList.toggle('friends',!!s?.is_friend)}
  }catch(e){console.error('Error seguidores:',e)}
 }
+function privateMessageStatus(text){
+ if(!privateMessageSend)return;
+ let status=document.getElementById('privateMessageStatus');
+ if(!status){
+  status=document.createElement('p');status.id='privateMessageStatus';
+  status.setAttribute('role','status');
+  status.style.cssText='margin:9px 0 0;color:#ffdf9a;font-size:12px;font-weight:700;text-align:center;overflow-wrap:anywhere;';
+  privateMessageSend.after(status);
+ }
+ status.textContent=text||'';
+}
+function privateMessageFeedback(text){
+ if(toast){
+  document.body.appendChild(toast);
+  toast.style.setProperty('z-index','2147483647','important');
+ }
+ showToast(text);
+}
 function openPrivateMessage(event){
  if(event){event.preventDefault();event.stopPropagation()}
  const player=currentDetailPlayer;
- if(!player||player.player_id===currentUser?.id)return;
- if(!privateMessageModal||!privateMessageInput||!privateMessageSend){showToast('No se pudo abrir el mensaje.');return}
+ const target=player?.player_id||player?.id;
+ if(!target||target===currentUser?.id){privateMessageFeedback('Selecciona otro jugador para enviar un mensaje.');return}
+ if(!privateMessageModal||!privateMessageInput||!privateMessageSend){privateMessageFeedback('No se pudo abrir el mensaje.');return}
  privateMessageTo.textContent='Para: '+String(player.username||player.account_name||'Jugador');
+ privateMessageModal.dataset.recipientId=String(target);
  privateMessageInput.value='';
+ privateMessageStatus('');
+ // Los perfiles abiertos se elevan por encima del resto del sitio.
+ // El mensaje privado debe ser el último modal, encima del perfil.
+ document.body.appendChild(privateMessageModal);
  privateMessageModal.hidden=false;
  privateMessageModal.style.display='grid';
  privateMessageInput.disabled=false;
  privateMessageInput.readOnly=false;
  privateMessageInput.style.pointerEvents='auto';
  privateMessageInput.style.userSelect='text';
- setTimeout(()=>{privateMessageInput.focus();privateMessageInput.click()},100);
+ privateMessageSend.disabled=false;
+ setTimeout(()=>{if(!privateMessageModal.hidden)privateMessageInput.focus()},80);
 }
-function closePrivateMessage(){if(privateMessageModal){privateMessageModal.hidden=true;privateMessageModal.style.display=''}}
+function closePrivateMessage(){
+ if(privateMessageModal){
+  privateMessageModal.hidden=true;
+  privateMessageModal.style.display='';
+  delete privateMessageModal.dataset.recipientId;
+  privateMessageStatus('');
+ }
+}
+async function savePrivateMessageTo(recipientId,body){
+ if(!supabaseClient)throw new Error('No hay conexión con la base de datos.');
+ const {data:authData,error:authError}=await supabaseClient.auth.getUser();
+ if(authError||!authData?.user)throw new Error('Inicia sesión para enviar mensajes.');
+ const sender=authData.user.id;
+ if(!recipientId||recipientId===sender)throw new Error('Selecciona un destinatario válido.');
+ const message=String(body||'').trim();
+ if(!message)throw new Error('Escribe un mensaje antes de enviarlo.');
+ if(message.length>1000)throw new Error('Máximo 1000 caracteres por mensaje.');
+ const {data:sent,error}=await supabaseClient.from('private_messages').insert({
+  sender_id:sender,recipient_id:recipientId,body:message
+ }).select('id').single();
+ if(error)throw error;
+ if(sent?.id)supabaseClient.functions.invoke('send-private-push',{body:{message_id:sent.id}}).catch(e=>console.warn('Notificación privada:',e));
+ return sent?.id;
+}
 async function sendPrivateMessage(){
- const target=currentDetailPlayer?.player_id,body=privateMessageInput?.value.trim();
- if(!target||!body||!currentUser||!supabaseClient)return;
+ if(!privateMessageSend||privateMessageSend.disabled)return;
+ const target=privateMessageModal?.dataset.recipientId||currentDetailPlayer?.player_id||currentDetailPlayer?.id;
+ const body=privateMessageInput?.value.trim();
+ if(!body){privateMessageStatus('Escribe un mensaje antes de enviarlo.');return}
  privateMessageSend.disabled=true;
+ privateMessageStatus('Enviando mensaje...');
  try{
-  const {data:sent,error}=await supabaseClient.from('private_messages').insert({sender_id:currentUser.id,recipient_id:target,body}).select('id').single();if(error)throw error;if(sent?.id)supabaseClient.functions.invoke('send-private-push',{body:{message_id:sent.id}}).catch(console.error);
-  closePrivateMessage();showToast('Mensaje privado enviado.');
- }catch(e){console.error(e);showToast('No se pudo enviar el mensaje.')}
- finally{privateMessageSend.disabled=false}
+  await savePrivateMessageTo(target,body);
+  privateMessageInput.value='';
+  closePrivateMessage();
+  privateMessageFeedback('✅ Mensaje privado enviado.');
+  if(currentUser)loadInbox().catch(e=>console.warn('Actualizar mensajes:',e));
+ }catch(e){
+  console.error('Enviar mensaje privado:',e);
+  privateMessageStatus('No se pudo enviar: '+(e?.message||'Inténtalo nuevamente.'));
+ }finally{privateMessageSend.disabled=false}
 }
 async function toggleFollow(){
  const player=currentDetailPlayer;if(!currentUser||!supabaseClient||!player?.player_id||player.player_id===currentUser.id)return;
@@ -2588,6 +2644,7 @@ async function openRankingPlayer(player){
       }).catch(()=>{if(championStat)championStat.textContent='—'});
     }else championStat.textContent='0';
   }
+  if(player&&player.id&&!player.player_id)player={...player,player_id:player.id};
   currentDetailPlayer=player;
   if(playerAdminBtn){
     playerAdminBtn.hidden=!isCurrentUserAdmin() || String(player?.username||'').toLowerCase()==='ikar8bp';
@@ -3204,8 +3261,21 @@ function renderConversation(){
  conversationMessages.scrollTop=conversationMessages.scrollHeight;
 }
 async function sendConversationMessage(){
- const body=conversationInput?.value.trim();if(!body||!activeConversationUser||!currentUser||!supabaseClient)return;conversationSendBtn.disabled=true;
- try{const {data:sent,error}=await supabaseClient.from('private_messages').insert({sender_id:currentUser.id,recipient_id:activeConversationUser.id,body}).select('id').single();if(error)throw error;if(sent?.id)supabaseClient.functions.invoke('send-private-push',{body:{message_id:sent.id}}).catch(console.error);conversationInput.value='';await loadInbox();renderConversation()}catch(e){console.error(e);showToast('No se pudo enviar el mensaje.')}finally{conversationSendBtn.disabled=false}
+ if(!conversationSendBtn||conversationSendBtn.disabled)return;
+ const body=conversationInput?.value.trim();
+ if(!body){privateMessageFeedback('Escribe un mensaje antes de enviarlo.');return}
+ if(!activeConversationUser?.id){privateMessageFeedback('Selecciona una conversación.');return}
+ conversationSendBtn.disabled=true;
+ try{
+  await savePrivateMessageTo(activeConversationUser.id,body);
+  conversationInput.value='';
+  await loadInbox();
+  renderConversation();
+  privateMessageFeedback('✅ Mensaje privado enviado.');
+ }catch(e){
+  console.error('Enviar mensaje de conversación:',e);
+  privateMessageFeedback('No se pudo enviar: '+(e?.message||'Inténtalo nuevamente.'));
+ }finally{conversationSendBtn.disabled=false}
 }
 function updateInboxBadge(count){if(!inboxBadge)return;const n=Number(count)||0;inboxBadge.textContent=n>99?'99+':String(n);inboxBadge.hidden=n<1}
 async function refreshInboxBadge(){if(!currentUser||!supabaseClient){updateInboxBadge(0);return}try{const {data,error}=await supabaseClient.rpc('get_my_private_messages');if(error)throw error;const items=Array.isArray(data)?data:[];updateInboxBadge(items.filter(m=>m.recipient_id===currentUser.id&&!m.is_read).length)}catch(e){console.error('Contador mensajes:',e)}}
