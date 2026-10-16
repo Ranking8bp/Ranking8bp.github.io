@@ -81,3 +81,20 @@ body.ts-player-playing{overflow:hidden!important;touch-action:none!important}
  #trickshotLive .ts-live-head strong{flex:0 0 100%;text-align:center}
  #trickshotLive .ts-live-actions{width:100%;justify-content:center!important;flex-wrap:wrap}
 }
+
+/* r8: vista de jugadores autónoma, bloqueada en horizontal durante el VS. */
+#tsPlayerOverlay .ts-player-locked{
+ display:block;flex:0 1 auto;min-width:0;white-space:nowrap;
+ color:#8df2c5;font:800 11px Arial,sans-serif;text-align:right;
+}
+#tsPlayerOverlay .ts-player-head #tsPlayerNames{
+ flex:1 1 auto;min-width:0;max-width:none;
+}
+body.ts-player-playing #communityChatModal{visibility:hidden!important}
+@media (orientation:portrait){
+ #tsPlayerOverlay .ts-player-locked{font-size:10px}
+}
+@media (max-height:400px) and (orientation:landscape){
+ #tsPlayerOverlay .ts-player-head{min-height:31px;padding:3px 10px}
+ #tsPlayerOverlay .ts-player-foot{height:25px;padding:2px 10px}
+}
