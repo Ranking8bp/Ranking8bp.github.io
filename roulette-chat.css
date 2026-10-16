@@ -83,28 +83,39 @@
  .rw-number{min-width:23px}
 }
 
-/* Giro visual: la elección definitiva siempre se realiza en Supabase. */
-.rw-wheelbox[hidden],.rw-winner[hidden],.rw-spin[hidden]{display:none!important}
-.rw-wheelbox{position:relative;width:min(100%,285px);aspect-ratio:1/1;flex:0 0 auto;align-self:center;display:flex;align-items:center;justify-content:center}
-.rw-wheel-circle{display:block;position:relative;overflow:hidden;border-radius:50%;border:6px solid #e8c579;box-shadow:0 0 0 4px #553a8c,0 0 20px #c39ff666;width:100%;height:100%;background:#381f68}
-.rw-wheel{display:block;width:100%;height:100%;border-radius:50%;will-change:transform}
-.rw-pointer{position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-top:32px solid #ffdf68;filter:drop-shadow(0 2px 3px #000c);z-index:3;pointer-events:none}
-.rw-spin{padding:12px 17px;font-weight:900;border:1px solid #ffe5a4;border-radius:10px;color:#302447;background:linear-gradient(145deg,#ffe89a,#de9e29);font-size:14px;cursor:pointer;box-shadow:0 3px 12px #0006}
+
+/* Selector aleatorio: tarjeta rectangular con nombres, sin círculo giratorio. */
+.rw-selector[hidden],.rw-winner[hidden],.rw-spin[hidden]{display:none!important}
+.rw-selector{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ gap:10px;flex:0 0 auto;align-self:stretch;min-height:126px;padding:16px 12px;
+ background:linear-gradient(140deg,#14364a,#24294b);border:2px solid #80b7d9;
+ border-radius:14px;box-shadow:0 6px 18px #0005;text-align:center;color:#fff
+}
+.rw-selector-top{font-weight:900;font-size:13px;color:#9fe6d0;letter-spacing:.04em}
+.rw-selector-name{
+ display:block;width:100%;max-width:100%;padding:12px 8px;
+ background:#071b30;border:1px solid #5b8eaa;border-radius:10px;
+ color:#ffeca6;font-weight:900;font-size:clamp(18px,5vw,26px);
+ overflow-wrap:anywhere;line-height:1.25
+}
+.rw-selector-hint{font-size:12px;color:#c2d9e4}
+.rw-selector.rw-selecting .rw-selector-name{animation:rw-name-flash .17s ease-in-out infinite alternate}
+@keyframes rw-name-flash{from{box-shadow:0 0 0 #0000;opacity:.85}to{box-shadow:0 0 18px #4c99c766;opacity:1}}
+.rw-spin{padding:12px 17px;font-weight:900;border:1px solid #9cebd4;border-radius:10px;color:#083e35;background:linear-gradient(145deg,#b1f5dd,#58ccab);font-size:14px;cursor:pointer;box-shadow:0 3px 12px #0006}
 .rw-spin:disabled{opacity:.55;cursor:not-allowed}
 .rw-adminbar{flex-wrap:wrap;gap:8px}
-.rw-winner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:14px 8px;background:linear-gradient(145deg,#3f276b,#163f3a);border:2px solid #ffcf68;border-radius:16px;text-align:center;box-shadow:0 0 21px #ffe17a44}
+.rw-winner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:14px 8px;background:linear-gradient(145deg,#223c59,#163f3a);border:2px solid #ffcf68;border-radius:16px;text-align:center;box-shadow:0 0 21px #ffe17a44}
 .rw-winner-label{font-size:16px;font-weight:900;color:#ffe293}
 .rw-winner .rw-avatar{width:62px;height:62px;flex:0 0 62px;border:3px solid #ffdf83;font-size:24px}
 .rw-winner-name{font-size:22px;color:#fff;overflow-wrap:anywhere}
 .rw-winner-sub{font-size:12px;color:#cdf4d8}
 .rw-player-winner{border-color:#ffcf68!important;background:#3b3554!important;box-shadow:inset 0 0 10px #ffc95a36}
-@media(max-width:390px){.rw-wheelbox{width:min(100%,205px)}.rw-spin{font-size:12px;padding:9px 11px}.rw-winner-label{font-size:14px}.rw-winner-name{font-size:18px}.rw-panel{gap:6px}}
-@media(min-width:391px) and (max-height:720px){.rw-wheelbox{width:min(100%,205px)}}
-
-/* En teléfonos de poca altura permite acceder siempre al botón GIRAR RULETA. */
+@media(max-width:390px){.rw-selector{padding:10px 8px;min-height:110px;gap:7px}.rw-spin{font-size:12px;padding:9px 11px}.rw-winner-label{font-size:14px}.rw-winner-name{font-size:18px}.rw-panel{gap:6px}}
 @media(max-height:700px){
  .rw-panel{overflow-y:auto;overscroll-behavior:contain}
- .rw-wheelbox{width:min(100%,190px);flex-shrink:0}
+ .rw-selector{min-height:95px;flex-shrink:0;padding:8px}
  .rw-roster{flex:0 0 auto;min-height:90px;max-height:145px}
  .rw-adminbar{flex-shrink:0}
 }
+@media(prefers-reduced-motion:reduce){.rw-selector.rw-selecting .rw-selector-name{animation:none}}
