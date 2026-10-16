@@ -59,7 +59,7 @@ const init=()=>{
    const doc=frame.contentDocument;
    if(!doc?.body||doc.getElementById('trickshotLiveFix'))return;
    const fix=doc.createElement('script');fix.id='trickshotLiveFix';
-   fix.src=new URL('./duelo-trickshot-livefix.js?v=20261016-r4',location.href).href;
+   fix.src=new URL('./duelo-trickshot-livefix.js?v=20261016-r5',location.href).href;
    fix.onload=()=>{if(kind==='player')playerReady=true;else gameReady=true;render()};
    fix.onerror=()=>alertMsg('No se pudo cargar la corrección de la mesa. Actualiza la página.');
    doc.body.appendChild(fix);
@@ -167,7 +167,7 @@ const init=()=>{
    iframe.hidden=false;spectatorWaiting.hidden=true;
    if(!iframe.dataset.started){
       iframe.dataset.started='yes';gameReady=false;
-      iframe.src='./trickshot/index.html?ranking8bp=1&v=20261016-r4&view=watch';
+      iframe.src='./trickshot/index.html?ranking8bp=1&v=20261016-r5&view=watch';
    }
    playerWaiting.hidden=true;
    const turnText=state.phase==='finished'?'PARTIDA FINALIZADA':
@@ -185,7 +185,7 @@ const init=()=>{
       playerFrame.hidden=false;
       if(!playerFrame.dataset.started){
          playerFrame.dataset.started='yes';playerReady=false;
-         playerFrame.src='./trickshot/index.html?ranking8bp=1&v=20261016-r4&view=play';
+         playerFrame.src='./trickshot/index.html?ranking8bp=1&v=20261016-r5&view=play';
       }
    }else{
       playerFrame.hidden=true;
