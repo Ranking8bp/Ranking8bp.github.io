@@ -1,0 +1,84 @@
+/* Ranking8BP — Inscripciones a ruleta desde el chat general */
+#communityChatModal .rw-create[hidden],
+#communityChatModal .rw-banner[hidden],
+.rw-overlay[hidden],
+.rw-joined[hidden],
+.rw-adminbar[hidden],
+.rw-join[hidden]{display:none!important}
+#communityChatModal .rw-create{
+ display:block;width:calc(100% - 22px);margin:5px 11px 11px;padding:12px 10px;
+ background:linear-gradient(135deg,#44366c,#2b244b);color:#fff0c7;
+ border:1px solid #c9a2ee;border-radius:12px;font-weight:900;font-size:15px;cursor:pointer
+}
+#communityChatModal .rw-banner{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+ margin:7px 12px;padding:12px 9px;text-align:center;flex:none;
+ background:linear-gradient(150deg,#222148,#123747);
+ border:1px solid #be9fe4;border-radius:14px;color:#fff
+}
+#communityChatModal .rw-banner-title{color:#ffe7aa;font-weight:900;font-size:15px}
+#communityChatModal .rw-banner-count{color:#d2f6e4;font-size:13px;font-weight:800}
+#communityChatModal .rw-banner-confirm{font-size:12px;color:#a4f8ae}
+#communityChatModal .rw-banner-action,.rw-join{
+ border:0;border-radius:10px;background:linear-gradient(135deg,#b462ee,#6e43ac);
+ padding:11px 17px;color:white;font-weight:900;font-size:14px;cursor:pointer;
+ box-shadow:0 3px 10px #0004
+}
+.rw-overlay{
+ position:fixed;inset:0;background:#000c;display:flex;justify-content:center;
+ align-items:center;padding:10px;z-index:2147483647;box-sizing:border-box
+}
+.rw-overlay *{box-sizing:border-box}
+.rw-panel{
+ display:flex;flex-direction:column;gap:12px;width:min(100%,570px);
+ height:min(88dvh,760px);min-height:280px;overflow:hidden;padding:15px;
+ background:linear-gradient(150deg,#171c38,#0a1c2a);
+ border:2px solid #b794ec;border-radius:18px;color:white;
+ box-shadow:0 18px 60px #000c
+}
+.rw-header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.rw-header strong{font-size:18px;color:#ffe2a8}
+.rw-exit{background:#712d4a;color:#fff;border:0;border-radius:8px;font-size:19px;padding:7px 13px}
+.rw-description{margin:0;text-align:center;font-size:13px;color:#d5e6f5}
+.rw-count{
+ color:#fff1bb;font-weight:900;text-align:center;font-size:16px;
+ border:1px solid #665f97;background:#292949;border-radius:10px;padding:11px
+}
+.rw-actions{display:flex;justify-content:center;align-items:center;text-align:center;min-height:44px}
+.rw-join{width:min(100%,360px)}
+.rw-join:disabled{opacity:.6;cursor:wait}
+.rw-joined{color:#aaf0c8;font-size:14px}
+.rw-list-title{font-size:14px;margin:0;color:#dbc1fa}
+.rw-roster{
+ min-height:85px;flex:1;overflow-y:auto;overscroll-behavior:contain;
+ background:#0a1829;border:1px solid #3e4262;border-radius:11px;
+ padding:8px;display:flex;flex-direction:column;gap:6px
+}
+.rw-empty{color:#acc3d4;text-align:center;padding:15px 5px;font-size:13px}
+.rw-player{
+ display:flex;gap:8px;align-items:center;padding:7px;
+ border:1px solid #293c55;background:#1a2b3d;border-radius:11px;min-width:0
+}
+.rw-number{font-weight:800;font-size:12px;color:#ffdb8c;min-width:26px;text-align:center}
+.rw-avatar{
+ flex:0 0 36px;width:36px;height:36px;border:1px solid #aa8dca;border-radius:50%;
+ display:grid;place-items:center;overflow:hidden;background:#344c5d;font-size:15px;font-weight:900
+}
+.rw-avatar img{width:100%;height:100%;object-fit:cover}
+.rw-rank{width:35px;height:35px;object-fit:contain;flex:0 0 35px}
+.rw-player-name{font-size:13px;font-weight:800;flex:1;min-width:0;overflow-wrap:anywhere}
+.rw-you{border-radius:7px;background:#275b49;color:#b4f9ce;font-size:11px;font-weight:900;padding:4px 6px}
+.rw-adminbar{display:flex;justify-content:center}
+.rw-close-roulette{
+ border:1px solid #df858d;border-radius:9px;padding:10px 16px;
+ background:#712839;color:white;font-weight:800;cursor:pointer;font-size:13px
+}
+.rw-status{min-height:0;color:#ffdfa4;font-size:12px;text-align:center;overflow-wrap:anywhere}
+@media(max-width:390px){
+ .rw-panel{padding:10px;gap:8px}
+ .rw-header strong{font-size:16px}
+ .rw-player{gap:5px;padding:6px 4px}
+ .rw-rank{width:30px;height:30px;flex-basis:30px}
+ .rw-avatar{width:30px;height:30px;flex-basis:30px}
+ .rw-number{min-width:23px}
+}
