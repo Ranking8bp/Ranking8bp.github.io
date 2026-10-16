@@ -73,3 +73,15 @@
 .sv-message-line .sv-message,.sv-message-line.mine .sv-message{align-self:auto;min-width:0;max-width:calc(100% - 76px);overflow-wrap:anywhere}
 .sv-message-line .sv-message .sv-readers{display:block;margin-top:7px;font-size:11px;color:#bbd8cb;overflow-wrap:anywhere}
 @media(max-width:390px){.sv-message-line{gap:4px}.sv-message-identity{gap:2px}.sv-message-identity .sv-message-badge{width:27px;height:27px}.sv-message-identity .sv-message-profile{width:29px;height:29px}.sv-message-line .sv-message,.sv-message-line.mine .sv-message{max-width:calc(100% - 63px)}}
+
+/* Expulsión administrativa: solo el creador puede quitar un jugador del VS. */
+.sv-kick{
+ display:block;width:100%;max-width:140px;margin:5px auto 0;
+ background:linear-gradient(160deg,#9b2933,#6f1b27);
+ border:1px solid #eb8586;border-radius:8px;padding:7px 6px;
+ color:#fff;font-weight:900;font-size:11px;cursor:pointer;
+ white-space:nowrap;flex-shrink:0
+}
+.sv-kick:disabled{opacity:.55;cursor:wait}
+.sv-banned{display:block;color:#ffb6b6;font-size:12px;font-weight:900;text-align:center;margin:4px auto}
+@media(max-width:390px){.sv-kick{font-size:10px;padding:6px 3px}}
