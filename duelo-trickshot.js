@@ -167,7 +167,7 @@ const init=()=>{
    iframe.hidden=false;spectatorWaiting.hidden=true;
    if(!iframe.dataset.started){
       iframe.dataset.started='yes';gameReady=false;
-      iframe.src='./trickshot/index.html?ranking8bp=1&v=20261016-r6&view=watch';
+      iframe.src='./trickshot/index.html?ranking8bp=1&v=20261016-r7-engine&view=watch';
    }
    playerWaiting.hidden=true;
    const turnText=state.phase==='finished'?'PARTIDA FINALIZADA':
@@ -185,7 +185,7 @@ const init=()=>{
       playerFrame.hidden=false;
       if(!playerFrame.dataset.started){
          playerFrame.dataset.started='yes';playerReady=false;
-         playerFrame.src='./trickshot/index.html?ranking8bp=1&v=20261016-r6&view=play';
+         playerFrame.src='./trickshot/index.html?ranking8bp=1&v=20261016-r7-engine&view=play';
       }
    }else{
       playerFrame.hidden=true;
