@@ -141,7 +141,7 @@
    if(spinningId||overlay.hidden)return;
    const enabled=roster.length>0&&active?.status==='open';
    selector.hidden=!enabled;
-   winnerCard.hidden=active?.status!=='finished';
+   if(enabled)winnerCard.hidden=true;
    if(enabled){
     selector.classList.remove('rw-selecting');
     selectorName.textContent=roster.length+' PARTICIPANTES';
@@ -274,7 +274,7 @@
    spinButton.disabled=!open||Number(active.participants)<2;
    spinButton.title=Number(active.participants)<2?'Se necesitan al menos dos inscritos':'Elegir un ganador al azar y cerrar inscripciones';
   }
-  async function loadRoster(){
+  async function loadRoster(allowWinner=true){
    if(!active||overlay.hidden||rosterBusy)return;
    const id=active.roulette_id;
    rosterBusy=true;
@@ -285,6 +285,7 @@
     roster=rows;
     renderRoster();
     renderSelector();
+    if(allowWinner&&active.status==='finished'&&!spinningId)showWinner();
     // El feed actualiza el contador. La lista muestra el total exacto recibido.
     count.textContent=roster.length+' '+(roster.length===1?'JUGADOR INSCRITO':'JUGADORES INSCRITOS');
    }catch(e){notice('No se pudo cargar la lista: '+friendlyError(e));}
@@ -315,7 +316,7 @@
     renderControls();
     if(active&&!overlay.hidden){
      const newResult=previous?.roulette_id===active.roulette_id&&previous.status==='open';
-     await loadRoster();
+     await loadRoster(!newResult);
      if(active.status==='finished'){
       if(newResult&&!spinningId)animateWinner();
       else if(!spinningId)showWinner();
