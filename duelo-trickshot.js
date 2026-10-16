@@ -283,8 +283,10 @@ const init=()=>{
  });
  setInterval(()=>{
   if(!user())return;
-  // El primer jugador sigue recibiendo actualizaciones aunque cierre el chat
-  // mientras espera que el segundo se una a la partida.
+  // Mantener la espera del primer jugador aunque cierre el chat; no hacer
+  // consultas periódicas de espectadores que ya cerraron el Chat General.
+  const waitingForOpponent=state?.phase==='waiting'&&state.player1_id===user()?.id;
+  if(chat.hidden&&playerOverlay.hidden&&!waitingForOpponent)return;
   const now=Date.now();
   if(state?.phase==='active')ui('tsPlayerClock',timeRemaining()+' s');
   const admin=byId('tsAdminFinish');if(admin&&state)admin.hidden=!canAdmin()||!['waiting','active','shot'].includes(state.phase);
