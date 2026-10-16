@@ -92,7 +92,8 @@ const init=()=>{
     const b=byId('tsAdminFinish');b.disabled=true;
     try{
       await rpc('trickshot_admin_finish',{p_match:state.id});
-      hidePlayer();await refresh(true);alertMsg('Duelo finalizado por IKAR. Ya pueden iniciar otro.');
+      hidePlayer();state={phase:'empty'};subscribe(0);render();
+      await refresh(true);alertMsg('Duelo finalizado por IKAR. Ya pueden iniciar otro.');
     }catch(e){alertMsg('No se pudo finalizar el VS: '+(e.message||e))}
     finally{b.disabled=false;}
  });
