@@ -150,3 +150,17 @@
  background:#293750;color:#fff;font:bold 18px/1 Arial,sans-serif;cursor:pointer
 }
 #communityChatModal .rw-result-dismiss:hover,#communityChatModal .rw-result-dismiss:focus-visible{background:#aa4a50;outline:2px solid #f7d6a8;outline-offset:1px}
+
+/* Solo el administrador puede quitar participantes de una selección abierta. */
+.rw-player .rw-remove-player{
+ display:grid;place-items:center;flex:0 0 30px;
+ width:30px;height:30px;margin-left:auto;
+ padding:0;border:1px solid #fd8c95;border-radius:8px;
+ background:#922d3b;color:#fff;font:900 20px/1 Arial,sans-serif;
+ cursor:pointer;touch-action:manipulation;box-shadow:0 2px 7px #0005
+}
+.rw-player .rw-remove-player:hover,.rw-player .rw-remove-player:focus-visible{
+ background:#c92f45;outline:2px solid #ffd4be;outline-offset:1px
+}
+.rw-player .rw-remove-player:disabled{opacity:.58;cursor:wait}
+@media(max-width:390px){.rw-player .rw-remove-player{flex-basis:28px;width:28px;height:28px;font-size:18px}}
