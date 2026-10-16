@@ -119,7 +119,7 @@
    banner.append(el('strong','rw-banner-title','🎡 RULETA ABIERTA · IKAR8BP'));
    banner.append(el('span','rw-banner-count',active.participants+' jugadores inscritos'));
    if(active.has_joined)banner.append(el('span','rw-banner-confirm','✅ YA ESTÁS INSCRITO'));
-   banner.append(btn(active.has_joined?'👀 VER LISTA DE LA RULETA':'🎡 UNIRME A LA RULETA',()=>openOverlay(true),'rw-banner-action'));
+   banner.append(btn(active.has_joined?'👀 VER LISTA DE LA RULETA':'🎡 UNIRME A LA RULETA',()=>{openOverlay(false);if(active&&!active.has_joined)join();else loadRoster();},'rw-banner-action'));
   }
   function renderControls(){
    if(!active){closeOverlay();return;}
