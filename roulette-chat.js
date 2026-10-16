@@ -41,6 +41,7 @@
   };
   let viewer=null,admin=false,active=null,busy=false,rosterBusy=false,rosterId=null,roster=[],lastPoll=0;
   let spinningId=null,spinTimeout=null,spinTick=null;
+  let dismissedSelectors=new Set(),dismissalsLoadedFor=null;
   const animationsPlayed=new Set();
   const container=history.parentElement;
   const banner=el('section','rw-banner');banner.hidden=true;
@@ -248,11 +249,44 @@
    }catch(e){notice(friendlyError(e));await refresh();}
    finally{spinButton.disabled=false;}
   }
+  async function loadDismissedSelectors(force=false){
+   if(!viewer||(!force&&dismissalsLoadedFor===viewer))return;
+   const requestedUser=viewer;
+   try{
+    const rows=await api('chat_result_dismissed')||[];
+    if(viewer!==requestedUser)return;
+    dismissedSelectors=new Set(rows.filter(row=>row.result_type==='selector').map(row=>Number(row.result_id)));
+    dismissalsLoadedFor=requestedUser;
+    renderBanner();
+   }catch(error){console.warn('Resultados cerrados del selector:',error)}
+  }
+  async function dismissFinishedSelector(id){
+   const selectedId=Number(id);
+   if(!viewer||dismissedSelectors.has(selectedId))return;
+   dismissedSelectors.add(selectedId);
+   if(active&&Number(active.roulette_id)===selectedId)closeOverlay();
+   renderBanner();
+   try{
+    await api('chat_result_dismiss',{p_result_type:'selector',p_result_id:selectedId});
+   }catch(error){
+    dismissedSelectors.delete(selectedId);
+    renderBanner();
+    console.error('Cerrar resultado del selector:',error);
+    alert('No se pudo guardar el resultado como leído. Inténtalo de nuevo.');
+   }
+  }
   function renderBanner(){
    banner.replaceChildren();
-   banner.hidden=!active;
-   if(!active)return;
-   const finished=active.status==='finished';
+   const finished=active?.status==='finished';
+   const hiddenResult=finished&&dismissedSelectors.has(Number(active.roulette_id));
+   banner.hidden=!active||hiddenResult;
+   if(!active||hiddenResult)return;
+   if(finished){
+    const dismiss=btn('✕',()=>dismissFinishedSelector(active.roulette_id),'rw-result-dismiss');
+    dismiss.title='Ocultar este resultado solo para mí';
+    dismiss.setAttribute('aria-label','Cerrar resultado finalizado del selector');
+    banner.append(dismiss);
+   }
    banner.append(el('strong','rw-banner-title',finished?'🏆 RESULTADO DEL SELECTOR':'🎯 SELECTOR ABIERTO · IKAR8BP'));
    banner.append(el('span','rw-banner-count',finished?(spinningId===Number(active.roulette_id)?'🎯 Seleccionando...':'🏆 '+(active.winner_name||'Jugador ganador')):active.participants+' jugadores inscritos'));
    if(!finished&&active.has_joined)banner.append(el('span','rw-banner-confirm','✅ YA ESTÁS INSCRITO'));
@@ -367,12 +401,13 @@
     const before=viewer;
     viewer=data?.user?.id||null;
     if(!viewer){
-     admin=false;active=null;
+     admin=false;active=null;dismissedSelectors=new Set();dismissalsLoadedFor=null;
      banner.hidden=true;create.hidden=true;closeOverlay();return;
     }
     if(before!==viewer||!admin)admin=(await api('stream_vs_is_ikar'))===true;
     create.hidden=!admin;
     attachButton();
+    await loadDismissedSelectors(before!==viewer);
     await refresh();
    }catch(e){console.warn('Ruleta: sesión',e);}
   }
@@ -386,8 +421,8 @@
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_roulette_entries'},soon)
     .subscribe();
   }catch(e){console.warn('Ruleta: Realtime',e);}
-  chatOpen.addEventListener('click',()=>setTimeout(checkSession,200));
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkSession();});
+  chatOpen.addEventListener('click',()=>setTimeout(()=>checkSession().then(()=>loadDismissedSelectors(true)),200));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkSession().then(()=>loadDismissedSelectors(true));});
   db.auth.onAuthStateChange((event)=>{
    if(event==='SIGNED_IN'||event==='SIGNED_OUT')setTimeout(checkSession,450);
   });
