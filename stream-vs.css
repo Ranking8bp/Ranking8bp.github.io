@@ -54,3 +54,11 @@
 .sv-cancel{background:#702b2b;color:white;border:1px solid #c35555;border-radius:9px;padding:10px}
 .sv-status{display:block;color:#f5c96e;text-align:center;font-size:12px;min-height:0}
 @media(max-width:390px){.sv-sheet{padding:8px;gap:6px}.sv-person{padding:6px 2px}.sv-avatar{width:47px;height:47px}.sv-rank-img{width:40px;height:40px}.sv-sheet .sv-head strong{font-size:13px}.sv-judge-winner{font-size:12px;padding:8px 6px}}
+
+#communityChatModal .sv-banner-pair{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr);align-items:center;gap:5px;width:100%}
+#communityChatModal .sv-banner-person{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:5px;min-width:0}
+#communityChatModal .sv-banner-person b{min-width:100%;font-size:12px;overflow-wrap:anywhere}
+#communityChatModal .sv-banner-photo{width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid #e1be6c}
+#communityChatModal .sv-banner-rank{width:32px;height:32px;object-fit:contain}
+#communityChatModal .sv-banner-vs{color:#f7d17a;font-size:18px}
+#communityChatModal .sv-live-elapsed{color:#8fffaa;font-weight:900;font-size:12px}
