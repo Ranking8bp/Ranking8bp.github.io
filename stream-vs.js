@@ -31,11 +31,15 @@
     CUENTA_BLOQUEADA:'Tu cuenta está bloqueada.',
     SOLO_JUGADORES_Y_ADMIN:'Solo los jugadores y el administrador pueden comentar.',
     PARTIDO_NO_DISPONIBLE:'Este VS ya fue finalizado o no tiene dos jugadores.',
-    SALA_CERRADA:'La sala ya está cerrada.'
+    SALA_CERRADA:'La sala ya está cerrada.',
+    SALA_NO_DISPONIBLE:'La sala ya no está disponible.',
+    JUGADOR_NO_ESTA_EN_SALA:'Este jugador ya no ocupa un puesto en la sala.',
+    EXPULSADO_CINCO_SALAS:'Fuiste expulsado. No puedes entrar a esta sala ni a las cinco siguientes.'
    };
    return Object.keys(codes).find(k=>code.includes(k))?codes[Object.keys(codes).find(k=>code.includes(k))]:(code||'No se pudo completar la operación.');
   };
   let uid=null,admin=false,rooms=[],roomId=null,room=null,role='spectator',polling=false,messagesBusy=false,realtime=null,timer=null,changeTimer=null,oldMessageSignature='';
+  let blockedRoomId=null,blockedRemaining=0,banCheckSerial=0;
   const fixed=h('div','sv-fixed');fixed.hidden=true;
   const feed=h('section','sv-feed');feed.hidden=true;
   panel.insertBefore(fixed,history);
@@ -102,6 +106,7 @@
    card.append(h('b','sv-elo',p.id==null?'—':(p.elo??0)+' ELO'));
    if(admin&&p.gameId){card.append(b('ID '+p.gameId+' 📋',()=>copy(p.gameId),'sv-copy'))}
    else if(uid===p.id&&p.gameId){card.append(b('COPIAR MI ID 📋',()=>copy(p.gameId),'sv-copy'))}
+   if(admin&&p.id&&room&&['open','playing'].includes(room.status))card.append(b('⛔ EXPULSAR',()=>kick(room.room_id,p.id,p.name),'sv-kick'));
    if(isWinner)card.append(h('strong','sv-crown','🏆 GANADOR'));
    return card;
   }
@@ -157,6 +162,7 @@
    elapsed();
    const full=!!room.player1_id&&!!room.player2_id;
    const finished=room.status==='finished',playing=room.status==='playing';
+   const banned=!admin&&!isParticipant(room)&&blockedRoomId===Number(room.room_id)&&blockedRemaining>0;
    const text=finished?'🏆 PARTIDA FINALIZADA':playing?'🔴 PARTIDO JUGÁNDOSE EN VIVO':'🟡 SALA CREADA · ESPERANDO JUGADORES';
    banner.textContent=text+(playing?' · '+timerLabel.textContent:'');
    stage.replaceChildren(profileCard(side(room,1),'left',finished&&winner(room)===1),h('b','sv-versus','VS'),profileCard(side(room,2),'right',finished&&winner(room)===2));
@@ -164,6 +170,8 @@
    if(finished){
     const n=winner(room),w=side(room,n),l=side(room,n===1?2:1);
     notice.append(h('strong','sv-finished','🏆 GANADOR: '+w.name),h('div','',w.name+' +'+room.winner_delta+' ELO · '+l.name+' '+room.loser_delta+' ELO'));
+   }else if(banned){
+    notice.textContent=blockedRemaining===6?'⛔ Fuiste expulsado de esta sala. No podrás entrar a las cinco próximas salas VS.':'⛔ No puedes unirte todavía. Debes esperar '+blockedRemaining+' sala(s) VS más.';
    }else if(room.status==='open'&&!full){
     notice.textContent='Los dos primeros que se unan jugarán el partido de ranking.';
    }else if(!admin&&!isParticipant(room)){
@@ -174,8 +182,10 @@
     notice.textContent='Estás dentro del VS. Coordina aquí el partido con ikar8bp.';
    }
    joins.replaceChildren();
-   if(room.status==='open'&&!admin&&!isParticipant(room)){
+   if(room.status==='open'&&!admin&&!isParticipant(room)&&!banned){
     joins.append(b('⚔ UNIRME COMO JUGADOR',()=>join(room.room_id),'sv-join'));
+   }else if(banned){
+    joins.append(h('span','sv-banned','⛔ ACCESO A PARTIDA BLOQUEADO'));
    }else if(playing&&!isParticipant(room)&&!admin){
     joins.append(h('span','sv-spectator','👀 MODO ESPECTADOR · REACCIONES ACTIVADAS'));
    }
@@ -189,6 +199,29 @@
     }
    }
    if(admin&&['open','playing'].includes(room.status))judge.append(b('ANULAR SALA (SIN ELO)',()=>cancel(room.room_id),'sv-cancel'));
+  }
+  // Permite cambiar cualquiera de los dos cupos sin penalizar el ELO.
+  async function kick(id,playerId,name){
+   if(!admin||!playerId)return;
+   if(!confirm('¿EXPULSAR A '+name+' DE LA SALA?\\n\\nSu puesto quedará disponible. No podrá volver a entrar a esta sala ni a las 5 siguientes salas VS. NO se modificará su ELO.'))return;
+   const buttons=[...stage.querySelectorAll('.sv-kick')];
+   buttons.forEach(x=>x.disabled=true);
+   try{
+    await api('stream_vs_kick_player',{p_room_id:id,p_player_id:playerId});
+    msg('✅ '+name+' expulsado. Su puesto ya está libre. Bloqueado durante las próximas 5 salas.');
+    await refresh();
+   }catch(e){msg(errorText(e));renderRoom()}
+   finally{buttons.forEach(x=>x.disabled=false)}
+  }
+  async function updateBanState(id){
+   if(!id||admin)return;
+   const request=++banCheckSerial;
+   try{
+    const remaining=Math.max(0,Number(await api('stream_vs_blocked_remaining',{p_room_id:Number(id)}))||0);
+    if(request!==banCheckSerial||roomId!==Number(id))return;
+    blockedRoomId=Number(id);blockedRemaining=remaining;
+    renderRoom();
+   }catch(e){console.warn('Consultar expulsión:',e)}
   }
   async function finish(id,playerId,name){
    if(!confirm('¿CONFIRMAR GANADOR '+name+'? Se aplicará +15 ELO al ganador y hasta −15 ELO al perdedor. No se podrá volver a aplicar.'))return;
@@ -212,10 +245,11 @@
     if(role==='spectator')msg('Sala llena: puedes mirar y reaccionar, pero no comentar.');
     else if(role==='player1'||role==='player2')msg('✅ ¡Te has unido como jugador!');
     renderRoom();
-   }catch(e){msg(errorText(e))}
+   }catch(e){msg(errorText(e));if(String(e?.message||'').includes('EXPULSADO_CINCO_SALAS'))updateBanState(id)}
   }
   function showRoom(r){
    room=r;
+   if(blockedRoomId!==Number(r.room_id)){blockedRoomId=Number(r.room_id);blockedRemaining=0;}
    role=admin?'admin':uid===r.player1_id?'player1':uid===r.player2_id?'player2':'spectator';
    renderRoom();
   }
@@ -225,6 +259,7 @@
    if(!r){msg('No se encontró esta sala.');return}
    overlay.hidden=false;msg('');
    showRoom(r);oldMessageSignature='';loadMessages(true);
+   if(!admin&&!isParticipant(r)&&r.status==='open')updateBanState(r.room_id);
    clearInterval(timer);timer=setInterval(()=>{if(!overlay.hidden)elapsed()},1000);
    if(tryJoin&&!admin&&!isParticipant(r)&&r.status==='open')join(id);
   }
@@ -295,7 +330,7 @@
     renderFeed();
     if(roomId){
      const next=rooms.find(x=>Number(x.room_id)===roomId);
-     if(next){const changed=JSON.stringify(room)!==JSON.stringify(next);showRoom(next);if(changed&&next.status==='finished')loadMessages(true)}
+     if(next){const changed=JSON.stringify(room)!==JSON.stringify(next);showRoom(next);if(changed&&!admin&&!isParticipant(next)&&next.status==='open')updateBanState(next.room_id);if(changed&&next.status==='finished')loadMessages(true)}
      else if(room?.status!=='cancelled'){closeRoom();msg('La sala dejó de estar disponible.')}
     }
    }catch(e){console.warn('Actualizar salas:',e)}
@@ -361,7 +396,7 @@
    try{
     const {data}=await db.auth.getUser();
     const old=uid;uid=data?.user?.id||null;
-    if(!uid){admin=false;rooms=[];create.hidden=true;fixed.hidden=true;feed.hidden=true;bannerOutside.hidden=true;return}
+    if(!uid){admin=false;rooms=[];blockedRoomId=null;blockedRemaining=0;create.hidden=true;fixed.hidden=true;feed.hidden=true;bannerOutside.hidden=true;return}
     if(old!==uid||!admin){
      admin=(await api('stream_vs_is_ikar'))===true;
     }
