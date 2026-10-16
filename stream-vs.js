@@ -109,6 +109,44 @@
    try{await navigator.clipboard.writeText(String(value));msg('ID copiado: '+value)}
    catch(_){const temp=h('textarea');temp.value=String(value);document.body.appendChild(temp);temp.select();document.execCommand('copy');temp.remove();msg('ID copiado.')}
   }
+  // Cargamos una sola vez por autor (y renovamos ocasionalmente): evitamos
+  // consultar el perfil en cada mensaje o cada actualización del chat.
+  const messageAuthorCache=new Map();
+  async function loadMessageAuthor(id){
+   const key=String(id||'');
+   if(!key)return;
+   const cached=messageAuthorCache.get(key);
+   if(cached&&Date.now()-cached.checkedAt<300000)return;
+   try{
+    const {data,error}=await db.rpc('get_profile_by_id',{p_player_id:key});
+    if(error)throw error;
+    const p=Array.isArray(data)?data[0]:data;
+    messageAuthorCache.set(key,{checkedAt:Date.now(),avatar:p?.avatar_path||'',elo:p?.elo_points??null});
+   }catch(error){
+    console.warn('Perfil autor VS:',error);
+    if(!cached)messageAuthorCache.set(key,{checkedAt:Date.now(),avatar:'',elo:null});
+    else cached.checkedAt=Date.now();
+   }
+  }
+  function messageAuthorMedia(m){
+   const info=messageAuthorCache.get(String(m.sender_id));
+   const media=h('div','sv-message-identity');
+   const rank=info?.elo!=null?window.rankingChatProfileBridge?.rank?.(Number(info.elo)):null;
+   if(rank?.image){
+    const badge=h('img','sv-message-badge');badge.src=rank.image;badge.alt='Insignia: '+(rank.name||'Ranking');
+    badge.loading='lazy';badge.onerror=()=>badge.remove();media.append(badge);
+   }
+   const name=String(m.sender_name||'Jugador');
+   const profile=h('div','sv-message-profile',name.trim().slice(0,1).toUpperCase()||'?');
+   const url=imageFor(info?.avatar||'');
+   if(url){
+    const photo=h('img');photo.src=url;photo.alt='Foto de '+name;photo.loading='lazy';
+    photo.onerror=()=>{photo.remove();profile.textContent=name.trim().slice(0,1).toUpperCase()||'?'};
+    profile.replaceChildren(photo);
+   }
+   media.append(profile);
+   return media;
+  }
   function side(r,index){
    return {id:r['player'+index+'_id'],name:r['player'+index+'_name'],elo:r['player'+index+'_elo'],avatar:r['player'+index+'_avatar'],gameId:r['player'+index+'_game_id']};
   }
@@ -267,13 +305,17 @@
    if(!roomId||overlay.hidden||messagesBusy)return;
    messagesBusy=true;
    try{
-    const rows=await api('stream_vs_messages_read',{p_room_id:roomId})||[];
+    const selectedRoom=roomId;
+    const rows=await api('stream_vs_messages_read',{p_room_id:selectedRoom})||[];
+    // Un perfil por remitente, cacheado; incluye imagen e insignia por ELO.
+    await Promise.all([...new Set(rows.map(x=>x.sender_id).filter(Boolean))].map(loadMessageAuthor));
+    if(roomId!==selectedRoom||overlay.hidden)return;
     // La lectura solo se confirma cuando la sala está abierta en pantalla.
     try{await api('stream_vs_mark_read',{p_room_id:roomId})}catch(e){console.warn('Marcar leído VS:',e)}
     let receipts=[];
     try{receipts=await api('stream_vs_read_receipts',{p_room_id:roomId})||[]}catch(e){console.warn('Lectores VS:',e)}
     const readerMap=new Map(receipts.map(x=>[Number(x.message_id),x.reader_names||[]]));
-    const signature=JSON.stringify(rows.map(m=>[m.message_id,m.reactions,m.my_reaction,readerMap.get(Number(m.message_id))||[]]));
+    const signature=JSON.stringify(rows.map(m=>[m.message_id,m.reactions,m.my_reaction,readerMap.get(Number(m.message_id))||[],messageAuthorCache.get(String(m.sender_id))?.avatar||'',messageAuthorCache.get(String(m.sender_id))?.elo??null]));
     if(!force&&signature===oldMessageSignature)return;
     const bottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<90;
     oldMessageSignature=signature;
@@ -281,6 +323,7 @@
     if(!rows.length)messages.append(h('p','sv-empty','Todavía no hay mensajes. Los jugadores y el administrador pueden escribir aquí.'));
     for(const m of rows){
      const mine=uid===m.sender_id;
+     const line=h('div','sv-message-line'+(mine?' mine':''));
      const item=h('div','sv-message'+(mine?' mine':''));
      item.append(h('strong','',m.sender_name),h('p','',m.body));
      const row=h('div','sv-reactions');
@@ -298,7 +341,8 @@
      const names=readerMap.get(Number(m.message_id))||[];
      const read=h('small','sv-readers',names.length?'✓✓ Leído por: '+names.join(', '):'✓ Enviado · Sin lecturas todavía');
      item.append(read);
-     messages.append(item);
+     line.append(messageAuthorMedia(m),item);
+     messages.append(line);
     }
     if(bottom)messages.scrollTop=messages.scrollHeight;
    }catch(e){console.warn('Mensajes VS:',e);msg('No se pudieron cargar los mensajes de la sala.')}
