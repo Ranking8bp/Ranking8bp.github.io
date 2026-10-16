@@ -8989,7 +8989,8 @@
       const pantalla=document.getElementById('pantallaMesaMaestra');
 
       // La clase se aplica al CONTENEDOR COMPLETO. Así, aunque actualizarGuiasUltimate()
-      // vuelva a dibujar una línea durante la física, CSS no permite que aparezca.      if(pantalla){
+      // vuelva a dibujar una línea durante la física, CSS no permite que aparezca.
+      if(pantalla){
           pantalla.classList.toggle('bolas-en-movimiento',!!moviendo);
       }
 
