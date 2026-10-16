@@ -268,7 +268,12 @@
    messagesBusy=true;
    try{
     const rows=await api('stream_vs_messages_read',{p_room_id:roomId})||[];
-    const signature=JSON.stringify(rows.map(m=>[m.message_id,m.reactions,m.my_reaction]));
+    // La lectura solo se confirma cuando la sala está abierta en pantalla.
+    try{await api('stream_vs_mark_read',{p_room_id:roomId})}catch(e){console.warn('Marcar leído VS:',e)}
+    let receipts=[];
+    try{receipts=await api('stream_vs_read_receipts',{p_room_id:roomId})||[]}catch(e){console.warn('Lectores VS:',e)}
+    const readerMap=new Map(receipts.map(x=>[Number(x.message_id),x.reader_names||[]]));
+    const signature=JSON.stringify(rows.map(m=>[m.message_id,m.reactions,m.my_reaction,readerMap.get(Number(m.message_id))||[]]));
     if(!force&&signature===oldMessageSignature)return;
     const bottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<90;
     oldMessageSignature=signature;
@@ -289,7 +294,11 @@
       },m.my_reaction===emoji?'active':'');
       row.append(reaction);
      }
-     item.append(row);messages.append(item);
+     item.append(row);
+     const names=readerMap.get(Number(m.message_id))||[];
+     const read=h('small','sv-readers',names.length?'✓✓ Leído por: '+names.join(', '):'✓ Enviado · Sin lecturas todavía');
+     item.append(read);
+     messages.append(item);
     }
     if(bottom)messages.scrollTop=messages.scrollHeight;
    }catch(e){console.warn('Mensajes VS:',e);msg('No se pudieron cargar los mensajes de la sala.')}
