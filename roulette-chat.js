@@ -1,5 +1,4 @@
-/* Ranking8BP: ruleta del chat general administrada por IKAR8BP.
- * Fase de inscripción: cada usuario agrega su cuenta una sola vez a la lista. */
+/* Ranking8BP: selector aleatorio de inscritos del chat general administrado por IKAR8BP. */
 (() => {
  'use strict';
  const init=()=>{
@@ -28,25 +27,25 @@
   const friendlyError=e=>{
    const t=String(e?.message||e||'');
    const mapping={
-    SOLO_IKAR8BP:'Solo IKAR8BP puede crear o cerrar ruletas.',
-    RULETA_YA_ABIERTA:'Ya hay una ruleta abierta. Ciérrala antes de crear otra.',
-    RULETA_CERRADA:'Esta ruleta ya está cerrada.',
+    SOLO_IKAR8BP:'Solo IKAR8BP puede crear o cerrar selecciones.',
+    RULETA_YA_ABIERTA:'Ya hay un selector abierto. Ciérralo antes de crear otro.',
+    RULETA_CERRADA:'Esta selección ya está cerrada.',
     INICIA_SESION:'Debes iniciar sesión para participar.',
     PERFIL_NO_DISPONIBLE:'No se encontró tu perfil registrado.',
     CUENTA_BLOQUEADA:'Tu cuenta está bloqueada.',
-    RULETA_YA_GIRADA_O_CERRADA:'Esta ruleta ya terminó.',
-    MINIMO_DOS_JUGADORES:'Necesitas por lo menos dos jugadores inscritos para girar.',
+    RULETA_YA_GIRADA_O_CERRADA:'Esta selección ya terminó.',
+    MINIMO_DOS_JUGADORES:'Necesitas al menos dos jugadores inscritos para seleccionar.',
     SIN_JUGADORES:'No hay jugadores disponibles.'
    };
    return Object.keys(mapping).find(k=>t.includes(k))?mapping[Object.keys(mapping).find(k=>t.includes(k))]:(t||'Inténtalo de nuevo.');
   };
   let viewer=null,admin=false,active=null,busy=false,rosterBusy=false,rosterId=null,roster=[],lastPoll=0;
-  let spinningId=null,spinTimeout=null;
+  let spinningId=null,spinTimeout=null,spinTick=null;
   const animationsPlayed=new Set();
   const container=history.parentElement;
   const banner=el('section','rw-banner');banner.hidden=true;
   container.insertBefore(banner,container.querySelector('.sv-feed')||history);
-  const create=btn('🎡 CREAR RULETA',()=>createRoulette(),'rw-create');create.hidden=true;
+  const create=btn('🎯 CREAR SELECTOR',()=>createRoulette(),'rw-create');create.hidden=true;
   function attachButton(){
    const other=chat.querySelector('.sv-create');
    const anchor=other||chat.querySelector('.community-challenge-area');
@@ -58,36 +57,31 @@
   const panel=el('section','rw-panel');
   panel.setAttribute('role','dialog');
   panel.setAttribute('aria-modal','true');
-  panel.setAttribute('aria-label','Participantes de la ruleta');
+  panel.setAttribute('aria-label','Selector aleatorio de participantes');
   const header=el('header','rw-header');
-  const title=el('strong','', '🎡 RULETA DE IKAR8BP');
+  const title=el('strong','', '🎯 SELECTOR ALEATORIO · IKAR8BP');
   const exit=btn('✕',closeOverlay,'rw-exit');
   header.append(title,exit);
-  const description=el('p','rw-description','Toca UNIRME para agregar tu nombre a la lista de la ruleta.');
+  const description=el('p','rw-description','Inscríbete para participar en la selección aleatoria.');
   const count=el('div','rw-count','0 JUGADORES INSCRITOS');
-  const wheelBox=el('div','rw-wheelbox');
-  wheelBox.hidden=true;
-  const wheel=el('canvas','rw-wheel');
-  wheel.width=720;wheel.height=720;
-  wheel.setAttribute('role','img');
-  wheel.setAttribute('aria-label','Ruleta de jugadores inscritos');
-  const wheelPointer=el('div','rw-pointer');
-  const wheelCircle=el('div','rw-wheel-circle');
-  wheelCircle.append(wheel);
-  wheelBox.append(wheelPointer,wheelCircle);
+  const selector=el('div','rw-selector');selector.hidden=true;
+  const selectorTop=el('div','rw-selector-top','🎯 SELECCIÓN ALEATORIA');
+  const selectorName=el('strong','rw-selector-name','ESPERANDO PARTICIPANTES');
+  const selectorHint=el('span','rw-selector-hint','Todos los inscritos participan por igual');
+  selector.append(selectorTop,selectorName,selectorHint);
   const winnerCard=el('div','rw-winner');winnerCard.hidden=true;
   const joinBar=el('div','rw-actions');
-  const joinButton=btn('🎡 UNIRME A LA RULETA',join,'rw-join');
-  const joined=el('strong','rw-joined','✅ YA ESTÁS EN LA RULETA');joined.hidden=true;
+  const joinButton=btn('✅ INSCRIBIRME',join,'rw-join');
+  const joined=el('strong','rw-joined','✅ YA ESTÁS INSCRITO');joined.hidden=true;
   joinBar.append(joinButton,joined);
   const listTitle=el('h3','rw-list-title','PARTICIPANTES');
   const rosterBox=el('div','rw-roster');
   const status=el('small','rw-status','');
   const adminBar=el('div','rw-adminbar');
-  const spinButton=btn('🎯 GIRAR RULETA',spinRoulette,'rw-spin');
-  const closeButton=btn('CANCELAR RULETA',closeRoulette,'rw-close-roulette');
+  const spinButton=btn('🎯 SELECCIONAR GANADOR',spinRoulette,'rw-spin');
+  const closeButton=btn('CANCELAR SELECCIÓN',closeRoulette,'rw-close-roulette');
   adminBar.append(spinButton,closeButton);
-  panel.append(header,description,count,wheelBox,winnerCard,joinBar,listTitle,rosterBox,adminBar,status);
+  panel.append(header,description,count,selector,winnerCard,joinBar,listTitle,rosterBox,adminBar,status);
   overlay.append(panel);document.body.append(overlay);
   overlay.addEventListener('click',event=>{if(event.target===overlay)closeOverlay()});
 
@@ -118,7 +112,7 @@
    }
    roster.forEach((p,index)=>{
     const item=el('div','rw-player');
-    if(active?.status==='finished'&&active.winner_id===p.player_id)item.classList.add('rw-player-winner');
+    if(active?.status==='finished'&&!spinningId&&active.winner_id===p.player_id)item.classList.add('rw-player-winner');
     item.append(el('span','rw-number',String(index+1)),avatar(p));
     const rank=window.rankingChatProfileBridge?.rank?.(Number(p.elo_points??200));
     if(rank?.image){
@@ -131,88 +125,79 @@
    });
   }
 
-  const palette=['#793bad','#2b7798','#bb5658','#419f82','#bf802b','#7453c9','#bd4787','#387cac','#b58a3d','#497c57'];
-  function paintWheel(){
+  // No rueda, círculo, aguja o iconos de azar: solo nombres en un panel.
+  function renderSelector(){
    if(spinningId||overlay.hidden)return;
-   wheelBox.hidden=roster.length===0;
-   const ctx=wheel.getContext('2d');
-   if(!ctx)return;
-   ctx.clearRect(0,0,720,720);
-   const n=roster.length;
-   if(!n)return;
-   const radius=346,cx=360,cy=360,unit=2*Math.PI/n;
-   for(let i=0;i<n;i++){
-    const start=-Math.PI/2+i*unit,end=start+unit;
-    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,radius,start,end);ctx.closePath();
-    ctx.fillStyle=palette[i%palette.length];ctx.fill();
-    ctx.lineWidth=n>180?0.35:1.6;ctx.strokeStyle='#ffffff90';ctx.stroke();
-    if(n<=72){
-     const mid=start+unit/2;
-     ctx.save();ctx.translate(cx,cy);ctx.rotate(mid);
-     ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillStyle='#fff';
-     ctx.shadowColor='#000b';ctx.shadowBlur=4;
-     ctx.font='bold '+(n>55?10:n>35?12:n>23?16:n>12?20:26)+'px system-ui, sans-serif';
-     const maxLen=n>55?7:n>35?9:n>23?9:n>12?13:18;
-     ctx.fillText((roster[i].player_name||'Jugador').slice(0,maxLen),radius-17,0,radius-74);
-     ctx.restore();
-    }
+   const enabled=roster.length>0&&active?.status==='open';
+   selector.hidden=!enabled;
+   winnerCard.hidden=active?.status!=='finished';
+   if(enabled){
+    selector.classList.remove('rw-selecting');
+    selectorName.textContent=roster.length+' PARTICIPANTES';
+    selectorHint.textContent='Cada participante tiene la misma posibilidad';
    }
-   ctx.beginPath();ctx.arc(cx,cy,50,0,2*Math.PI);ctx.fillStyle='#101b32';ctx.fill();
-   ctx.strokeStyle='#ffe4a8';ctx.lineWidth=9;ctx.stroke();
-   ctx.fillStyle='#ffe49d';ctx.font='bold 25px system-ui, sans-serif';
-   ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🎱',cx,cy);
-  }
-  function winningAngle(){
-   if(!active||!roster.length)return null;
-   const index=roster.findIndex(p=>p.player_id===active.winner_id);
-   if(index<0)return null;
-   const slice=360/roster.length;
-   return (360-(index+0.5)*slice+360)%360;
   }
   function showWinner(){
    if(!active||active.status!=='finished'||spinningId)return;
    const p=roster.find(x=>x.player_id===active.winner_id);
+   selector.hidden=true;
    winnerCard.replaceChildren();
-   winnerCard.append(el('div','rw-winner-label','🏆 ¡GANADOR DE LA RULETA!'));
+   winnerCard.append(el('div','rw-winner-label','🏆 ¡JUGADOR SELECCIONADO!'));
    if(p)winnerCard.append(avatar(p));
    winnerCard.append(el('strong','rw-winner-name',active.winner_name||p?.player_name||'Jugador'));
-   winnerCard.append(el('span','rw-winner-sub','Seleccionado aleatoriamente entre '+active.participants+' participantes'));
+   winnerCard.append(el('span','rw-winner-sub','Elegido aleatoriamente entre '+active.participants+' participantes'));
    winnerCard.hidden=false;
-   if(roster.length){
-    wheelBox.hidden=false;
-    if(!animationsPlayed.has(Number(active.roulette_id))){
-     const target=winningAngle();
-     if(target!==null){wheel.style.transition='none';wheel.style.transform='rotate('+target+'deg)';}
-    }
-   }
    renderRoster();
+   renderBanner();
+  }
+  function stopSelectorAnimation(){
+   clearTimeout(spinTimeout);clearTimeout(spinTick);
+   spinTimeout=null;spinTick=null;
+   spinningId=null;
+   selector.classList.remove('rw-selecting');
   }
   function animateWinner(){
    if(!active||active.status!=='finished'||overlay.hidden)return showWinner();
    const id=Number(active.roulette_id);
    if(animationsPlayed.has(id))return showWinner();
-   const angle=winningAngle();
-   if(angle===null)return showWinner();
-   animationsPlayed.add(id);spinningId=id;winnerCard.hidden=true;
-   wheelBox.hidden=false;
-   wheel.style.transition='none';wheel.style.transform='rotate(0deg)';
-   // Forzamos el estilo inicial antes de animar el giro.
-   void wheel.offsetWidth;
-   wheel.style.transition='transform 5.8s cubic-bezier(.12,.72,.12,1)';
-   wheel.style.transform='rotate('+(360*8+angle)+'deg)';
-   clearTimeout(spinTimeout);
-   spinTimeout=setTimeout(()=>{
-    if(active&&Number(active.roulette_id)===id){
-     spinningId=null;showWinner();notice('🏆 ¡La ruleta eligió a '+(active.winner_name||'un jugador')+'!');
-    }else spinningId=null;
-   },5900);
+   if(!roster.length)return showWinner();
+   animationsPlayed.add(id);
+   stopSelectorAnimation();
+   spinningId=id;
+   winnerCard.hidden=true;
+   selector.hidden=false;
+   selector.classList.add('rw-selecting');
+   selectorTop.textContent='🎯 SELECCIONANDO JUGADOR...';
+   selectorHint.textContent='Buscando entre '+roster.length+' nombres inscritos';
+   const started=Date.now(),duration=4900;
+   let position=0;
+   function next(){
+    if(spinningId!==id||overlay.hidden||!active||Number(active.roulette_id)!==id){
+     stopSelectorAnimation();
+     return;
+    }
+    const elapsed=Date.now()-started;
+    if(elapsed>=duration){
+     stopSelectorAnimation();
+     selectorTop.textContent='🎯 SELECCIÓN ALEATORIA';
+     showWinner();
+     notice('🏆 ¡Jugador seleccionado: '+(active.winner_name||'Jugador')+'!');
+     return;
+    }
+    // Los nombres que pasan son una animación; el ganador real lo fija Supabase.
+    const player=roster[position++%roster.length];
+    selectorName.textContent=player?.player_name||'Jugador';
+    const delay=elapsed>3500?230:elapsed>2500?150:85;
+    spinTick=setTimeout(next,delay);
+   }
+   next();
   }
   async function spinRoulette(){
    if(!admin||!active||active.status!=='open'||spinButton.disabled)return;
    if(Number(active.participants)<2){notice('Se necesitan al menos 2 inscritos.');return;}
-   if(!window.confirm('¿GIRAR LA RULETA ENTRE '+active.participants+' JUGADORES?\nEl ganador será definitivo y se cerrarán las inscripciones.'))return;
+   if(!window.confirm('¿SELECCIONAR UN GANADOR ENTRE '+active.participants+' JUGADORES?\\nEl resultado será definitivo y se cerrarán las inscripciones.'))return;
    const id=active.roulette_id;
-   spinButton.disabled=true;notice('🎡 Preparando el giro aleatorio...');
+   spinButton.disabled=true;notice('🎯 Seleccionando un jugador al azar...');
    try{
     await api('chat_roulette_spin',{p_roulette_id:id});
     await refresh();
@@ -224,10 +209,10 @@
    banner.hidden=!active;
    if(!active)return;
    const finished=active.status==='finished';
-   banner.append(el('strong','rw-banner-title',finished?'🏆 ¡GANADOR DE LA RULETA!':'🎡 RULETA ABIERTA · IKAR8BP'));
-   banner.append(el('span','rw-banner-count',finished?'🎉 '+(active.winner_name||'Jugador ganador'):active.participants+' jugadores inscritos'));
+   banner.append(el('strong','rw-banner-title',finished?'🏆 RESULTADO DEL SELECTOR':'🎯 SELECTOR ABIERTO · IKAR8BP'));
+   banner.append(el('span','rw-banner-count',finished?(spinningId===Number(active.roulette_id)?'🎯 Seleccionando...':'🏆 '+(active.winner_name||'Jugador ganador')):active.participants+' jugadores inscritos'));
    if(!finished&&active.has_joined)banner.append(el('span','rw-banner-confirm','✅ YA ESTÁS INSCRITO'));
-   banner.append(btn(finished?'🏆 VER GANADOR':active.has_joined?'👀 VER LISTA DE LA RULETA':'🎡 UNIRME A LA RULETA',()=>{
+   banner.append(btn(finished?'🏆 VER RESULTADO':active.has_joined?'👀 VER INSCRITOS':'✅ INSCRIBIRME',()=>{
     openOverlay(false);
     if(active?.status==='open'&&!active.has_joined)join();else loadRoster();
    },'rw-banner-action'));
@@ -238,7 +223,7 @@
    joinButton.hidden=mine||!open;
    joinButton.disabled=false;
    joined.hidden=!mine;
-   description.textContent=open?'Toca UNIRME para agregar tu nombre a la lista de la ruleta.':'Inscripciones cerradas. El resultado está guardado y no puede cambiarse.';
+   description.textContent=open?'Inscríbete para participar en la selección aleatoria.':'Inscripciones cerradas. El resultado está guardado y no puede cambiarse.';
    count.textContent=String(active.participants)+' '+(active.participants===1?'JUGADOR INSCRITO':'JUGADORES INSCRITOS');
    adminBar.hidden=!admin||!open;
    spinButton.hidden=!open;
@@ -255,9 +240,7 @@
     rosterId=id;
     roster=rows;
     renderRoster();
-    paintWheel();
-    // El ganador definitivo se mostrará después del giro cuando es un resultado nuevo.
-    if(active.status==='finished'&&!spinningId)showWinner();
+    renderSelector();
     // El feed actualiza el contador. La lista muestra el total exacto recibido.
     count.textContent=roster.length+' '+(roster.length===1?'JUGADOR INSCRITO':'JUGADORES INSCRITOS');
    }catch(e){notice('No se pudo cargar la lista: '+friendlyError(e));}
@@ -270,7 +253,7 @@
    renderControls();
    if(rosterId!==active.roulette_id){roster=[];rosterId=null;renderRoster();}
    if(load)loadRoster();
-   if(active.status==='finished'&&!spinningId)showWinner();
+   if(active.status==='finished'&&!spinningId)showWinner();else renderSelector();
   }
   async function refresh(){
    if(busy||!viewer)return;
@@ -281,30 +264,29 @@
     const previous=active;
     if(active?.roulette_id!==next?.roulette_id){
      roster=[];rosterId=null;winnerCard.hidden=true;
-     spinningId=null;clearTimeout(spinTimeout);
-     wheel.style.transition='none';wheel.style.transform='rotate(0deg)';
+     stopSelectorAnimation();selector.hidden=true;
     }
     active=next;
     renderBanner();
     renderControls();
     if(active&&!overlay.hidden){
+     const newResult=previous?.roulette_id===active.roulette_id&&previous.status==='open';
      await loadRoster();
      if(active.status==='finished'){
-      const newResult=previous?.roulette_id===active.roulette_id&&previous.status==='open';
       if(newResult&&!spinningId)animateWinner();
       else if(!spinningId)showWinner();
-     }else winnerCard.hidden=true;
+     }else{winnerCard.hidden=true;renderSelector();}
     }
    }catch(e){console.warn('Ruleta: actualizar',e);}
    finally{busy=false;}
   }
   async function join(){
    if(!active||active.status!=='open'||joinButton.disabled)return;
-   joinButton.disabled=true;notice('Inscribiéndote en la ruleta...');
+   joinButton.disabled=true;notice('Registrando tu inscripción...');
    try{
     const id=active.roulette_id;
     const result=await api('chat_roulette_join',{p_roulette_id:id});
-    notice(result==='already_joined'?'Ya estabas inscrito.':'✅ Te uniste a la ruleta correctamente.');
+    notice(result==='already_joined'?'Ya estabas inscrito.':'✅ Inscripción completada.');
     active.has_joined=true;
     renderBanner();renderControls();
     await refresh();
@@ -324,11 +306,11 @@
   }
   async function closeRoulette(){
    if(!active||active.status!=='open'||closeButton.disabled)return;
-   if(!window.confirm('¿Cerrar esta ruleta? Los jugadores ya no podrán inscribirse.'))return;
+   if(!window.confirm('¿Cerrar este selector? Los jugadores ya no podrán inscribirse.'))return;
    closeButton.disabled=true;
    try{
     await api('chat_roulette_close',{p_roulette_id:active.roulette_id});
-    notice('Ruleta cerrada. Puedes crear una nueva.');
+    notice('Selección cerrada. Puedes crear otra.');
     await refresh();
    }catch(e){notice(friendlyError(e));}
    finally{closeButton.disabled=false;}
