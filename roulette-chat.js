@@ -112,7 +112,17 @@
    }
    roster.forEach((p,index)=>{
     const item=el('div','rw-player');
-    if(active?.status==='finished'&&!spinningId&&active.winner_id===p.player_id)item.classList.add('rw-player-winner');
+    const winning=active?.status==='finished'&&!spinningId&&active.winner_id===p.player_id;
+    if(winning){
+     item.classList.add('rw-player-winner','rw-winner-profile-link');
+     item.setAttribute('role','button');
+     item.tabIndex=0;
+     item.title='Ver perfil del ganador';
+     item.addEventListener('click',openWinnerProfile);
+     item.addEventListener('keydown',event=>{
+      if(event.key==='Enter'||event.key===' '){event.preventDefault();openWinnerProfile();}
+     });
+    }
     item.append(el('span','rw-number',String(index+1)),avatar(p));
     const rank=window.rankingChatProfileBridge?.rank?.(Number(p.elo_points??200));
     if(rank?.image){
@@ -121,6 +131,7 @@
     }
     item.append(el('span','rw-player-name',p.player_name||'Jugador'));
     if(viewer===p.player_id)item.append(el('span','rw-you','TÚ'));
+    if(winning)item.append(el('span','rw-profile-symbol','VER PERFIL ›'));
     rosterBox.append(item);
    });
   }
@@ -137,15 +148,48 @@
     selectorHint.textContent='Cada participante tiene la misma posibilidad';
    }
   }
+  // Abre la ficha original de Ranking8BP: desde allí funciona ✉️ MENSAJE.
+  // Se obtiene el perfil actual por UUID, nunca se busca solo por nombre.
+  let openingWinner=false;
+  async function openWinnerProfile(){
+   if(openingWinner||!active||active.status!=='finished'||!active.winner_id)return;
+   const id=String(active.winner_id);
+   const expectedRoulette=active.roulette_id;
+   openingWinner=true;
+   const openButtons=[...winnerCard.querySelectorAll('button')];
+   openButtons.forEach(button=>button.disabled=true);
+   try{
+    if(typeof window.rankingChatProfileBridge?.open!=='function')
+     throw new Error('La ficha del jugador todavía no está disponible.');
+    const {data,error}=await db.rpc('get_profile_by_id',{p_player_id:id});
+    if(error)throw error;
+    const p=Array.isArray(data)?data[0]:data;
+    if(!p)throw new Error('No se encontró el perfil del ganador.');
+    if(!active||active.roulette_id!==expectedRoulette||active.winner_id!==id)return;
+    // El perfil queda accesible también en celulares, sin la capa del selector encima.
+    closeOverlay();
+    await window.rankingChatProfileBridge.open({...p,id,player_id:id});
+   }catch(error){
+    console.error('Abrir perfil del ganador:',error);
+    notice('No se pudo abrir el perfil: '+(error?.message||'Inténtalo de nuevo.'));
+   }finally{
+    openingWinner=false;
+    openButtons.forEach(button=>button.disabled=false);
+   }
+  }
   function showWinner(){
    if(!active||active.status!=='finished'||spinningId)return;
    const p=roster.find(x=>x.player_id===active.winner_id);
    selector.hidden=true;
    winnerCard.replaceChildren();
    winnerCard.append(el('div','rw-winner-label','🏆 ¡JUGADOR SELECCIONADO!'));
-   if(p)winnerCard.append(avatar(p));
-   winnerCard.append(el('strong','rw-winner-name',active.winner_name||p?.player_name||'Jugador'));
-   winnerCard.append(el('span','rw-winner-sub','Elegido aleatoriamente entre '+active.participants+' participantes'));
+   const winnerProfile=btn('',openWinnerProfile,'rw-winner-profile');
+   winnerProfile.title='Ver el perfil y enviar un mensaje al ganador';
+   winnerProfile.setAttribute('aria-label','Ver perfil de '+(active.winner_name||p?.player_name||'jugador seleccionado')+' y enviar mensaje');
+   if(p)winnerProfile.append(avatar(p));
+   winnerProfile.append(el('strong','rw-winner-name',active.winner_name||p?.player_name||'Jugador'));
+   winnerProfile.append(el('span','rw-profile-open','👤 VER PERFIL Y ENVIAR MENSAJE ›'));
+   winnerCard.append(winnerProfile,el('span','rw-winner-sub','Elegido aleatoriamente entre '+active.participants+' participantes'));
    winnerCard.hidden=false;
    renderRoster();
    renderBanner();
