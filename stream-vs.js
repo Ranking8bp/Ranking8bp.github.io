@@ -328,7 +328,20 @@
   launch.addEventListener('click',()=>{setTimeout(()=>{attachButton();checkSession();if(roomId)loadMessages(true)},250)});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkSession()});
   db.auth.onAuthStateChange((event,s)=>{if(event==='SIGNED_IN'||event==='SIGNED_OUT'){uid=s?.user?.id||null;admin=false;setTimeout(checkSession,450)}});
-  setInterval(()=>{if(!document.hidden&&uid){refresh();if(roomId&&!overlay.hidden)loadMessages()}},9000);
+  // Realtime es el canal principal. Sondeo espaciado como respaldo para no saturar Supabase.
+  let lastRoomFallback=0,lastMessagesFallback=0,lastBackgroundFallback=0;
+  setInterval(()=>{
+   if(document.hidden||!uid)return;
+   const now=Date.now();
+   if(!chat.hidden||!overlay.hidden){
+    if(now-lastRoomFallback>=30000){lastRoomFallback=now;refresh()}
+    if(roomId&&!overlay.hidden&&now-lastMessagesFallback>=20000){
+     lastMessagesFallback=now;loadMessages();
+    }
+   }else if(now-lastBackgroundFallback>=60000){
+    lastBackgroundFallback=now;refresh();
+   }
+  },8000);
   setTimeout(checkSession,650);
  };
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
