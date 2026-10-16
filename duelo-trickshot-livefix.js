@@ -15,9 +15,9 @@ function initialise(state){
  if(stage.getBoundingClientRect().width<100||stage.getBoundingClientRect().height<100)return false;
  if(typeof nuevaPartidaTrickshotUltimate!=='function'||typeof bolasUltimate==='undefined')return false;
  if(matchId!==state.id){matchId=state.id;initialised=false;lastRevision=-1;}
+ const white=bolasUltimate[0];
  if(!initialised){
    nuevaPartidaTrickshotUltimate(state.distribution);
-   const white=bolasUltimate[0];
    if(white&&Number.isFinite(Number(state.white_x))&&Number.isFinite(Number(state.white_y))){
      white.x=Number(state.white_x);white.y=Number(state.white_y);
    }
