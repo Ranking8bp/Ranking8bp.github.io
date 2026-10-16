@@ -15,6 +15,7 @@ const init=()=>{
  live.innerHTML=`<div class="ts-live-head"><strong>🎱 DUELO DE TRICKSHOT</strong><span class="ts-live-indicator">● EN VIVO</span></div>
  <div class="ts-names"><span id="tsYellowPlayer">🟡 AMARILLAS</span><span id="tsTimer">15 s</span><span id="tsRedPlayer">ROJAS 🔴</span></div>
  <div class="ts-stage"><iframe id="tsGame" title="Duelo de Trickshot en vivo" allow="autoplay" loading="lazy"></iframe><div id="tsWaiting" class="ts-waiting" hidden></div></div>
+ <div id="tsControls" class="ts-controls" hidden><label>FUERZA <input id="tsPower" type="range" min="5" max="100" value="65"><span id="tsPowerValue">65%</span></label><button id="tsShoot" type="button">🎱 TIRAR</button></div>
  <div class="ts-scores"><span id="tsYellowScore">🟡 0/3</span><span id="tsTurnLabel">Esperando partida...</span><span id="tsRedScore">🔴 0/3</span></div>
  <div id="tsResult" class="ts-result" hidden></div>`;
  history.before(live);
@@ -28,6 +29,25 @@ const init=()=>{
  chat.appendChild(prompt);
  let state=null,role='spectator',currentMatch=0,realtime=null,gameReady=false,busy=false,lastFrameAt=0;
  let lastCheck=0,lastAdvance=0,lastSync=0,lastShotReq=false,updating=false;
+ const iframe=byId('tsGame');
+ function installFix(){
+  try{
+   const doc=iframe.contentDocument;
+   if(!doc?.body||doc.getElementById('trickshotLiveFix'))return;
+   const fix=doc.createElement('script');fix.id='trickshotLiveFix';
+   fix.src=new URL('./duelo-trickshot-livefix.js?v=20261016-r2',location.href).href;
+   fix.onload=()=>{gameReady=true;render()};
+   fix.onerror=()=>alertMsg('No se pudo cargar la corrección de la mesa. Actualiza la página.');
+   doc.body.appendChild(fix);
+  }catch(e){alertMsg('Error al preparar los controles: '+(e.message||e))}
+ }
+ iframe.addEventListener('load',installFix);
+ const power=byId('tsPower'),shoot=byId('tsShoot');
+ power?.addEventListener('input',()=>ui('tsPowerValue',power.value+'%'));
+ shoot?.addEventListener('click',()=>{
+  if(!canShoot()||!gameReady)return;
+  sendToGame({type:'mobile-shoot',power:Number(power.value)});
+ });
  const client=()=>typeof supabaseClient!=='undefined'?supabaseClient:null;
  const user=()=>typeof currentUser!=='undefined'?currentUser:null;
  const ui=(id,text)=>{const e=byId(id);if(e)e.textContent=text;};
@@ -46,13 +66,15 @@ const init=()=>{
   ui('tsRedPlayer',(state.red_id===state.player1_id?state.player1_name:state.player2_name||'ROJAS')+' 🔴');
   ui('tsYellowScore','🟡 '+(state.yellow_scored||0)+'/3');ui('tsRedScore','🔴 '+(state.red_scored||0)+'/3');
   const f=byId('tsGame'), w=byId('tsWaiting'),r=byId('tsResult');
+  const controls=byId('tsControls');if(controls)controls.hidden=!canShoot()||!gameReady;
+  f.classList.toggle('ts-viewer',!canShoot());
   if(state.phase==='waiting'){
     f.hidden=true;w.hidden=false;w.textContent='⏳ ESPERANDO JUGADOR...';
     ui('tsTurnLabel','El primer jugador eligió '+(state.player1_color==='amarilla'?'amarillas':'rojas'));
     r.hidden=true;ui('tsTimer','ESPERA');
   }else{
     f.hidden=false;w.hidden=true;
-    if(!f.dataset.started){f.dataset.started='yes';f.src='./trickshot/index.html?ranking8bp=1';gameReady=false;}
+    if(!f.dataset.started){f.dataset.started='yes';f.src='./trickshot/index.html?ranking8bp=1&v=20261016-r2';gameReady=false;}
     ui('tsTurnLabel',state.phase==='finished'?'PARTIDA FINALIZADA':state.turn_id===state.yellow_id?'TURNO: AMARILLAS':'TURNO: ROJAS');
     ui('tsTimer',state.phase==='shot'?'TIRO':timeRemaining()+' s');
     r.hidden=state.phase!=='finished';
@@ -104,7 +126,7 @@ const init=()=>{
  window.addEventListener('message',async e=>{
   if(e.origin!==location.origin||e.source!==byId('tsGame')?.contentWindow||!e.data||e.data.source!=='ranking8bp-game')return;
   const data=e.data;
-  if(data.type==='ready'){gameReady=true;render();return;}
+  if(data.type==='ready'||data.type==='fix-ready'){gameReady=true;render();return;}
   if(!state||!active()||currentMatch!==state.id||!isPlayer())return;
   if(data.type==='shot-start'){
    if(!canShoot())return;
@@ -128,9 +150,11 @@ const init=()=>{
  setInterval(()=>{
   if(chat.hidden||!user())return;
   const now=Date.now();
-  if(state&&state.phase==='active'){
-   ui('tsTimer',timeRemaining()+' s');
-   if(isPlayer()&&timeRemaining()<=0&&now-lastAdvance>3000){
+  if(state&&['active','shot'].includes(state.phase)){
+   if(state.phase==='active')ui('tsTimer',timeRemaining()+' s');
+   const shouldAdvance=state.phase==='shot'||timeRemaining()<=0;
+   const interval=state.phase==='shot'?(isPlayer()?5000:16000):3000;
+   if(shouldAdvance&&now-lastAdvance>interval){
     lastAdvance=now;rpc('trickshot_advance').then(s=>{state=s;render()}).catch(()=>{});
    }
   }
