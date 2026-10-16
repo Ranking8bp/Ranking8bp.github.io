@@ -119,3 +119,24 @@
  .rw-adminbar{flex-shrink:0}
 }
 @media(prefers-reduced-motion:reduce){.rw-selector.rw-selecting .rw-selector-name{animation:none}}
+
+/* El ganador abre su perfil real al tocar foto, nombre o tarjeta. */
+.rw-winner-profile{
+ display:flex;flex-direction:column;align-items:center;gap:8px;
+ width:100%;max-width:100%;min-width:0;padding:8px 10px 10px;
+ border:1px solid #dbbc70;border-radius:12px;
+ color:#fff;background:#08283d;cursor:pointer;
+ font-family:inherit;transition:background .15s,transform .15s
+}
+.rw-winner-profile:hover,.rw-winner-profile:focus-visible{
+ background:#18445b;outline:2px solid #ffd982;outline-offset:2px
+}
+.rw-winner-profile:active{transform:scale(.99)}
+.rw-winner-profile:disabled{opacity:.68;cursor:wait}
+.rw-winner-profile .rw-avatar{width:68px;height:68px;flex:0 0 68px;border:3px solid #ffdf83;font-size:24px}
+.rw-winner-profile .rw-winner-name{display:block;max-width:100%;overflow-wrap:anywhere}
+.rw-profile-open{color:#9ff3d6;font-size:12px;font-weight:900}
+.rw-player.rw-winner-profile-link{cursor:pointer}
+.rw-player.rw-winner-profile-link:hover,.rw-player.rw-winner-profile-link:focus-visible{background:#435475!important;outline:2px solid #ffd982;outline-offset:1px}
+.rw-profile-symbol{font-size:10px;font-weight:900;color:#ffe79b;flex:0 0 auto}
+@media(max-width:390px){.rw-profile-symbol{font-size:9px}.rw-winner-profile .rw-avatar{width:58px;height:58px;flex-basis:58px}}
