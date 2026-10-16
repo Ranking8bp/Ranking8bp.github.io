@@ -1,0 +1,56 @@
+
+#communityChatModal .sv-fixed[hidden],#communityChatModal .sv-feed[hidden],#communityChatModal .sv-create[hidden],.sv-overlay[hidden],.sv-global[hidden],.sv-send-form[hidden]{display:none!important}
+#communityChatModal .sv-create{display:block;width:calc(100% - 22px);margin:5px 11px 11px;padding:12px;border:1px solid #e0b44c;background:linear-gradient(135deg,#264124,#0a2b32);color:#ffe8a2;font-size:15px;font-weight:900;border-radius:12px;cursor:pointer;flex:none}
+#communityChatModal .sv-fixed{display:flex;flex-direction:column;align-items:center;gap:5px;flex:none;padding:12px 10px;background:linear-gradient(145deg,#132d30,#093c30);border:1px solid #b99b4c;border-radius:12px;margin:5px 12px;color:#fff;text-align:center}
+#communityChatModal .sv-fixed strong{font-size:13px;color:#ffe197}
+#communityChatModal .sv-fixed .sv-banner-duel{font-weight:900;font-size:15px;overflow-wrap:anywhere}
+#communityChatModal .sv-feed{max-height:186px;overflow-y:auto;flex:none;padding:0 12px;border-bottom:1px solid #ffffff16}
+#communityChatModal .sv-result{background:#0a2430;border:1px solid #b3954b;border-radius:12px;margin:8px 0;padding:9px;text-align:center;color:#f8e2ad;font-size:13px}
+.sv-result-players{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:9px auto;color:white}
+.sv-result-person{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:5px}
+.sv-result-person img.sv-result-avatar{height:31px;width:31px;border-radius:50%;object-fit:cover}
+.sv-result-person img.sv-result-rank{width:30px;height:30px;object-fit:contain}
+.sv-result-person b{font-size:13px;min-width:70%}
+.sv-plus{color:#3ee98d}.sv-minus{color:#ff7272}
+.sv-join,.sv-result-open{border:0;border-radius:10px;padding:10px 14px;background:#16b45a;color:white;font-weight:900;font-size:14px;cursor:pointer}
+.sv-result-open{background:#24425a;padding:8px 12px}
+.sv-global{position:fixed;top:calc(6px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(95%,460px);padding:9px 14px;z-index:2147483644;border:1px solid #f2b957;border-radius:12px;background:#102d28;color:#fff5be;font-weight:900;font-size:12px;box-shadow:0 6px 21px #0008}
+.sv-overlay{position:fixed;inset:0;background:#000d;z-index:2147483647;display:flex;justify-content:center;align-items:center;padding:10px;box-sizing:border-box}
+.sv-overlay *{box-sizing:border-box}
+.sv-sheet{display:flex;flex-direction:column;gap:10px;width:min(100%,640px);height:min(95dvh,850px);overflow:hidden;padding:14px;background:linear-gradient(155deg,#112631,#06121d);border:2px solid #bda15b;border-radius:20px;color:#fff;box-shadow:0 18px 50px #000b;font-family:inherit}
+.sv-head{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:4px 2px}
+.sv-head strong{color:#ffdc8b;font-size:16px}.sv-timer{color:#9feacc;font-size:13px;font-weight:900}
+.sv-close{border:0;background:#7b2222;color:white;border-radius:8px;padding:7px 11px;font-size:20px;cursor:pointer}
+.sv-room-banner{text-align:center;color:#ffe5a0;background:#182c30;border:1px solid #a98c45;border-radius:10px;font-size:13px;font-weight:900;padding:9px}
+.sv-stage{display:grid;grid-template-columns:minmax(0,1fr) 35px minmax(0,1fr);gap:5px;align-items:center}
+.sv-person{min-width:0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;background:#102737;border:1px solid #44616e;border-radius:13px;padding:8px 3px;overflow:hidden}
+.sv-person.winner{border-color:#ffd866}
+.sv-avatar{width:58px;height:58px;border-radius:50%;overflow:hidden;border:2px solid #d1bb7c;background:#1f4353;display:grid;place-items:center;font-size:29px;font-weight:900}
+.sv-avatar img{width:100%;height:100%;object-fit:cover}
+.sv-rank-img{width:52px;height:52px;object-fit:contain}
+.sv-name{font-size:13px;overflow-wrap:anywhere;line-height:1.2}
+.sv-person small{font-size:11px;color:#d1bd9d}
+.sv-elo{font-size:12px;color:#ffdc7d}
+.sv-copy{color:white;background:#255d53;border:1px solid #399e8d;border-radius:8px;padding:7px 6px;font-size:11px;cursor:pointer;max-width:100%;overflow-wrap:anywhere}
+.sv-versus{text-align:center;font-size:23px;color:#ffd17d}
+.sv-crown{font-size:11px;color:#ffdd81}
+.sv-notice{color:#d4e6df;text-align:center;font-size:13px;line-height:1.5;max-height:95px;overflow:auto}
+.sv-finished{display:block;color:#ffe07a;font-size:17px}
+.sv-room-actions{text-align:center}.sv-spectator{font-size:12px;color:#9fbcce}
+.sv-messages{min-height:70px;overflow-y:auto;flex:1 1 auto;padding:9px;background:#081824;border:1px solid #294450;border-radius:12px;display:flex;flex-direction:column;gap:9px}
+.sv-message{background:#193340;border-radius:12px;padding:9px;align-self:flex-start;max-width:95%;min-width:130px}
+.sv-message.mine{align-self:flex-end;background:#154c3e}
+.sv-message strong{font-size:12px;color:#ffd78a}
+.sv-message p{font-size:14px;margin:5px 0 8px;overflow-wrap:anywhere}
+.sv-reactions{display:flex;gap:2px;flex-wrap:wrap}
+.sv-reactions button{padding:4px 6px;background:#233e46;color:#fff;border:1px solid #405962;border-radius:12px;font-size:12px;cursor:pointer}
+.sv-reactions button.active{border-color:#ffd169;background:#57623a}
+.sv-send-form{display:flex;gap:7px;flex:none}
+.sv-send-form input{min-width:0;flex:1;padding:11px;border:1px solid #40636e;border-radius:10px;background:#061721;color:#fff;font-size:15px}
+.sv-send-form button{background:#138c54;color:white;border:0;border-radius:9px;padding:0 13px;font-size:13px;font-weight:900}
+.sv-judge{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.sv-judge>strong{width:100%;text-align:center;color:#ffe09a;font-size:13px}
+.sv-judge-winner{background:#207441;color:white;border:1px solid #67d093;border-radius:9px;padding:10px;font-weight:900;max-width:100%}
+.sv-cancel{background:#702b2b;color:white;border:1px solid #c35555;border-radius:9px;padding:10px}
+.sv-status{display:block;color:#f5c96e;text-align:center;font-size:12px;min-height:0}
+@media(max-width:390px){.sv-sheet{padding:8px;gap:6px}.sv-person{padding:6px 2px}.sv-avatar{width:47px;height:47px}.sv-rank-img{width:40px;height:40px}.sv-sheet .sv-head strong{font-size:13px}.sv-judge-winner{font-size:12px;padding:8px 6px}}
