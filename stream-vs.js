@@ -176,7 +176,7 @@
    }else if(room.status==='open'&&!full){
     notice.textContent='Los dos primeros que se unan jugarán el partido de ranking.';
    }else if(!admin&&!isParticipant(room)){
-    notice.textContent='SALA LLENA · EL VS YA ESTÁ ARMADO. Puedes ver la conversación y reaccionar, pero no comentar. Espera a que ikar8bp cree otra sala.';
+    notice.textContent='SALA LLENA · EL VS YA ESTÁ ARMADO. Puedes ver la conversación y reaccionar, pero no comentar. Los enlaces son privados para los jugadores y el administrador. Espera a que ikar8bp cree otra sala.';
    }else if(admin){
     notice.textContent='Solo tú y los dos jugadores podéis escribir. Los espectadores solo reaccionan.';
    }else{
@@ -363,7 +363,18 @@
     renderFeed();
     if(roomId){
      const next=rooms.find(x=>Number(x.room_id)===roomId);
-     if(next){const changed=JSON.stringify(room)!==JSON.stringify(next);showRoom(next);if(changed&&!admin&&!isParticipant(next)&&next.status==='open')updateBanState(next.room_id);if(changed&&next.status==='finished')loadMessages(true)}
+     if(next){
+      const changed=JSON.stringify(room)!==JSON.stringify(next);
+      const membershipChanged=room&&(room.player1_id!==next.player1_id||room.player2_id!==next.player2_id||room.admin_id!==next.admin_id);
+      showRoom(next);
+      if(changed&&!admin&&!isParticipant(next)&&next.status==='open')updateBanState(next.room_id);
+      if(membershipChanged){
+       // No dejar visibles enlaces anteriores después de una expulsión.
+       oldMessageSignature='';
+       messages.replaceChildren(h('p','sv-empty','Actualizando permisos de la sala...'));
+       loadMessages(true);
+      }else if(changed&&next.status==='finished')loadMessages(true);
+     }
      else if(room?.status!=='cancelled'){closeRoom();msg('La sala dejó de estar disponible.')}
     }
    }catch(e){console.warn('Actualizar salas:',e)}
@@ -427,7 +438,7 @@
     let receipts=[];
     try{receipts=await api('stream_vs_read_receipts',{p_room_id:roomId})||[]}catch(e){console.warn('Lectores VS:',e)}
     const readerMap=new Map(receipts.map(x=>[Number(x.message_id),x.reader_names||[]]));
-    const signature=JSON.stringify(rows.map(m=>[m.message_id,m.reactions,m.my_reaction,readerMap.get(Number(m.message_id))||[],messageAuthorCache.get(String(m.sender_id))?.avatar||'',messageAuthorCache.get(String(m.sender_id))?.elo??null]));
+    const signature=JSON.stringify(rows.map(m=>[m.message_id,m.body,m.reactions,m.my_reaction,readerMap.get(Number(m.message_id))||[],messageAuthorCache.get(String(m.sender_id))?.avatar||'',messageAuthorCache.get(String(m.sender_id))?.elo??null]));
     if(!force&&signature===oldMessageSignature)return;
     const bottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<90;
     oldMessageSignature=signature;
