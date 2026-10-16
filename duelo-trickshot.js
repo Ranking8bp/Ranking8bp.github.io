@@ -120,40 +120,95 @@ const init=()=>{
    sendToGame({type:'sync',state,role:canShoot()?'shooter':'viewer',color:myColor()},'player');
  }
  function render(){
-  if(!state||state.phase==='empty'||state.phase==='cancelled'){live.hidden=true;return;}
-  live.hidden=false;
-  ui('tsYellowPlayer','🟡 '+(state.yellow_id===state.player1_id?state.player1_name:state.player2_name||'AMARILLAS'));
-  ui('tsRedPlayer',(state.red_id===state.player1_id?state.player1_name:state.player2_name||'ROJAS')+' 🔴');
-  ui('tsYellowScore','🟡 '+(state.yellow_scored||0)+'/3');ui('tsRedScore','🔴 '+(state.red_scored||0)+'/3');
-  const f=byId('tsGame'), w=byId('tsWaiting'),r=byId('tsResult');
-  const controls=byId('tsControls');if(controls)controls.hidden=!canShoot()||!gameReady;
-  f.classList.toggle('ts-viewer',!canShoot());
-  if(state.phase==='waiting'){
-    f.hidden=true;w.hidden=false;w.textContent='⏳ ESPERANDO JUGADOR...';
-    ui('tsTurnLabel','El primer jugador eligió '+(state.player1_color==='amarilla'?'amarillas':'rojas'));
-    r.hidden=true;ui('tsTimer','ESPERA');
-  }else{
-    f.hidden=false;w.hidden=true;
-    if(!f.dataset.started){f.dataset.started='yes';f.src='./trickshot/index.html?ranking8bp=1&v=20261016-r2';gameReady=false;}
-    ui('tsTurnLabel',state.phase==='finished'?'PARTIDA FINALIZADA':state.turn_id===state.yellow_id?'TURNO: AMARILLAS':'TURNO: ROJAS');
-    ui('tsTimer',state.phase==='shot'?'TIRO':timeRemaining()+' s');
-    r.hidden=state.phase!=='finished';
-    if(state.phase==='finished'){r.textContent='🏆 '+(state.winner_id===state.yellow_id?'¡AMARILLAS GANAN!':'¡ROJAS GANAN!')+' · RESULTADO PROVISIONAL · ELO EN VALIDACIÓN';}
-    sendToGame({type:'sync',state,role:canShoot()?'shooter':'viewer',color:myColor()});
-  }
+   const resume=byId('tsResumePlay'),adminButton=byId('tsAdminFinish');
+   if(!state||state.phase==='empty'||state.phase==='cancelled'){
+      live.hidden=true;playerOverlay.hidden=true;
+      document.body.classList.remove('ts-player-playing');
+      if(resume)resume.hidden=true;if(adminButton)adminButton.hidden=true;
+      return;
+   }
+   live.hidden=false;
+   const player=isPlayer();
+   if(resume)resume.hidden=!player;
+   if(adminButton)adminButton.hidden=!canAdmin()||!['waiting','active','shot'].includes(state.phase);
+   if(player && ['active','shot'].includes(state.phase) && autoOpenMatch!==state.id){
+      autoOpenMatch=state.id;playerDismissed=false;
+   }
+   if(player && !playerDismissed){
+      playerOverlay.hidden=false;
+      document.body.classList.add('ts-player-playing');
+   }else{
+      playerOverlay.hidden=true;
+      document.body.classList.remove('ts-player-playing');
+   }
+   const yellowName=state.yellow_id===state.player1_id?state.player1_name:(state.player2_name||'AMARILLAS');
+   const redName=state.red_id===state.player1_id?state.player1_name:(state.player2_name||'ROJAS');
+   ui('tsYellowPlayer','🟡 '+yellowName);ui('tsRedPlayer',redName+' 🔴');
+   ui('tsYellowScore','🟡 '+(state.yellow_scored||0)+'/3');
+   ui('tsRedScore','🔴 '+(state.red_scored||0)+'/3');
+   ui('tsPlayerNames','🟡 '+yellowName+'  VS  '+redName+' 🔴');
+   ui('tsPlayerYellow','🟡 '+(state.yellow_scored||0)+'/3');
+   ui('tsPlayerRed','🔴 '+(state.red_scored||0)+'/3');
+   const clock=state.phase==='shot'?'TIRO':timeRemaining()+' s';
+   ui('tsPlayerClock',state.phase==='waiting'?'ESPERA':clock);
+   ui('tsTimer',state.phase==='waiting'?'ESPERA':clock);
+   const spectatorWaiting=byId('tsWaiting'),playerWaiting=byId('tsPlayerWaiting');
+   const result=byId('tsResult'),playerResult=byId('tsPlayerResult');
+   if(state.phase==='waiting'){
+      iframe.hidden=true;spectatorWaiting.hidden=false;
+      spectatorWaiting.textContent='⏳ ESPERANDO JUGADOR...';
+      playerFrame.hidden=true;playerWaiting.hidden=false;
+      ui('tsTurnLabel','ESPERANDO JUGADOR');
+      ui('tsPlayerTurn','ESPERANDO JUGADOR');
+      result.hidden=true;playerResult.hidden=true;
+      return;
+   }
+   iframe.hidden=false;spectatorWaiting.hidden=true;
+   if(!iframe.dataset.started){
+      iframe.dataset.started='yes';gameReady=false;
+      iframe.src='./trickshot/index.html?ranking8bp=1&v=20261016-r4&view=watch';
+   }
+   playerWaiting.hidden=true;
+   const turnText=state.phase==='finished'?'PARTIDA FINALIZADA':
+      state.turn_id===state.yellow_id?'TURNO: AMARILLAS':'TURNO: ROJAS';
+   ui('tsTurnLabel',turnText);
+   ui('tsPlayerTurn',turnText);
+   const finished=state.phase==='finished';
+   result.hidden=!finished;playerResult.hidden=!finished;
+   if(finished){
+     const msg='🏆 '+(state.winner_id===state.yellow_id?'¡AMARILLAS GANAN!':'¡ROJAS GANAN!')
+        +' · RESULTADO PROVISIONAL · ELO EN VALIDACIÓN';
+     result.textContent=msg;playerResult.textContent=msg;
+   }
+   if(player){
+      playerFrame.hidden=false;
+      if(!playerFrame.dataset.started){
+         playerFrame.dataset.started='yes';playerReady=false;
+         playerFrame.src='./trickshot/index.html?ranking8bp=1&v=20261016-r4&view=play';
+      }
+   }else{
+      playerFrame.hidden=true;
+   }
+   iframe.classList.add('ts-viewer');
+   syncGames();
  }
  function subscribe(id){
   if(currentMatch===id)return;
-  const oldFrame=byId('tsGame');if(oldFrame){oldFrame.dataset.started='';oldFrame.removeAttribute('src');}
+  for(const f of [iframe,playerFrame]){
+    f.dataset.started='';f.removeAttribute('src');
+  }
+  gameReady=false;playerReady=false;playerDismissed=false;autoOpenMatch=0;
   if(realtime&&client())client().removeChannel(realtime);
-  realtime=null;currentMatch=id;gameReady=false;
+  realtime=null;currentMatch=id;
   if(!id)return;
   realtime=client().channel('trickshot-game-'+id);
   realtime.on('broadcast',{event:'frame'},({payload})=>{
     if(!payload||payload.match!==currentMatch||payload.by===user()?.id)return;
-    sendToGame({type:'frame',frame:payload.frame});
+    sendToGame({type:'frame',frame:payload.frame},'preview');
+    sendToGame({type:'frame',frame:payload.frame},'player');
   });
-  realtime.on('postgres_changes',{event:'UPDATE',schema:'public',table:'trickshot_duels',filter:'id=eq.'+id},()=>refresh(false));
+  realtime.on('postgres_changes',{event:'UPDATE',schema:'public',table:'trickshot_duels',
+    filter:'id=eq.'+id},()=>refresh(false));
   realtime.subscribe();
  }
  async function refresh(force=false){
