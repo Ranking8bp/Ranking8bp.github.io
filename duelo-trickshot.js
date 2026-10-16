@@ -239,32 +239,53 @@ const init=()=>{
  const open=byId('communityChatOpen');
  if(open)open.addEventListener('click',()=>setTimeout(()=>refresh(true),350));
  window.addEventListener('message',async e=>{
-  if(e.origin!==location.origin||e.source!==byId('tsGame')?.contentWindow||!e.data||e.data.source!=='ranking8bp-game')return;
+  if(e.origin!==location.origin||!e.data||e.data.source!=='ranking8bp-game')return;
+  const sourcePlayer=e.source===playerFrame?.contentWindow;
+  const sourcePreview=e.source===iframe?.contentWindow;
+  if(!sourcePlayer&&!sourcePreview)return;
   const data=e.data;
-  if(data.type==='ready'||data.type==='fix-ready'){gameReady=true;render();return;}
-  if(!state||!active()||currentMatch!==state.id||!isPlayer())return;
+  if(data.type==='ready'||data.type==='fix-ready'){
+    if(sourcePlayer)playerReady=true;else gameReady=true;
+    render();return;
+  }
+  // La mesa pequeña del Chat General NUNCA puede registrar disparos.
+  if(!sourcePlayer||!state||!active()||currentMatch!==state.id||!isPlayer())return;
   if(data.type==='shot-start'){
-   if(!canShoot())return;
-   try{state=await rpc('trickshot_start',{p_match:currentMatch});lastShotReq=true;render();sendToGame({type:'shot-authorized'});}
-   catch(error){alertMsg('No se autorizó el tiro: '+(error.message||error));sendToGame({type:'reject-shot'});}
-   return;
+    if(!canShoot()){sendToGame({type:'reject-shot'},'player');return;}
+    try{
+      state=await rpc('trickshot_start',{p_match:currentMatch});
+      lastShotReq=true;render();
+      sendToGame({type:'shot-authorized'},'player');
+    }catch(error){
+      alertMsg('No se autorizó el tiro: '+(error.message||error));
+      sendToGame({type:'reject-shot'},'player');
+    }
+    return;
   }
   if(data.type==='frame'){
-   if(state.phase!=='shot'||state.turn_id!==user()?.id||!realtime)return;
-   const now=performance.now();
-   if(now-lastFrameAt<110)return;lastFrameAt=now;
-   realtime.send({type:'broadcast',event:'frame',payload:{match:currentMatch,by:user().id,frame:data.frame}});
-   return;
+    if(state.phase!=='shot'||state.turn_id!==user()?.id||!realtime)return;
+    const now=performance.now();
+    if(now-lastFrameAt<110)return;lastFrameAt=now;
+    sendToGame({type:'frame',frame:data.frame},'preview');
+    realtime.send({type:'broadcast',event:'frame',payload:{match:currentMatch,by:user().id,frame:data.frame}});
+    return;
   }
   if(data.type==='shot-end'){
-   if(state.phase!=='shot'||state.turn_id!==user()?.id)return;
-   try{state=await rpc('trickshot_finish',{p_match:currentMatch,p_events:data.events||[],p_frame:data.frame||{}});render();}
-   catch(error){alertMsg('Error registrando tiro: '+(error.message||error));await refresh(true);}
+    if(state.phase!=='shot'||state.turn_id!==user()?.id)return;
+    try{
+      state=await rpc('trickshot_finish',{p_match:currentMatch,p_events:data.events||[],p_frame:data.frame||{}});
+      render();
+    }catch(error){
+      alertMsg('Error registrando tiro: '+(error.message||error));
+      await refresh(true);
+    }
   }
  });
  setInterval(()=>{
-  if(chat.hidden||!user())return;
+  if(!user()||(chat.hidden&&playerOverlay.hidden))return;
   const now=Date.now();
+  if(state?.phase==='active')ui('tsPlayerClock',timeRemaining()+' s');
+  const admin=byId('tsAdminFinish');if(admin&&state)admin.hidden=!canAdmin()||!['waiting','active','shot'].includes(state.phase);
   if(state&&['active','shot'].includes(state.phase)){
    if(state.phase==='active')ui('tsTimer',timeRemaining()+' s');
    const shouldAdvance=state.phase==='shot'||timeRemaining()<=0;
@@ -274,7 +295,7 @@ const init=()=>{
    }
   }
   if(state?.phase==='waiting'&&state.player1_id===user()?.id&&now-lastSync>30000){lastSync=now;rpc('trickshot_join',{p_color:null}).catch(()=>{});}
-  if(now-lastCheck>14000)refresh(true);
+  if(now-lastCheck>9000)refresh(true);
  },1000);
  refresh(true);
 };
