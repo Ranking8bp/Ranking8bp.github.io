@@ -2537,7 +2537,7 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
 </script>
 <script id="chat-profile-layer-script">(function(){function init(){var chat=document.getElementById('communityChatModal');var profile=document.getElementById('playerDetailModal');var zoom=document.getElementById('rankZoomModal');if(profile)document.body.appendChild(profile);if(zoom)document.body.appendChild(zoom);function lift(el){if(!el)return;document.body.appendChild(el);el.style.setProperty('z-index','2147483647','important');if(chat&&chat!==el)chat.style.setProperty('z-index','2147483645','important')}if(profile){new MutationObserver(function(){if(profile.classList.contains('open'))lift(profile)}).observe(profile,{attributes:true,attributeFilter:['class']})}if(zoom){new MutationObserver(function(){if(zoom.classList.contains('open'))lift(zoom)}).observe(zoom,{attributes:true,attributeFilter:['class']})}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()})();</script><link rel="stylesheet" href="./stream-vs.css?v=20261016-message-links-v1">
 <script src="./stream-vs.js?v=20261016-private-room-links-v1"></script>
-<link rel="stylesheet" href="./roulette-chat.css?v=20261016-dismiss-results-v1">
-<script src="./roulette-chat.js?v=20261016-dismiss-results-v1"></script>
+<link rel="stylesheet" href="./roulette-chat.css?v=20261016-remove-player-v1">
+<script src="./roulette-chat.js?v=20261016-remove-player-v1"></script>
 </body>
 </html>
