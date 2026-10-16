@@ -95,3 +95,14 @@
  background:#203b49;color:#fff;font:bold 18px/1 Arial,sans-serif;cursor:pointer
 }
 #communityChatModal .sv-result-dismiss:hover,#communityChatModal .sv-result-dismiss:focus-visible{background:#a34a4a;outline:2px solid #ffd6a6;outline-offset:1px}
+
+/* Los enlaces compartidos en salas VS se pueden abrir desde móvil y escritorio. */
+.sv-message .sv-message-link{
+ color:#88e5ff!important;text-decoration:underline!important;text-underline-offset:3px;
+ font-weight:800;overflow-wrap:anywhere;word-break:break-word;
+ cursor:pointer;pointer-events:auto;touch-action:manipulation
+}
+.sv-message .sv-message-link:hover,.sv-message .sv-message-link:focus-visible{
+ color:#c9f7ff!important;text-decoration-thickness:2px;outline-offset:2px
+}
+.sv-message .sv-message-link:visited{color:#d6bdff!important}
