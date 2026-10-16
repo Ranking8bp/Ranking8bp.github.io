@@ -12,10 +12,9 @@ const init=()=>{
  challenge.appendChild(button);
  const live=document.createElement('section');
  live.id='trickshotLive';live.hidden=true;
- live.innerHTML=`<div class="ts-live-head"><strong>🎱 DUELO DE TRICKSHOT</strong><span class="ts-live-indicator">● EN VIVO</span></div>
+ live.innerHTML=`<div class="ts-live-head"><strong>🎱 DUELO DE TRICKSHOT</strong><div class="ts-live-actions"><button id="tsResumePlay" type="button" hidden>↗ MI MESA</button><button id="tsAdminFinish" type="button" hidden>🛑 FINALIZAR VS</button><span class="ts-live-indicator">● EN VIVO</span></div></div>
  <div class="ts-names"><span id="tsYellowPlayer">🟡 AMARILLAS</span><span id="tsTimer">15 s</span><span id="tsRedPlayer">ROJAS 🔴</span></div>
  <div class="ts-stage"><iframe id="tsGame" title="Duelo de Trickshot en vivo" allow="autoplay" loading="lazy"></iframe><div id="tsWaiting" class="ts-waiting" hidden></div></div>
- <div id="tsControls" class="ts-controls" hidden><label>FUERZA <input id="tsPower" type="range" min="5" max="100" value="65"><span id="tsPowerValue">65%</span></label><button id="tsShoot" type="button">🎱 TIRAR</button></div>
  <div class="ts-scores"><span id="tsYellowScore">🟡 0/3</span><span id="tsTurnLabel">Esperando partida...</span><span id="tsRedScore">🔴 0/3</span></div>
  <div id="tsResult" class="ts-result" hidden></div>`;
  history.before(live);
@@ -27,26 +26,75 @@ const init=()=>{
  <button type="button" data-ts-color="roja">🔴 ROJAS</button></div>
  <button type="button" id="tsChooseCancel">CANCELAR</button></div>`;
  chat.appendChild(prompt);
+ // Vista de jugadores independiente de la transmisión pequeña del Chat General.
+ const playerOverlay=document.createElement('section');
+ playerOverlay.id='tsPlayerOverlay';playerOverlay.hidden=true;
+ playerOverlay.setAttribute('aria-label','Mesa horizontal de Duelo de Trickshot');
+ playerOverlay.innerHTML=`
+  <div id="tsPlayerLandscape" class="ts-player-landscape">
+   <header class="ts-player-head">
+    <span id="tsPlayerNames">🎱 DUELO DE TRICKSHOT</span>
+    <span id="tsPlayerClock">15 s</span>
+    <button id="tsPlayerFullscreen" type="button">⛶ PANTALLA COMPLETA</button>
+    <button id="tsPlayerBack" type="button">✕ VOLVER AL CHAT</button>
+   </header>
+   <div class="ts-player-field">
+    <iframe id="tsPlayerGame" title="Mesa horizontal de Duelo de Trickshot" allow="fullscreen; autoplay" loading="eager" allowfullscreen></iframe>
+    <div id="tsPlayerWaiting" class="ts-player-waiting" hidden>⏳ ESPERANDO JUGADOR...</div>
+    <div id="tsPlayerResult" class="ts-player-result" hidden></div>
+   </div>
+   <div class="ts-player-foot">
+    <span id="tsPlayerYellow">🟡 0/3</span>
+    <strong id="tsPlayerTurn">ESPERANDO RIVAL</strong>
+    <span id="tsPlayerRed">🔴 0/3</span>
+   </div>
+  </div>`;
+ document.body.appendChild(playerOverlay);
+ let playerDismissed=false,autoOpenMatch=0,playerReady=false,openingPlayerMatch=0;
  let state=null,role='spectator',currentMatch=0,realtime=null,gameReady=false,busy=false,lastFrameAt=0;
  let lastCheck=0,lastAdvance=0,lastSync=0,lastShotReq=false,updating=false;
- const iframe=byId('tsGame');
- function installFix(){
+ const iframe=byId('tsGame'),playerFrame=byId('tsPlayerGame');
+ function installFix(frame,kind){
   try{
-   const doc=iframe.contentDocument;
+   const doc=frame.contentDocument;
    if(!doc?.body||doc.getElementById('trickshotLiveFix'))return;
    const fix=doc.createElement('script');fix.id='trickshotLiveFix';
-   fix.src=new URL('./duelo-trickshot-livefix.js?v=20261016-r2',location.href).href;
-   fix.onload=()=>{gameReady=true;render()};
+   fix.src=new URL('./duelo-trickshot-livefix.js?v=20261016-r4',location.href).href;
+   fix.onload=()=>{if(kind==='player')playerReady=true;else gameReady=true;render()};
    fix.onerror=()=>alertMsg('No se pudo cargar la corrección de la mesa. Actualiza la página.');
    doc.body.appendChild(fix);
-  }catch(e){alertMsg('Error al preparar los controles: '+(e.message||e))}
+  }catch(e){alertMsg('Error al cargar la mesa: '+(e.message||e))}
  }
- iframe.addEventListener('load',installFix);
- const power=byId('tsPower'),shoot=byId('tsShoot');
- power?.addEventListener('input',()=>ui('tsPowerValue',power.value+'%'));
- shoot?.addEventListener('click',()=>{
-  if(!canShoot()||!gameReady)return;
-  sendToGame({type:'mobile-shoot',power:Number(power.value)});
+ iframe.addEventListener('load',()=>installFix(iframe,'preview'));
+ playerFrame.addEventListener('load',()=>installFix(playerFrame,'player'));
+ function openPlayer(){
+   if(!isPlayer())return;
+   playerDismissed=false;playerOverlay.hidden=false;
+   document.body.classList.add('ts-player-playing');
+   render();
+ }
+ function hidePlayer(){
+   playerDismissed=true;playerOverlay.hidden=true;
+   document.body.classList.remove('ts-player-playing');
+   try{if(document.fullscreenElement===playerOverlay)document.exitFullscreen()}catch(_){}
+ }
+ byId('tsPlayerBack').addEventListener('click',hidePlayer);
+ byId('tsResumePlay').addEventListener('click',openPlayer);
+ byId('tsPlayerFullscreen').addEventListener('click',async()=>{
+    try{
+      if(!document.fullscreenElement)await playerOverlay.requestFullscreen();
+      if(screen.orientation?.lock)await screen.orientation.lock('landscape');
+    }catch(_){alertMsg('Puedes girar el celular para jugar en horizontal.');}
+ });
+ byId('tsAdminFinish').addEventListener('click',async()=>{
+    if(!canAdmin()||!state||!['waiting','active','shot'].includes(state.phase))return;
+    if(!window.confirm('¿FINALIZAR ESTE DUELO DE TRICKSHOT? Se cerrará para todos. No se sumará ni descontará ELO.'))return;
+    const b=byId('tsAdminFinish');b.disabled=true;
+    try{
+      await rpc('trickshot_admin_finish',{p_match:state.id});
+      hidePlayer();await refresh(true);alertMsg('Duelo finalizado por IKAR. Ya pueden iniciar otro.');
+    }catch(e){alertMsg('No se pudo finalizar el VS: '+(e.message||e))}
+    finally{b.disabled=false;}
  });
  const client=()=>typeof supabaseClient!=='undefined'?supabaseClient:null;
  const user=()=>typeof currentUser!=='undefined'?currentUser:null;
@@ -54,11 +102,23 @@ const init=()=>{
  function alertMsg(s){const t=byId('communityChatInfo');if(t)t.textContent=s;}
  async function rpc(name,args={}){if(!client())throw Error('Conexión no disponible.');const {data,error}=await client().rpc(name,args);if(error)throw error;return data;}
  const isPlayer=()=>state&&user()&&[state.player1_id,state.player2_id].includes(user().id);
+ const canAdmin=()=>typeof currentProfile!=='undefined'&&currentProfile?.is_admin===true
+    &&String(currentProfile.username||'').toLowerCase()==='ikar8bp';
  const myColor=()=>!state||!user()?null:state.yellow_id===user().id?'amarilla':state.red_id===user().id?'roja':null;
  const active=()=>state&&['active','shot'].includes(state.phase);
  const canShoot=()=>active()&&state.phase==='active'&&state.turn_id===user()?.id&&role!=='spectator';
  function timeRemaining(){if(!state||!state.turn_until)return 15;return Math.max(0,Math.ceil((new Date(state.turn_until).getTime()-Date.now())/1000))}
- function sendToGame(data){const f=byId('tsGame');if(gameReady&&f?.contentWindow)f.contentWindow.postMessage({source:'ranking8bp-parent',...data},location.origin)}
+ function sendToGame(data,kind='preview'){
+   const target=kind==='player'?playerFrame:iframe;
+   const ready=kind==='player'?playerReady:gameReady;
+   if(ready&&target?.contentWindow)target.contentWindow.postMessage({source:'ranking8bp-parent',...data},location.origin);
+ }
+ function syncGames(){
+   if(!state||!state.id)return;
+   // Nunca autorizar movimientos al visor pequeño, aun si el espectador es jugador.
+   sendToGame({type:'sync',state,role:'viewer',color:null},'preview');
+   sendToGame({type:'sync',state,role:canShoot()?'shooter':'viewer',color:myColor()},'player');
+ }
  function render(){
   if(!state||state.phase==='empty'||state.phase==='cancelled'){live.hidden=true;return;}
   live.hidden=false;
