@@ -40,6 +40,7 @@
   };
   let uid=null,admin=false,rooms=[],roomId=null,room=null,role='spectator',polling=false,messagesBusy=false,realtime=null,timer=null,changeTimer=null,oldMessageSignature='';
   let blockedRoomId=null,blockedRemaining=0,banCheckSerial=0;
+  let dismissedVs=new Set(),dismissalsLoadedFor=null;
   const fixed=h('div','sv-fixed');fixed.hidden=true;
   const feed=h('section','sv-feed');feed.hidden=true;
   panel.insertBefore(fixed,history);
@@ -263,9 +264,38 @@
    clearInterval(timer);timer=setInterval(()=>{if(!overlay.hidden)elapsed()},1000);
    if(tryJoin&&!admin&&!isParticipant(r)&&r.status==='open')join(id);
   }
+  async function loadDismissedVs(force=false){
+   if(!uid||(!force&&dismissalsLoadedFor===uid))return;
+   const requestedUser=uid;
+   try{
+    const rows=await api('chat_result_dismissed')||[];
+    if(uid!==requestedUser)return;
+    dismissedVs=new Set(rows.filter(row=>row.result_type==='vs').map(row=>Number(row.result_id)));
+    dismissalsLoadedFor=requestedUser;
+    renderFeed();
+   }catch(error){console.warn('Ocultar resultados VS:',error)}
+  }
+  async function dismissFinishedVs(id){
+   const numberId=Number(id);
+   if(!uid||dismissedVs.has(numberId))return;
+   // Se oculta inmediatamente, pero se restaura si falló el guardado.
+   dismissedVs.add(numberId);
+   renderFeed();
+   try{
+    await api('chat_result_dismiss',{p_result_type:'vs',p_result_id:numberId});
+   }catch(error){
+    dismissedVs.delete(numberId);
+    renderFeed();
+    console.error('Cerrar resultado VS:',error);
+    alert('No se pudo guardar el resultado como leído. Inténtalo de nuevo.');
+   }
+  }
   function renderFeed(){
    const active=rooms.find(r=>['open','playing'].includes(r.status));
-   const finished=rooms.filter(r=>r.status==='finished');
+   // Conservar el límite global de los últimos 3 resultados; cerrar uno
+   // no trae de vuelta resultados antiguos ni afecta a otros usuarios.
+   const finished=rooms.filter(r=>r.status==='finished').slice(0,3)
+     .filter(r=>!dismissedVs.has(Number(r.room_id)));
    fixed.replaceChildren();
    fixed.hidden=!active;
    bannerOutside.hidden=!active;
@@ -293,10 +323,13 @@
    }
    feed.replaceChildren();
    feed.hidden=!finished.length;
-   for(const r of finished.slice(0,3)){
+   for(const r of finished){
     const win=side(r,winner(r)),lose=side(r,winner(r)===1?2:1);
     const result=h('article','sv-result');
-    const title=h('strong','','🏆 PARTIDA FINALIZADA · IKAR8BP');
+    const title=h('strong','sv-result-title','🏆 PARTIDA FINALIZADA · IKAR8BP');
+    const dismiss=b('✕',()=>dismissFinishedVs(r.room_id),'sv-result-dismiss');
+    dismiss.title='Ocultar este resultado solo para mí';
+    dismiss.setAttribute('aria-label','Cerrar resultado finalizado de '+(r.player1_name||'Jugador')+' contra '+(r.player2_name||'Jugador'));
     const duel=h('div','sv-result-players');
     for(const [p,won] of [[win,true],[lose,false]]){
      const x=h('div','sv-result-person'+(won?' winning':''));
@@ -307,7 +340,7 @@
      x.append(h('b','',p.name),h('strong',won?'sv-plus':'sv-minus',(won?'+':'')+(won?r.winner_delta:r.loser_delta)+' ELO'));
      duel.append(x);
     }
-    result.append(title,duel,b('VER RESULTADO Y CHAT',()=>open(r.room_id,false),'sv-result-open'));
+    result.append(dismiss,title,duel,b('VER RESULTADO Y CHAT',()=>open(r.room_id,false),'sv-result-open'));
     feed.append(result);
    }
   }
@@ -396,11 +429,12 @@
    try{
     const {data}=await db.auth.getUser();
     const old=uid;uid=data?.user?.id||null;
-    if(!uid){admin=false;rooms=[];blockedRoomId=null;blockedRemaining=0;create.hidden=true;fixed.hidden=true;feed.hidden=true;bannerOutside.hidden=true;return}
+    if(!uid){admin=false;rooms=[];blockedRoomId=null;blockedRemaining=0;dismissedVs=new Set();dismissalsLoadedFor=null;create.hidden=true;fixed.hidden=true;feed.hidden=true;bannerOutside.hidden=true;return}
     if(old!==uid||!admin){
      admin=(await api('stream_vs_is_ikar'))===true;
     }
     create.hidden=!admin;attachButton();
+    await loadDismissedVs(old!==uid);
     await refresh();
    }catch(e){console.warn('Sesión VS:',e)}
   }
@@ -413,8 +447,8 @@
     .on('postgres_changes',{event:'*',schema:'public',table:'stream_vs_reactions'},()=>{if(roomId)queue()})
     .subscribe();
   }catch(e){console.warn('VS Realtime:',e)}
-  launch.addEventListener('click',()=>{setTimeout(()=>{attachButton();checkSession();if(roomId)loadMessages(true)},250)});
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkSession()});
+  launch.addEventListener('click',()=>{setTimeout(()=>{attachButton();checkSession().then(()=>loadDismissedVs(true));if(roomId)loadMessages(true)},250)});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkSession().then(()=>loadDismissedVs(true))});
   db.auth.onAuthStateChange((event,s)=>{if(event==='SIGNED_IN'||event==='SIGNED_OUT'){uid=s?.user?.id||null;admin=false;setTimeout(checkSession,450)}});
   // Realtime es el canal principal. Sondeo espaciado como respaldo para no saturar Supabase.
   let lastRoomFallback=0,lastMessagesFallback=0,lastBackgroundFallback=0;
