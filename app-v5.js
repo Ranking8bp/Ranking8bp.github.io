@@ -1906,7 +1906,7 @@ async function setPlayerUI(profile,user){
   placePublicChatButton(false);guestTopbar.hidden=true;guestEmpty.hidden=true;playerDashboard.hidden=false;
   window.ranking8bpViewReady=true; // Player page has loaded.
 
-  const playerName=profile?.username||user?.user_metadata?.username||profile?.account_name||'Jugador';
+  const playerName=String(profile?.account_name||user?.user_metadata?.account_name||profile?.username||user?.user_metadata?.username||'Jugador').trim();
   setupGlobalDesignEditor(profile);
   await loadGlobalDesign();
   const elo=Number.isFinite(Number(profile?.elo_points))?Number(profile.elo_points):200;
