@@ -733,6 +733,26 @@
 #playerDashboard .competitive-hub>.identity-section .main-follow-stats>div{background:rgba(255,255,255,.035)!important;border:1px solid rgba(212,171,89,.4)!important}
 @media(max-width:520px){#playerDashboard .competitive-hub>.identity-section{gap:10px!important;padding:10px 0 18px!important}}
 </style>
+<style id="profile-mobile-overflow-fix-20261017">
+#playerDashboard .competitive-hub{width:calc(100% - 24px)!important;max-width:760px!important;margin:0 auto 16px!important;padding:16px 12px!important;min-width:0!important;overflow:hidden!important;box-sizing:border-box!important}
+#playerDashboard .competitive-hub>.identity-section{display:grid!important;grid-template-columns:minmax(0,42%) minmax(0,58%)!important;align-items:center!important;gap:0!important;width:100%!important;min-width:0!important;padding:6px 0 18px!important}
+#playerDashboard .competitive-hub .portrait-column,#playerDashboard .competitive-hub .identity-copy{min-width:0!important;width:100%!important;box-sizing:border-box!important}
+#playerDashboard .competitive-hub .portrait-frame{width:min(100%,180px)!important;height:auto!important;aspect-ratio:1!important;margin:0 auto!important;box-sizing:border-box!important;border:1px solid rgba(214,170,75,.65)!important}
+#playerDashboard .competitive-hub .identity-copy{padding:0 0 0 12px!important}
+#playerDashboard .competitive-hub .name-line{max-width:100%!important;min-width:0!important;display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:5px!important}
+#playerDashboard .competitive-hub .name-line h2{font-size:clamp(21px,5.6vw,34px)!important;overflow-wrap:anywhere!important;min-width:0!important}
+#playerDashboard .competitive-hub .main-follow-stats{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px!important;width:100%!important;min-width:0!important;margin-top:10px!important}
+#playerDashboard .competitive-hub .main-follow-stats>div{background:none!important;background-color:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;padding:4px 0!important;min-width:0!important;width:auto!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important}
+#playerDashboard .competitive-hub .main-follow-stats strong{font-size:clamp(21px,5vw,30px)!important;line-height:1.1!important}
+#playerDashboard .competitive-hub .main-follow-stats span{font-size:clamp(9px,2.5vw,13px)!important;white-space:nowrap!important;letter-spacing:0!important}
+#playerDashboard .competitive-hub .competitive-grid{display:grid!important;grid-template-columns:minmax(0,2fr) minmax(0,1fr)!important;gap:10px!important;width:100%!important;min-width:0!important}
+#playerDashboard .competitive-hub .competitive-grid>div{min-width:0!important;width:auto!important;max-width:100%!important;box-sizing:border-box!important;padding-left:5px!important;padding-right:5px!important}
+#playerDashboard .competitive-hub .competitive-record-values{width:100%!important;min-width:0!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0!important}
+#playerDashboard .competitive-hub .competitive-record-values>span{min-width:0!important;text-align:center!important}
+#playerDashboard .competitive-hub .competitive-record-values em{font-size:clamp(9px,2.5vw,12px)!important}
+#playerDashboard .competitive-hub .integrated-rank{width:100%!important;min-width:0!important;box-sizing:border-box!important}
+@media(max-width:380px){#playerDashboard .competitive-hub{width:calc(100% - 16px)!important;padding:12px 9px!important}#playerDashboard .competitive-hub>.identity-section{grid-template-columns:minmax(0,40%) minmax(0,60%)!important}#playerDashboard .competitive-hub .identity-copy{padding-left:8px!important}}
+</style>
 </head>
 <body>
 <div id="rankingEmergencyRecovery" style="position:fixed;inset:0;z-index:2147483646;display:none;align-items:center;justify-content:center;box-sizing:border-box;padding:20px;background:#07131e;color:white;font:16px Arial,sans-serif;text-align:center">
