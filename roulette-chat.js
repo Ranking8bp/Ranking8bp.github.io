@@ -330,13 +330,14 @@
    if(!finished&&active.has_joined)banner.append(el('span','rw-banner-confirm','✅ YA ESTÁS INSCRITO'));
    banner.append(btn(finished?'🏆 VER RESULTADO':active.has_joined?'👀 VER INSCRITOS':'✅ INSCRIBIRME',()=>{
     openOverlay(false);
-    if(active?.status==='open'&&!active.has_joined)join();else loadRoster();
+    if(active?.status==='open'&&!active.has_joined){if(!viewer){document.getElementById('registerBtn')?.click();return;}join();}else loadRoster();
    },'rw-banner-action'));
   }
   function renderControls(){
    if(!active){closeOverlay();return;}
    const open=active.status==='open',mine=!!active.has_joined;
    joinButton.hidden=mine||!open;
+   joinButton.textContent=viewer?'INSCRIBIRME':'REGÍSTRATE PARA PARTICIPAR';
    joinButton.disabled=false;
    joined.hidden=!mine;
    description.textContent=open?'Inscríbete para participar en la selección aleatoria.':'Inscripciones cerradas. El resultado está guardado y no puede cambiarse.';
@@ -373,7 +374,7 @@
    if(active.status==='finished'&&!spinningId)showWinner();else renderSelector();
   }
   async function refresh(){
-   if(busy||!viewer)return;
+   if(busy)return;
    busy=true;
    try{
     const rows=await api('chat_roulette_feed')||[];
@@ -399,6 +400,7 @@
   }
   async function join(){
    if(!active||active.status!=='open'||joinButton.disabled)return;
+   if(!viewer){document.getElementById('registerBtn')?.click();return;}
    joinButton.disabled=true;notice('Registrando tu inscripción...');
    try{
     const id=active.roulette_id;
@@ -439,8 +441,8 @@
     const before=viewer;
     viewer=data?.user?.id||null;
     if(!viewer){
-     admin=false;active=null;dismissedSelectors=new Set();dismissalsLoadedFor=null;
-     banner.hidden=true;create.hidden=true;closeOverlay();return;
+     admin=false;dismissedSelectors=new Set();dismissalsLoadedFor=null;create.hidden=true;
+     attachButton();await refresh();return;
     }
     if(before!==viewer||!admin)admin=(await api('stream_vs_is_ikar'))===true;
     create.hidden=!admin;
@@ -465,7 +467,7 @@
    if(event==='SIGNED_IN'||event==='SIGNED_OUT')setTimeout(checkSession,450);
   });
   setInterval(()=>{
-   if(document.hidden||!viewer||(chat.hidden&&overlay.hidden))return;
+   if(document.hidden||(chat.hidden&&overlay.hidden))return;
    const now=Date.now();
    if(now-lastPoll>=12000){lastPoll=now;refresh();}
   },4000);
