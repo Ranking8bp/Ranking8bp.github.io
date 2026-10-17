@@ -1862,6 +1862,9 @@ function placePublicChatButton(isGuest){
   const button=document.getElementById('communityChatOpen');
   const entry=button?.closest('.community-chat-entry');
   if(!entry||!guestEmpty)return;
+  // El modal estaba dentro del panel oculto al visitante; moverlo fuera del panel.
+  const modal=document.getElementById('communityChatModal');
+  if(modal&&modal.parentNode!==document.body)document.body.appendChild(modal);
   if(!publicChatOriginalParent){publicChatOriginalParent=entry.parentNode;publicChatOriginalNext=entry.nextSibling;}
   if(isGuest){
     let host=document.getElementById('guestCommunityChatHost');
