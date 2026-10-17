@@ -726,6 +726,13 @@
 #playerDashboard .identity-section .portrait-column{filter:none!important}
 #playerDashboard .competitive-hub{margin-top:16px!important}
 </style>
+<style id="profile-unified-card-20261017">
+#playerDashboard .competitive-hub{box-sizing:border-box!important}
+#playerDashboard .competitive-hub>.identity-section{width:100%!important;box-sizing:border-box!important;margin:0 0 18px!important;padding:12px 8px 20px!important;border:0!important;border-bottom:1px solid rgba(212,171,89,.55)!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+#playerDashboard .competitive-hub>.identity-section .portrait-frame{box-shadow:none!important}
+#playerDashboard .competitive-hub>.identity-section .main-follow-stats>div{background:rgba(255,255,255,.035)!important;border:1px solid rgba(212,171,89,.4)!important}
+@media(max-width:520px){#playerDashboard .competitive-hub>.identity-section{gap:10px!important;padding:10px 0 18px!important}}
+</style>
 </head>
 <body>
 <div id="rankingEmergencyRecovery" style="position:fixed;inset:0;z-index:2147483646;display:none;align-items:center;justify-content:center;box-sizing:border-box;padding:20px;background:#07131e;color:white;font:16px Arial,sans-serif;text-align:center">
@@ -860,7 +867,7 @@
         </header>
         <div class="edit-profile-backdrop" id="editProfileModal" hidden><section class="edit-profile-card"><h3>EDITAR PERFIL</h3><label>Nombre<input id="editProfileName" maxlength="80"></label><label>ID 8 Ball Pool<input id="editProfileGameId" maxlength="80"></label><label>País<input id="editProfileCountry" maxlength="80"></label><label>Nueva contraseña<input id="editProfilePassword" type="password" minlength="6" placeholder="Déjala vacía si no deseas cambiarla"></label><div class="edit-profile-actions"><button id="editProfileCancel" type="button">CANCELAR</button><button id="editProfileSave" type="button">GUARDAR</button></div><div id="editProfileMessage"></div></section></div>
 
-        <section class="identity-section">
+        <section class="competitive-hub" id="competitiveHub" style="display:block">        <section class="identity-section">
           <div class="portrait-column">
             <div class="portrait-frame">
               <img id="profileAvatar" alt="Foto de perfil" hidden />
@@ -888,7 +895,7 @@
           </div>
         </section>
 
-        <section class="competitive-hub" id="competitiveHub" style="display:block"><div class="integrated-rank" style="display:flex;align-items:center;justify-content:center;gap:14px;padding:12px 8px 18px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.14);margin-bottom:14px"><div style="position:relative;min-width:90px;min-height:95px;display:flex;align-items:center;justify-content:center"><div id="rankBadgeImage" class="rank-badge-image rank-badge-overlay" role="img" aria-label="Rango Latón">Latón</div></div><div style="flex:1;min-width:150px"><div class="elo-block">
+<div class="integrated-rank" style="display:flex;align-items:center;justify-content:center;gap:14px;padding:12px 8px 18px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.14);margin-bottom:14px"><div style="position:relative;min-width:90px;min-height:95px;display:flex;align-items:center;justify-content:center"><div id="rankBadgeImage" class="rank-badge-image rank-badge-overlay" role="img" aria-label="Rango Latón">Latón</div></div><div style="flex:1;min-width:150px"><div class="elo-block">
             <div class="rank-competitive-title">RANGO COMPETITIVO</div>
             <div class="dashboard-rank-name" id="dashboardRankName">LATÓN</div>
             <div class="elo-main-line"><span class="elo-word">ELO</span><div class="elo-number" id="dashboardElo">200</div></div>
