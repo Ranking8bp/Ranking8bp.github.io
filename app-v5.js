@@ -1941,7 +1941,7 @@ async function setPlayerUI(profile,user){
     const rankStart=Math.max(200,Number(rank.min)||200);
     const rankEnd=nextRank?Number(nextRank.min):rankStart;
     const rankSpan=Math.max(1,rankEnd-rankStart);
-    const rankPct=nextRank?Math.max(0,Math.min(100,((elo-rankStart)/rankSpan)*100)):100;
+    const rankPct=nextRank?Math.max(0,Math.min(100,(elo/Math.max(1,rankEnd))*100)):100;
     if(dashboardRankName)dashboardRankName.textContent=String(rank.name||'').toUpperCase();
     if(rankProgressFill)rankProgressFill.style.width=rankPct+'%';
     if(rankProgressText)rankProgressText.textContent=nextRank?(Math.max(0,elo-rankStart)+' / '+rankSpan+' · '+String(nextRank.name||'SIGUIENTE RANGO').toUpperCase()):('RANGO MÁXIMO');
