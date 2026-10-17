@@ -136,6 +136,9 @@ const guestRankingCount=document.getElementById('guestRankingCount');
 const guestRankingSearchInput=document.getElementById('guestRankingSearchInput');
 const guestRankingSearchWrap=document.getElementById('guestRankingSearchWrap');
 let guestRankingPlayers=[];
+let guestRankingSearchResults=null;
+let guestSearchTimer=null;
+let guestSearchRequest=0;
 let totalRegisteredPlayers=0;
 let realRegisteredCountLoading=false;
 async function refreshRealRegisteredCount(){
@@ -1820,7 +1823,8 @@ function startOnlinePresence(){clearInterval(onlinePresenceTimer)}
 function renderGuestRanking(){
  if(!guestRankingList)return;
  const q=String(guestRankingSearchInput?.value||'').trim().toLocaleLowerCase('es');
- const players=guestRankingPlayers.filter(p=>{
+ const source=guestRankingSearchResults!==null?guestRankingSearchResults:guestRankingPlayers;
+ const players=source.filter(p=>{
    const name=(String(p?.username||'')+' '+String(p?.account_name||'')).toLocaleLowerCase('es');
    return !q||name.includes(q);
  });
@@ -1831,7 +1835,10 @@ function renderGuestRanking(){
  }
  players.forEach((player,index)=>{
    const row=document.createElement('div');row.className='guest-ranking-row';row.dataset.playerId=String(player?.player_id||player?.id||'');
-   const pos=document.createElement('strong');pos.className='guest-ranking-pos';pos.textContent=String(index+1);
+   const pos=document.createElement('strong');pos.className='guest-ranking-pos';pos.textContent=String(player.global_position||index+1);
+   row.setAttribute('role','button');row.tabIndex=0;row.title='Ver perfil y estadísticas';
+   row.addEventListener('click',()=>openRankingPlayer(player));
+   row.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();openRankingPlayer(player)}});
    const name=document.createElement('div');name.className='guest-ranking-player';
    const avatar=document.createElement('span');avatar.className='guest-ranking-avatar';avatar.textContent=String(player.username||player.account_name||'J').charAt(0).toUpperCase();
    if(player.avatar_path&&supabaseClient){
@@ -1875,7 +1882,7 @@ function placePublicChatButton(isGuest){
   }
 }
 function setGuestUI(){
-  currentUser=null;currentProfile=null;if(rankingSearchWrap)rankingSearchWrap.hidden=true;if(guestRankingSearchWrap)guestRankingSearchWrap.hidden=true;if(activityBtn)activityBtn.hidden=true;if(activityPanel)activityPanel.hidden=true;guestTopbar.hidden=false;guestEmpty.hidden=false;playerDashboard.hidden=true;settingsMenu.hidden=true;clearAvatar();placePublicChatButton(true);
+  currentUser=null;currentProfile=null;if(rankingSearchWrap)rankingSearchWrap.hidden=true;if(guestRankingSearchWrap)guestRankingSearchWrap.hidden=false;if(activityBtn)activityBtn.hidden=true;if(activityPanel)activityPanel.hidden=true;guestTopbar.hidden=false;guestEmpty.hidden=false;playerDashboard.hidden=true;settingsMenu.hidden=true;clearAvatar();placePublicChatButton(true);
   window.ranking8bpViewReady=true; // Public page has loaded.
   renderGuestRankShowcase().catch(()=>{});
   loadGuestRanking().catch(()=>{});
@@ -3578,7 +3585,23 @@ if(rankingSearchInput) rankingSearchInput.addEventListener('input',()=>{
  },180);
 });
 
-if(guestRankingSearchInput)guestRankingSearchInput.addEventListener('input',renderGuestRanking);
+if(guestRankingSearchInput)guestRankingSearchInput.addEventListener('input',()=>{
+ clearTimeout(guestSearchTimer);
+ const query=String(guestRankingSearchInput.value||'').trim();
+ const request=++guestSearchRequest;
+ guestRankingSearchResults=null;
+ renderGuestRanking();
+ if(query.length<2||!supabaseClient)return;
+ guestSearchTimer=setTimeout(async()=>{
+  try{
+   const {data,error}=await supabaseClient.rpc('search_public_ranking_players',{p_query:query});
+   if(error)throw error;
+   if(request!==guestSearchRequest)return;
+   guestRankingSearchResults=Array.isArray(data)?data:[];
+   renderGuestRanking();
+  }catch(error){console.warn('Búsqueda pública:',error)}
+ },300);
+});
 
 /* Fresh matchmaking room controls */
 document.addEventListener('click',async e=>{if(e.target?.id==='freshMatchmakingClose'){
