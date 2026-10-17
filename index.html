@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>RANKING IKAR8BP</title>
-  <link rel="stylesheet" href="styles-v5.css?v=20261017-profile-symmetric-v2" />
+  <link rel="stylesheet" href="styles-v5.css?v=20261017-profile-symmetry-v3" />
 <meta name="color-scheme" content="dark">
 <link rel="manifest" href="manifest.webmanifest?v=3">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -679,6 +679,29 @@
 #playerDashboard .unified-results-card .stat-losses>em{color:#ff6868!important}
 #playerDashboard .unified-results-card .stat-victories>em{color:#ffd447!important}
 @media(max-width:390px){#playerDashboard .competitive-hub .competitive-grid{grid-template-columns:minmax(0,1fr) minmax(76px,.28fr)!important;gap:6px!important}#playerDashboard .unified-results-card .competitive-record-values>span>em{font-size:8px!important}}
+</style>
+<style id="profile-symmetry-fix">
+/* Tarjetas de perfil, mismas medidas y aspecto en pantalla móvil */
+.identity-section,.competitive-hub{box-sizing:border-box!important;width:calc(100% - 32px)!important;max-width:690px!important;margin:16px auto!important;border:1px solid rgba(185,154,81,.55)!important;border-radius:18px!important;background:rgba(18,24,36,.83)!important;box-shadow:0 6px 22px #0005!important}
+.identity-section{padding:18px!important;display:grid!important;grid-template-columns:clamp(82px,23vw,118px) minmax(0,1fr)!important;gap:16px!important;align-items:center!important}
+.identity-section .portrait-column{width:100%!important;min-width:0!important}
+.identity-section .portrait-frame{box-sizing:border-box!important;width:100%!important;height:auto!important;aspect-ratio:1!important;padding:5px!important;border-radius:50%!important}
+.identity-section .portrait-frame:before{inset:8px!important;border-width:1px!important}
+.identity-section .portrait-crown{display:none!important}
+.identity-section .avatar-edit{transform:scale(.7);transform-origin:center}
+.identity-section .identity-copy{width:100%!important;min-width:0!important;overflow:visible!important}
+.identity-section .name-line{display:flex!important;gap:8px!important;align-items:center!important;flex-wrap:wrap!important}
+.identity-section .name-line h2{font:800 clamp(18px,4.8vw,28px)/1.15 Arial,sans-serif!important;color:#f4d47c!important;overflow-wrap:anywhere!important}
+.identity-section .verified-mark{width:20px!important;height:20px!important;font-size:12px!important;border-width:2px!important}
+.identity-section .country-line{display:flex!important;gap:7px!important;align-items:center!important;margin-top:9px!important;font:600 14px/1.3 Arial,sans-serif!important}
+.identity-section .country-flag{font-size:21px!important}
+.identity-section .profile-quote{display:none!important}
+.identity-section .main-follow-stats{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;margin:12px 0 0!important}
+.identity-section .main-follow-stats>div{min-width:0!important;padding:10px 3px!important;background:rgba(29,35,48,.75)!important;border:1px solid rgba(185,154,81,.2)!important;border-radius:10px!important;text-align:center!important}
+.identity-section .main-follow-stats strong{font:800 20px/1.2 Arial,sans-serif!important;color:#fff!important}
+.identity-section .main-follow-stats span{font:700 clamp(8px,2vw,10px)/1.3 Arial,sans-serif!important;color:#e5c26d!important}
+.competitive-hub{padding:16px!important}
+@media(max-width:380px){.identity-section{padding:12px!important;gap:10px!important;grid-template-columns:76px minmax(0,1fr)!important}}
 </style>
 </head>
 <body>
