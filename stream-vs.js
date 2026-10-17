@@ -184,7 +184,7 @@
    }
    joins.replaceChildren();
    if(room.status==='open'&&!admin&&!isParticipant(room)&&!banned){
-    joins.append(b('⚔ UNIRME COMO JUGADOR',()=>join(room.room_id),'sv-join'));
+    joins.append(b(uid?'⚔ UNIRME COMO JUGADOR':'🔒 REGÍSTRATE PARA PARTICIPAR',()=>join(room.room_id),'sv-join'));
    }else if(banned){
     joins.append(h('span','sv-banned','⛔ ACCESO A PARTIDA BLOQUEADO'));
    }else if(playing&&!isParticipant(room)&&!admin){
@@ -317,7 +317,7 @@
     if(active.status==='playing'){
      const clock=h('span','sv-live-elapsed','⏱ 00:00');clock.dataset.started=active.started_at||'';fixed.append(clock);
     }
-    fixed.append(b(active.status==='open'?'⚔ UNIRME':'👀 VER VS EN VIVO',()=>open(active.room_id,active.status==='open'),'sv-join'));
+    fixed.append(b(active.status==='open'?(uid?'⚔ UNIRME':'👀 VER SALA'):'👀 VER VS EN VIVO',()=>open(active.room_id,!!uid&&active.status==='open'),'sv-join'));
     bannerOutside.dataset.base='🎱 '+(active.status==='playing'?'VS EN VIVO · '+p1+' VS '+p2:'SALA DE RANKING ABIERTA · UNIRME');
     bannerOutside.dataset.started=active.status==='playing'?active.started_at||'':'';
     bannerOutside.textContent=bannerOutside.dataset.base;
