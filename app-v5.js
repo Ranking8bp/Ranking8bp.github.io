@@ -1854,8 +1854,25 @@ function renderGuestRanking(){
  });
 }
 
+// El chat general se mantiene visible para visitantes sin iniciar sesión.
+// Se mueve el botón existente para conservar todos sus controladores.
+let publicChatOriginalParent=null;
+let publicChatOriginalNext=null;
+function placePublicChatButton(isGuest){
+  const button=document.getElementById('communityChatOpen');
+  const entry=button?.closest('.community-chat-entry');
+  if(!entry||!guestEmpty)return;
+  if(!publicChatOriginalParent){publicChatOriginalParent=entry.parentNode;publicChatOriginalNext=entry.nextSibling;}
+  if(isGuest){
+    let host=document.getElementById('guestCommunityChatHost');
+    if(!host){host=document.createElement('div');host.id='guestCommunityChatHost';host.style.cssText='display:flex;justify-content:center;margin:18px auto;';guestEmpty.prepend(host);}
+    host.appendChild(entry);
+  }else if(publicChatOriginalParent){
+    publicChatOriginalParent.insertBefore(entry,publicChatOriginalNext?.parentNode===publicChatOriginalParent?publicChatOriginalNext:null);
+  }
+}
 function setGuestUI(){
-  currentUser=null;currentProfile=null;if(rankingSearchWrap)rankingSearchWrap.hidden=true;if(guestRankingSearchWrap)guestRankingSearchWrap.hidden=true;if(activityBtn)activityBtn.hidden=true;if(activityPanel)activityPanel.hidden=true;guestTopbar.hidden=false;guestEmpty.hidden=false;playerDashboard.hidden=true;settingsMenu.hidden=true;clearAvatar();
+  currentUser=null;currentProfile=null;if(rankingSearchWrap)rankingSearchWrap.hidden=true;if(guestRankingSearchWrap)guestRankingSearchWrap.hidden=true;if(activityBtn)activityBtn.hidden=true;if(activityPanel)activityPanel.hidden=true;guestTopbar.hidden=false;guestEmpty.hidden=false;playerDashboard.hidden=true;settingsMenu.hidden=true;clearAvatar();placePublicChatButton(true);
   window.ranking8bpViewReady=true; // Public page has loaded.
   renderGuestRankShowcase().catch(()=>{});
   loadGuestRanking().catch(()=>{});
@@ -1876,7 +1893,7 @@ async function setPlayerUI(profile,user){
   if(uiUserId&&playerUiLoadingFor===uiUserId)return;
   playerUiLoadingFor=uiUserId;
   currentUser=user||currentUser;currentProfile=profile||currentProfile;
-  guestTopbar.hidden=true;guestEmpty.hidden=true;playerDashboard.hidden=false;
+  placePublicChatButton(false);guestTopbar.hidden=true;guestEmpty.hidden=true;playerDashboard.hidden=false;
   window.ranking8bpViewReady=true; // Player page has loaded.
 
   const playerName=profile?.username||user?.user_metadata?.username||profile?.account_name||'Jugador';
