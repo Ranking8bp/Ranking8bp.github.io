@@ -2472,7 +2472,7 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
     if(error)throw error;
     const rows=(data||[]).reverse(),sig=rows.map(x=>x.id+':'+(x.reply_to||'')).join(',');const messageLookup=new Map(rows.map(x=>[Number(x.id),x]));
     if(sig===previous){await refreshChallengeStatuses();await updateReadCounts();await refreshReactions();await refreshReactions();queueReads();return;}
-    const missing=[...new Set(rows.map(x=>x.sender_id))].filter(id=>!profiles.has(id));
+    const missing=viewerId?[...new Set(rows.map(x=>x.sender_id))].filter(id=>!profiles.has(id)):[];
     if(missing.length){
      const results=await Promise.allSettled(missing.map(async id=>{
       const {data,error}=await client.rpc('get_profile_by_id',{p_player_id:id});
@@ -2525,7 +2525,8 @@ body.fpe-active .ranking-row.ranking-first .ranking-elo-number{outline:2px dashe
   button.addEventListener('click',async()=>{
    modal.hidden=false;if(!list.children.length)list.textContent='Cargando historial...';say('');
    if(!client){say('No se pudo conectar al servidor.');return}
-   try{const {data}=await client.auth.getUser();viewerId=data?.user?.id||null}catch(e){viewerId=null}
+   try{const {data}=await client.auth.getSession();viewerId=data?.session?.user?.id||null}catch(e){viewerId=null}
+   if(!viewerId){form.querySelectorAll('input,button').forEach(el=>{el.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();document.getElementById('registerBtn')?.click();},{once:true})});input.placeholder='REGÍSTRATE PARA PARTICIPAR';}
    await load();await markChatOpenedRead();clearInterval(interval);interval=setInterval(async()=>{await load();await markChatOpenedRead()},8000);
   });
   close.addEventListener('click',closeChat);
