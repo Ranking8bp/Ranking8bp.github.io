@@ -240,6 +240,7 @@
    catch(e){msg(errorText(e))}
   }
   async function join(id){
+   if(!uid){document.getElementById('registerBtn')?.click();return;}
    try{
     role=await api('stream_vs_join',{p_room_id:id});
     await refresh();
@@ -262,7 +263,7 @@
    showRoom(r);oldMessageSignature='';loadMessages(true);
    if(!admin&&!isParticipant(r)&&r.status==='open')updateBanState(r.room_id);
    clearInterval(timer);timer=setInterval(()=>{if(!overlay.hidden)elapsed()},1000);
-   if(tryJoin&&!admin&&!isParticipant(r)&&r.status==='open')join(id);
+   if(tryJoin&&!admin&&!isParticipant(r)&&r.status==='open'){if(!uid)document.getElementById('registerBtn')?.click();else join(id);}
   }
   async function loadDismissedVs(force=false){
    if(!uid||(!force&&dismissalsLoadedFor===uid))return;
@@ -356,7 +357,7 @@
   };
   setInterval(updatePublicClock,1000);
   async function refresh(){
-   if(!uid||polling)return;
+   if(polling)return;
    polling=true;
    try{
     rooms=await api('stream_vs_feed')||[];
@@ -431,12 +432,12 @@
     const selectedRoom=roomId;
     const rows=await api('stream_vs_messages_read',{p_room_id:selectedRoom})||[];
     // Un perfil por remitente, cacheado; incluye imagen e insignia por ELO.
-    await Promise.all([...new Set(rows.map(x=>x.sender_id).filter(Boolean))].map(loadMessageAuthor));
+    if(uid)await Promise.all([...new Set(rows.map(x=>x.sender_id).filter(Boolean))].map(loadMessageAuthor));
     if(roomId!==selectedRoom||overlay.hidden)return;
     // La lectura solo se confirma cuando la sala está abierta en pantalla.
-    try{await api('stream_vs_mark_read',{p_room_id:roomId})}catch(e){console.warn('Marcar leído VS:',e)}
+    if(uid)try{await api('stream_vs_mark_read',{p_room_id:roomId})}catch(e){console.warn('Marcar leído VS:',e)}
     let receipts=[];
-    try{receipts=await api('stream_vs_read_receipts',{p_room_id:roomId})||[]}catch(e){console.warn('Lectores VS:',e)}
+    if(uid)try{receipts=await api('stream_vs_read_receipts',{p_room_id:roomId})||[]}catch(e){console.warn('Lectores VS:',e)}
     const readerMap=new Map(receipts.map(x=>[Number(x.message_id),x.reader_names||[]]));
     const signature=JSON.stringify(rows.map(m=>[m.message_id,m.body,m.reactions,m.my_reaction,readerMap.get(Number(m.message_id))||[],messageAuthorCache.get(String(m.sender_id))?.avatar||'',messageAuthorCache.get(String(m.sender_id))?.elo??null]));
     if(!force&&signature===oldMessageSignature)return;
@@ -486,7 +487,7 @@
    try{
     const {data}=await db.auth.getUser();
     const old=uid;uid=data?.user?.id||null;
-    if(!uid){admin=false;rooms=[];blockedRoomId=null;blockedRemaining=0;dismissedVs=new Set();dismissalsLoadedFor=null;create.hidden=true;fixed.hidden=true;feed.hidden=true;bannerOutside.hidden=true;return}
+    if(!uid){admin=false;blockedRoomId=null;blockedRemaining=0;dismissedVs=new Set();dismissalsLoadedFor=null;create.hidden=true;attachButton();await refresh();return}
     if(old!==uid||!admin){
      admin=(await api('stream_vs_is_ikar'))===true;
     }
@@ -510,7 +511,7 @@
   // Realtime es el canal principal. Sondeo espaciado como respaldo para no saturar Supabase.
   let lastRoomFallback=0,lastMessagesFallback=0,lastBackgroundFallback=0;
   setInterval(()=>{
-   if(document.hidden||!uid)return;
+   if(document.hidden)return;
    const now=Date.now();
    if(!chat.hidden||!overlay.hidden){
     if(now-lastRoomFallback>=30000){lastRoomFallback=now;refresh()}
