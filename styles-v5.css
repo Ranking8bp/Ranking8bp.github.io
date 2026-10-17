@@ -2988,3 +2988,28 @@ html,body,.viewport-shell{
 .ranking-row.ranking-first .ranking-elo-number{
   translate:-20px 0px!important;
 }
+
+/* Perfil simétrico: identidad y rango con el mismo ancho y acabado */
+.identity-section,.competitive-hub{
+ width:min(690px,92%)!important;max-width:690px!important;
+ margin:16px auto!important;padding:16px!important;
+ border:1px solid rgba(185,154,81,.65)!important;border-radius:18px!important;
+ background:rgba(11,23,35,.78)!important;box-shadow:0 8px 24px rgba(0,0,0,.2);
+}
+.identity-section{display:grid!important;grid-template-columns:112px minmax(0,1fr)!important;gap:16px!important;align-items:center!important}
+.identity-section .portrait-frame{width:108px!important;height:108px!important;padding:5px!important}
+.identity-section .portrait-frame:before{inset:7px!important;border-width:1px!important}
+.identity-section .portrait-crown{display:none!important}
+.identity-section .identity-copy{overflow:visible!important;min-width:0!important}
+.identity-section .name-line{gap:9px!important;flex-wrap:wrap}
+.identity-section .name-line h2{font:800 clamp(19px,4.6vw,28px)/1.2 Arial,sans-serif!important;overflow-wrap:anywhere;color:#f4d47c!important}
+.identity-section .verified-mark{width:20px!important;height:20px!important;font-size:12px!important;border-width:2px!important}
+.identity-section .country-line{margin-top:7px!important;gap:7px!important;font:600 14px/1.3 Arial,sans-serif!important}
+.identity-section .country-flag{font-size:20px!important}
+.identity-section .profile-quote{display:none!important}
+.identity-section .main-follow-stats{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;margin:12px 0 0!important}
+.identity-section .main-follow-stats>div{padding:10px 4px!important;border-radius:10px!important;background:rgba(29,35,48,.75)!important;text-align:center!important;min-width:0}
+.identity-section .main-follow-stats strong{font:800 20px/1.2 Arial,sans-serif!important;color:white!important}
+.identity-section .main-follow-stats span{font:700 10px/1.3 Arial,sans-serif!important;color:#e5c26d!important}
+.competitive-hub{display:grid!important;gap:12px!important}
+@media(max-width:420px){.identity-section{grid-template-columns:84px minmax(0,1fr)!important;gap:10px!important;padding:12px!important}.identity-section .portrait-frame{width:82px!important;height:82px!important}.identity-section .main-follow-stats span{font-size:9px!important}}
