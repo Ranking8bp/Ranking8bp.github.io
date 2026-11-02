@@ -3,7 +3,7 @@
  const $=id=>document.getElementById(id);
  const style=document.createElement('style');style.textContent=`
  #manualVsOpen[hidden]{display:none!important}#manualVsOpen{display:block;width:100%;margin:7px 0;padding:12px;border-radius:12px;background:#153b69;border:1px solid #4e9bff;color:white;font-weight:900;cursor:pointer}
- #manualVsOverlay[hidden]{display:none!important}#manualVsOverlay{position:fixed;inset:0;z-index:2147483000;background:#000d;display:flex;align-items:center;justify-content:center;padding:12px}
+ #manualVsOverlay[hidden]{display:none!important}#manualVsOverlay{position:fixed;inset:0;z-index:2147483647;background:#000d;display:flex;align-items:center;justify-content:center;padding:12px}
  #manualVsPanel{width:min(760px,100%);max-height:92vh;overflow:auto;background:#071522;border:1px solid #d5aa54;border-radius:18px;padding:20px;color:white;box-sizing:border-box}
  #manualVsPanel button{cursor:pointer;border-radius:9px;padding:10px;border:1px solid #b6a06b;background:#17334b;color:white;font-weight:bold}
  #manualVsPanel button:disabled{opacity:.4;cursor:not-allowed}#manualVsPanel input{width:100%;box-sizing:border-box;padding:12px;background:#0e2332;color:white;border:1px solid #6c8798;border-radius:9px}
@@ -35,7 +35,7 @@
  for(let i=0;i<2;i++)$('manualVsWin'+(i+1)).onclick=()=>{if(confirm('¿Confirmas ganador y +100 ELO, perdedor -100 ELO?'))run('finish',{p_winner:selected[i].id})};
  $('manualVsCancel').onclick=()=>{if(confirm('¿Cancelar sin modificar ELO?'))run('cancel')};
  $('manualVsClose').onclick=()=>overlay.hidden=true;overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.hidden=true});
- const open=async()=>{overlay.hidden=false;say('Cargando...');try{await refresh()}catch(e){say('No autorizado o conexión no disponible: '+e.message)}};
+ const open=async()=>{document.body.appendChild(overlay);overlay.hidden=false;say('Cargando...');try{await refresh()}catch(e){say('No autorizado o conexión no disponible: '+e.message)}};
  const place=()=>{const anchor=document.querySelector('.sv-create')||[...document.querySelectorAll('button')].find(b=>/ENVIAR SALA VS/i.test(b.textContent||''));if(!anchor)return;
  let b=$('manualVsOpen');if(!b){b=document.createElement('button');b.id='manualVsOpen';b.textContent='⚔ CREAR UN VERSUS';b.addEventListener('click',open)}
  if(b.previousElementSibling!==anchor)anchor.insertAdjacentElement('afterend',b);
