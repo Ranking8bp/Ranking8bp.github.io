@@ -8,7 +8,13 @@
  #manualVsPanel button{cursor:pointer;border-radius:9px;padding:10px;border:1px solid #b6a06b;background:#17334b;color:white;font-weight:bold}
  #manualVsPanel button:disabled{opacity:.4;cursor:not-allowed}#manualVsPanel input{width:100%;box-sizing:border-box;padding:12px;background:#0e2332;color:white;border:1px solid #6c8798;border-radius:9px}
  .manual-vs-grid{display:grid;grid-template-columns:1fr 45px 1fr;gap:8px;align-items:start}.manual-vs-person{min-width:0;text-align:center;border:1px solid #37556a;border-radius:12px;padding:10px}
- .manual-vs-person img{width:75px;height:75px;object-fit:cover;border-radius:50%;display:block;margin:auto}.manual-vs-person strong{display:block;overflow-wrap:anywhere}.manual-vs-results{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+ .manual-vs-person{min-height:245px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px}
+ .manual-vs-person>div[id^="manualVsInfo"]{width:100%;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+ .manual-vs-person img:not(.rank-original-img){width:76px!important;height:76px!important;max-width:76px!important;object-fit:cover;border-radius:50%;display:block;margin:0 auto}
+ .manual-vs-rank{width:84px!important;height:84px!important;max-width:84px!important;max-height:84px!important;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none}
+ .manual-vs-rank img,.manual-vs-rank .rank-original-img{width:100%!important;height:100%!important;max-width:84px!important;max-height:84px!important;object-fit:contain!important;border-radius:0!important;display:block!important}
+ .manual-vs-details{font-size:13px;line-height:1.45;overflow-wrap:anywhere;max-width:100%}
+ .manual-vs-person strong{display:block;overflow-wrap:anywhere}.manual-vs-person strong{display:block;overflow-wrap:anywhere}.manual-vs-results{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:18px}
  .manual-vs-hits{max-height:170px;overflow:auto}.manual-vs-hits button{display:block;width:100%;text-align:left;margin:4px 0}
  @media(max-width:500px){#manualVsPanel{padding:12px}.manual-vs-grid{grid-template-columns:minmax(0,1fr) 25px minmax(0,1fr)}}
  `;document.head.append(style);
@@ -21,7 +27,7 @@
  const call=async(action,extra={})=>{if(!client())throw Error('Conexión no disponible');const {data,error}=await client().rpc('admin_manual_vs_action',{p_action:action,p_player1:null,p_player2:null,p_winner:null,...extra});if(error)throw error;return data};
  const photo=p=>{if(!p?.avatar_path)return '';const {data}=client().storage.from('profile-photos').getPublicUrl(p.avatar_path);return data?.publicUrl||''};
  const render=()=>{
-  for(let i=0;i<2;i++){const p=selected[i],target=$('manualVsInfo'+(i+1));target.replaceChildren();if(p){const img=photo(p);if(img){const image=document.createElement('img');image.src=img;image.alt='Foto de perfil';target.append(image)}const d=document.createElement('div');d.textContent=(p.account_name||p.username||'Jugador')+' · ID '+(p.game_id||'—')+' · #'+(p.position||'—')+' · '+(p.elo_points??0)+' ELO · '+(p.rank_name||'');target.append(d);try{if(typeof getRankByElo==='function'&&typeof renderRankBadgeOn==='function'){const badge=document.createElement('div');renderRankBadgeOn(badge,getRankByElo(p.elo_points));target.prepend(badge)}}catch(_){}}$('manualVsInput'+(i+1)).hidden=!!p;$('manualVsRemove'+(i+1)).hidden=!p}
+  for(let i=0;i<2;i++){const p=selected[i],target=$('manualVsInfo'+(i+1));target.replaceChildren();if(p){const img=photo(p);if(img){const image=document.createElement('img');image.src=img;image.alt='Foto de perfil';target.append(image)}const d=document.createElement('div');d.className='manual-vs-details';d.textContent=(p.account_name||p.username||'Jugador')+' · ID '+(p.game_id||'—')+' · #'+(p.position||'—')+' · '+(p.elo_points??0)+' ELO · '+(p.rank_name||'');target.append(d);try{if(typeof getRankByElo==='function'&&typeof renderRankBadgeOn==='function'){const badge=document.createElement('div');badge.className='manual-vs-rank';renderRankBadgeOn(badge,getRankByElo(p.elo_points));target.prepend(badge)}}catch(_){}}$('manualVsInput'+(i+1)).hidden=!!p;$('manualVsRemove'+(i+1)).hidden=!p}
   $('manualVsSave').textContent=room?'REEMPLAZAR JUGADORES':'CREAR SALA';$('manualVsSave').disabled=busy||!selected[0]||!selected[1]||selected[0].id===selected[1].id;
   for(const id of ['manualVsWin1','manualVsWin2','manualVsCancel'])$(id).disabled=busy||!room;
  };
