@@ -2,7 +2,7 @@
 (()=>{
  const $=id=>document.getElementById(id);
  const style=document.createElement('style');style.textContent=`
- #manualVsOpen{display:block;width:100%;margin:7px 0;padding:12px;border-radius:12px;background:#153b69;border:1px solid #4e9bff;color:white;font-weight:900;cursor:pointer}
+ #manualVsOpen[hidden]{display:none!important}#manualVsOpen{display:block;width:100%;margin:7px 0;padding:12px;border-radius:12px;background:#153b69;border:1px solid #4e9bff;color:white;font-weight:900;cursor:pointer}
  #manualVsOverlay[hidden]{display:none!important}#manualVsOverlay{position:fixed;inset:0;z-index:2147483000;background:#000d;display:flex;align-items:center;justify-content:center;padding:12px}
  #manualVsPanel{width:min(760px,100%);max-height:92vh;overflow:auto;background:#071522;border:1px solid #d5aa54;border-radius:18px;padding:20px;color:white;box-sizing:border-box}
  #manualVsPanel button{cursor:pointer;border-radius:9px;padding:10px;border:1px solid #b6a06b;background:#17334b;color:white;font-weight:bold}
@@ -36,10 +36,12 @@
  $('manualVsCancel').onclick=()=>{if(confirm('¿Cancelar sin modificar ELO?'))run('cancel')};
  $('manualVsClose').onclick=()=>overlay.hidden=true;overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.hidden=true});
  const open=async()=>{overlay.hidden=false;say('Cargando...');try{await refresh()}catch(e){say('No autorizado o conexión no disponible: '+e.message)}};
- let checking=false;
- const place=async()=>{if(checking||$('manualVsOpen')||!client())return;checking=true;try{const {data:{user}}=await client().auth.getUser();if(!user)return;const {data}=await client().from('profiles').select('is_admin,username').eq('id',user.id).single();if(!data?.is_admin||String(data.username).toLowerCase()!=='ikar8bp')return;
- const candidates=[...document.querySelectorAll('button')];const anchor=candidates.find(b=>/ENVIAR SALA VS/i.test(b.textContent||''));if(!anchor)return;
- const b=document.createElement('button');b.id='manualVsOpen';b.textContent='⚔ CREAR UN VERSUS';anchor.insertAdjacentElement('afterend',b);b.addEventListener('click',open);
- }catch(e){console.warn('Manual VS:',e)}finally{checking=false}};
- document.addEventListener('DOMContentLoaded',()=>{place();setInterval(place,3500)});if(document.readyState!=='loading'){place();setInterval(place,3500)}
+ const place=()=>{const anchor=document.querySelector('.sv-create')||[...document.querySelectorAll('button')].find(b=>/ENVIAR SALA VS/i.test(b.textContent||''));if(!anchor)return;
+ let b=$('manualVsOpen');if(!b){b=document.createElement('button');b.id='manualVsOpen';b.textContent='⚔ CREAR UN VERSUS';b.addEventListener('click',open)}
+ if(b.previousElementSibling!==anchor)anchor.insertAdjacentElement('afterend',b);
+ b.hidden=anchor.hidden||getComputedStyle(anchor).display==='none';
+ };
+ const observer=new MutationObserver(()=>place());document.addEventListener('DOMContentLoaded',()=>{place();observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden'],childList:true});setInterval(place,3000)},{once:true});
+ if(document.readyState!=='loading'){place();observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden'],childList:true});setInterval(place,3000)}
+
 })();
