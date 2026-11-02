@@ -39,7 +39,7 @@
  const place=()=>{const anchor=document.querySelector('.sv-create')||[...document.querySelectorAll('button')].find(b=>/ENVIAR SALA VS/i.test(b.textContent||''));if(!anchor)return;
  let b=$('manualVsOpen');if(!b){b=document.createElement('button');b.id='manualVsOpen';b.textContent='⚔ CREAR UN VERSUS';b.addEventListener('click',open)}
  if(b.previousElementSibling!==anchor)anchor.insertAdjacentElement('afterend',b);
- b.hidden=anchor.hidden||getComputedStyle(anchor).display==='none';
+ const shouldHide=anchor.hidden||getComputedStyle(anchor).display==='none';if(b.hidden!==shouldHide)b.hidden=shouldHide;
  };
  const observer=new MutationObserver(()=>place());document.addEventListener('DOMContentLoaded',()=>{place();observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden'],childList:true});setInterval(place,3000)},{once:true});
  if(document.readyState!=='loading'){place();observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden'],childList:true});setInterval(place,3000)}
